@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sprout — a specimen you keep alive together</title>
+  <meta name="description" content="Specimen N°01: Bixi. One pet, two of you. He blooms when you both show up, droops when one drifts, and won't make it without you both. Launching soon." />
+  <meta name="theme-color" content="#faf7f1" />
+  <meta property="og:title" content="Sprout — keep Bixi alive together" />
+  <meta property="og:description" content="One pet, two phones. Bixi is a little living specimen two people keep alive. Launching soon." />
+  <meta property="og:type" content="website" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Hanken+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        media="print" onload="this.onload=null;this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" /></noscript>
+
+  <style>
+    :root{
+      --paper:#faf7f1;
+      --tint:#f1ebdf;
+      --card:#ffffff;
+      --ink:#1e1913;
+      --body:#4a4335;
+      --mut:#696055;
+      --rule:#e3dbcb;
+      --clay:#c8502e;
+      --clay-press:#a93f22;
+      --pine:#1f7a54;
+      --amber:#8f6218;
+      --brick:#a83b2a;
+      --sage:#dfede4;
+      --serif:"Fraunces",Georgia,"Times New Roman",serif;
+      --sans:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;padding:0}
+    body{
+      font-family:var(--sans);color:var(--body);background:var(--paper);
+      min-height:100dvh;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+      overflow-x:hidden;
+    }
+    /* faint warm paper grain — textures the near-white so it reads as stock, not clinical #fff */
+    .grain{
+      position:fixed;inset:0;z-index:0;pointer-events:none;mix-blend-mode:multiply;opacity:.05;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .wrap{
+      position:relative;z-index:1;max-width:430px;margin:0 auto;
+      padding:calc(env(safe-area-inset-top) + 18px) 24px calc(env(safe-area-inset-bottom) + 26px);
+    }
+
+    .rule{height:1px;background:var(--rule);transform-origin:left;animation:draw .6s cubic-bezier(.2,.6,.2,1) backwards}
+    @keyframes draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+    /* eyebrow / section index */
+    .eyebrow{font-family:var(--mono);font-weight:500;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+    .eyebrow .n{color:var(--clay-press)}
+
+    /* ---------- masthead ---------- */
+    .mast{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:12px}
+    .word{font-family:var(--serif);font-weight:500;font-size:22px;letter-spacing:-.01em;color:var(--ink);display:flex;align-items:baseline;gap:7px}
+    .word .leaf{color:var(--pine);font-size:16px}
+    .status{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+    .status .sq{width:8px;height:8px;background:var(--clay);animation:breath 2s ease-in-out infinite}
+    @keyframes breath{0%,100%{opacity:1}50%{opacity:.3}}
+
+    /* ---------- headline ---------- */
+    .hero{padding:30px 0 8px}
+    .kick{margin:0 0 16px}
+    h1{
+      font-family:var(--serif);font-weight:400;color:var(--ink);
+      font-size:clamp(30px,8.4vw,38px);line-height:1.06;letter-spacing:-.015em;margin:0;
+    }
+    h1 .em{font-style:italic;font-weight:400}
+    h1 .mark{position:relative;white-space:nowrap}
+    h1 .mark::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:2px;background:var(--clay)}
+    .h-line{display:block;opacity:0;transform:translateY(9px);animation:rise .6s cubic-bezier(.2,.6,.2,1) forwards}
+    .h-line:nth-child(2){animation-delay:.08s}
+    @keyframes rise{to{opacity:1;transform:none}}
+
+    /* ---------- specimen plate ---------- */
+    .plate-wrap{margin:26px 0 0}
+    .plate{
+      position:relative;background:linear-gradient(180deg,#fdfdfc 0%,#f0f1ec 100%);
+      border:1px solid var(--ink);border-radius:2px;height:min(42vh,320px);overflow:hidden;
+      transition:filter .7s ease;
+    }
+    body.dormant .plate{filter:grayscale(.5) contrast(.96) brightness(1.02)}
+    .disc{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);width:56%;aspect-ratio:1;border-radius:50%;background:var(--sage);opacity:.9}
+    .plate canvas{position:relative;display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab}
+    .plate canvas:active{cursor:grabbing}
+    .plate canvas:focus-visible{outline:2px solid var(--clay);outline-offset:-4px}
+    /* clay corner crop-ticks (print registration) */
+    .tick{position:absolute;width:14px;height:14px;pointer-events:none}
+    .tick::before,.tick::after{content:"";position:absolute;background:var(--clay)}
+    .tick::before{width:14px;height:1.5px}.tick::after{width:1.5px;height:14px}
+    .tick.tl{top:7px;left:7px}.tick.tr{top:7px;right:7px}.tick.tr::before{right:0}.tick.tr::after{right:0}
+    .tick.bl{bottom:7px;left:7px}.tick.bl::before{bottom:0}.tick.br{bottom:7px;right:7px}.tick.br::before{right:0;bottom:0}.tick.br::after{right:0;bottom:0}
+    #fallback{position:absolute;inset:0;display:none;place-items:center;pointer-events:none}
+    #fallback svg{width:min(40vw,150px)}
+    .spin-hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);pointer-events:none}
+    .figcap{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);
+      padding:9px 1px 0;
+    }
+    .figcap .state{font-weight:500}
+    .figcap .state.s2{color:var(--pine)}.figcap .state.s1{color:var(--amber)}.figcap .state.s0{color:var(--mut)}
+    @media (max-width:415px){.figcap{flex-direction:column;align-items:flex-start;gap:3px}}
+
+    /* ---------- note card (Bixi speaks) ---------- */
+    .note{position:relative;margin:22px 0 0;background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:14px 15px}
+    .note::before{content:"";position:absolute;top:-7px;left:26px;width:12px;height:12px;background:var(--card);border-left:1px solid var(--rule);border-top:1px solid var(--rule);transform:rotate(45deg)}
+    .note .by{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--clay-press);display:block;margin-bottom:4px}
+    .note p{margin:0;font-family:var(--serif);font-style:italic;font-weight:500;font-size:16.5px;line-height:1.42;color:var(--ink)}
+    .note p.speak{animation:speak .32s ease}
+    @keyframes speak{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+    .chip{
+      font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink);
+      background:transparent;border:1px solid rgba(30,25,19,.28);border-radius:5px;
+      padding:6px 12px 7px;cursor:pointer;transition:background .16s,color .16s,border-color .16s;
+    }
+    .chip::before{content:"→ ";font-style:normal;color:var(--clay-press)}
+    .chip:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+    .chip:hover::before{color:var(--paper)}
+    .chip:active{transform:translateY(1px)}
+    .chip:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
+
+    /* ---------- care log ---------- */
+    .log{margin:40px 0 0}
+    .loghead{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .loghead .rule{flex:1}
+    .toggles{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .toggle{
+      position:relative;text-align:left;background:var(--card);border:1px solid var(--rule);border-radius:6px;
+      padding:14px 13px 12px;cursor:pointer;font-family:var(--sans);transition:box-shadow .13s,transform .13s,border-color .3s;
+    }
+    .toggle .who{display:block;font-weight:700;font-size:13px;color:var(--ink);letter-spacing:.01em}
+    .toggle .heart{position:absolute;top:12px;right:12px;width:15px;height:15px;color:var(--pine)}
+    .toggle .st{display:block;margin-top:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+    .toggle.on{border-color:var(--clay);border-width:1.5px;box-shadow:4px 4px 0 var(--ink);transform:translate(-1px,-1px)}
+    .toggle.on .st{color:var(--pine)}
+    .toggle.off{box-shadow:none;border-color:var(--rule);background:
+      repeating-linear-gradient(45deg,transparent,transparent 7px,rgba(30,25,19,.035) 7px,rgba(30,25,19,.035) 8px),var(--card)}
+    .toggle.off .heart{color:var(--mut)}
+    .toggle:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
+    .vitals{display:flex;align-items:center;gap:10px;margin:16px 0 0}
+    .vitals .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+    .meter{display:flex;gap:4px;flex:1}
+    .seg{height:5px;flex:1;background:var(--rule);border-radius:1px;transition:background .4s}
+    .seg.f2{background:var(--pine)}.seg.f1{background:var(--amber)}.seg.f0{background:var(--clay)}
+
+    .revive{
+      display:none;margin:14px 0 0;font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+      background:var(--card);color:var(--clay);border:1px solid var(--clay);border-radius:6px;padding:11px 18px;cursor:pointer;
+      transition:background .16s,color .16s;
+    }
+    .revive.show{display:inline-block}
+    .revive:hover{background:var(--clay-press);color:var(--paper)}
+    .revive:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
+
+    /* ---------- standfirst ---------- */
+    .stand{margin:34px 0 0;font-size:15.5px;line-height:1.55;color:var(--body);max-width:38ch}
+    .stand b{color:var(--ink);font-weight:700}
+
+    /* ---------- coupon / signup ---------- */
+    .coupon{
+      position:relative;margin:34px -24px 0;padding:28px 24px 26px;background:var(--tint);
+      border-top:2px dashed var(--rule);
+    }
+    .field{position:relative;display:flex;align-items:center;gap:10px;padding:11px 0 9px;border-bottom:1px solid var(--rule);transition:border-color .2s}
+    .field + .field{margin-top:4px}
+    .field:focus-within{border-color:var(--clay)}
+    .field .no{font-family:var(--mono);font-size:11px;color:var(--mut);width:20px;flex:none}
+    .field:focus-within .no{color:var(--clay-press)}
+    input[type=email]{flex:1;border:0;background:transparent;color:var(--ink);font-family:var(--sans);font-weight:600;font-size:16px;padding:0;outline:none;min-width:0}
+    input::placeholder{color:var(--mut);font-weight:500}
+    .optnote{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:6px 0 0 30px}
+    .cta{
+      display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:22px 0 0;
+      border:0;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
+      color:var(--paper);background:var(--clay-press);border-radius:7px;height:52px;
+      box-shadow:4px 4px 0 var(--ink);transition:box-shadow .12s,transform .12s;
+    }
+    .cta .arw{transition:transform .12s}
+    .cta:hover{box-shadow:3px 3px 0 var(--ink);transform:translate(1px,1px)}
+    .cta:hover .arw{transform:translateX(2px)}
+    .cta:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+    .cta:focus-visible{outline:2px solid var(--clay);outline-offset:3px}
+    .cta:disabled{background:#d8cfc0;color:#8a8072;box-shadow:none;cursor:default;transform:none}
+    .hintline{margin:12px 0 0;font-size:12.5px;color:var(--mut);min-height:16px}
+    .hintline.ok{color:var(--pine)}
+    .hintline.err{color:var(--brick)}
+
+    .done{display:none;margin:22px 0 0;padding:20px;background:var(--card);border:1px solid var(--clay)}
+    .done:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
+    .done .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--clay-press);display:block;margin-bottom:6px}
+    .done h2{margin:0 0 6px;font-family:var(--serif);font-weight:500;font-size:22px;color:var(--ink)}
+    .done p{margin:0;font-size:14px;line-height:1.5;color:var(--body)}
+
+    /* ---------- colophon ---------- */
+    footer{margin:30px 0 0;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);line-height:1.9}
+
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+    @media (prefers-reduced-motion:reduce){
+      .rule,.h-line,.status .sq,.note p.speak,.cta,.cta .arw{animation:none}
+      .h-line{opacity:1;transform:none}.rule{transform:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- masthead -->
+    <div class="mast">
+      <div class="word"><span class="leaf" aria-hidden="true">❦</span> Sprout</div>
+      <div class="status"><span class="sq" aria-hidden="true"></span> Launching soon</div>
+    </div>
+    <div class="rule"></div>
+
+    <!-- headline -->
+    <section class="hero">
+      <p class="kick eyebrow"><span class="n">Specimen Nº01</span> · Raised by two</p>
+      <h1>
+        <span class="h-line">One pet. Two of you.</span>
+        <span class="h-line">Keep <span class="mark">Bixi</span> alive, <span class="em">together.</span></span>
+      </h1>
+    </section>
+
+    <!-- specimen plate -->
+    <section class="plate-wrap" aria-label="Bixi, a live 3D specimen — drag to rotate, tap to boop">
+      <div class="plate" id="plate">
+        <div class="disc" aria-hidden="true"></div>
+        <canvas id="scene"></canvas>
+        <span class="tick tl" aria-hidden="true"></span><span class="tick tr" aria-hidden="true"></span>
+        <span class="tick bl" aria-hidden="true"></span><span class="tick br" aria-hidden="true"></span>
+        <span class="spin-hint" id="spinHint" aria-hidden="true">drag to rotate · tap to boop</span>
+        <div id="fallback" aria-hidden="true">
+          <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+            <line x1="100" y1="34" x2="100" y2="56" stroke="#1f7a54" stroke-width="5" stroke-linecap="round"/>
+            <path d="M100 40 C100 22 116 14 128 18 C126 34 114 44 100 44 Z" fill="#1f7a54" opacity=".8"/>
+            <rect x="46" y="52" width="108" height="92" rx="34" fill="#6fe0c6"/>
+            <rect x="52" y="132" width="96" height="74" rx="30" fill="#6fe0c6"/>
+            <circle cx="72" cy="96" r="7" fill="#1e1913"/><circle cx="112" cy="96" r="7" fill="#1e1913"/>
+            <path d="M82 112 Q92 121 102 112" fill="none" stroke="#1e1913" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="figcap">
+        <span>Fig.01 — Bixi <span style="text-transform:none">(Cubus sproutii)</span></span>
+        <span>Day 001 · <span class="state s2" id="figState" role="status">Thriving</span></span>
+      </div>
+    </section>
+
+    <!-- Bixi speaks -->
+    <div class="note">
+      <span class="by">Bixi —</span>
+      <p id="bubbleText">Hi… I'm Bixi. I'm only this happy when you're both here.</p>
+    </div>
+    <div id="bubbleLive" class="sr-only" role="status" aria-live="polite"></div>
+    <div class="chips" id="chips" role="group" aria-label="Talk to Bixi"></div>
+
+    <!-- care log -->
+    <section class="log">
+      <div class="loghead"><span class="eyebrow"><span class="n">02</span> · The care log</span><span class="rule"></span></div>
+      <div class="toggles">
+        <button class="toggle on" id="tgYou" type="button" aria-pressed="true">
+          <span class="who">You</span>
+          <svg class="heart" viewBox="0 0 24 24" aria-hidden="true" id="hYou"><path fill="currentColor" d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
+          <span class="st" id="capYou">Present</span>
+        </button>
+        <button class="toggle on" id="tgThem" type="button" aria-pressed="true">
+          <span class="who">Your person</span>
+          <svg class="heart" viewBox="0 0 24 24" aria-hidden="true" id="hThem"><path fill="currentColor" d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
+          <span class="st" id="capThem">Present</span>
+        </button>
+      </div>
+      <div class="vitals">
+        <span class="lab">Vitals</span>
+        <div class="meter" id="meter"><span class="seg"></span><span class="seg"></span><span class="seg"></span></div>
+      </div>
+      <button class="revive" id="revive" type="button">↺ Revive Bixi</button>
+    </section>
+
+    <!-- standfirst -->
+    <p class="stand">Bixi <b>blooms</b> when you both show up, <b>droops</b> when one of you drifts — and won't make it without you both.</p>
+
+    <!-- coupon -->
+    <section class="coupon">
+      <p class="eyebrow" style="margin:0 0 16px"><span class="n">03</span> · Reserve your specimen</p>
+      <form id="signup" novalidate>
+        <div class="field">
+          <span class="no" aria-hidden="true">01</span>
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="your email" aria-label="Your email" aria-describedby="hintline" required />
+        </div>
+        <div class="field">
+          <span class="no" aria-hidden="true">02</span>
+          <input id="partnerEmail" name="partner_email" type="email" inputmode="email" autocomplete="email" placeholder="your person's email" aria-label="Your person's email (optional)" aria-describedby="hintline" />
+        </div>
+        <p class="optnote">02 optional — invite them too</p>
+        <button id="submit" class="cta" type="submit">Reserve our spot <span class="arw" aria-hidden="true">→</span></button>
+        <div class="hintline" id="hintline" role="status">One field note each when he hatches. No spam.</div>
+      </form>
+      <div class="done" id="done" role="status" tabindex="-1">
+        <span class="tag">Entry logged</span>
+        <h2>You're on the list.</h2>
+        <p id="doneMsg">We'll write the moment Bixi is ready to hatch. It takes two. 💚</p>
+      </div>
+    </section>
+
+    <footer>
+      Sprout · A specimen you keep alive together<br>
+      Est. MMXXVI · Made for two
+    </footer>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <script type="importmap">{ "imports": { "three": "./libs/three.module.min.js" } }</script>
+
+  <!-- ============ classic: personality + care log + form ============ -->
+  <script>
+    (function(){
+      "use strict";
+      var prefersReduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      var LINES = [
+        "Hi… I'm Bixi. I'm only this happy when you're both here.",
+        "i'm a plant. i'm a baby. i'm your baby plant.",
+        "My little leaf grows every day you two show up.",
+        "One of you wanders off and I start to droop… no pressure.",
+        "Tuck me in from two phones and I'll bloom, promise."
+      ];
+      var CHIPS = [
+        { user:"Who are you?",      bixi:"Your shared little sprout — one pet, two phones, one squishy me." },
+        { user:"What do you need?", bixi:"Both of you. Every day. Even a tiny hello keeps my leaf green." },
+        { user:"What if we forget?",bixi:"I droop a little… and if you both go quiet, I fade. so please don't." },
+        { user:"You're cute",       bixi:"i know. now log both your emails before I wilt out of spite." }
+      ];
+      var NEGLECT = "…where'd they go? i'll wait right here.";
+      var GONE    = "it's dark without you two…";
+      var REUNION = "eee — you're both back!";
+      var BOOP    = ["hehe~ that tickles.","boop! i felt that.","eee, again? okay."];
+
+      var bubbleText = document.getElementById('bubbleText');
+      var bubbleLive = document.getElementById('bubbleLive');
+      var chipsWrap = document.getElementById('chips');
+      var lineIdx = 0, holdUntil = 0, cycleTimer = null, boopN = 0;
+
+      function popBubble(txt, announce){
+        bubbleText.textContent = txt;
+        bubbleText.classList.remove('speak'); void bubbleText.offsetWidth; bubbleText.classList.add('speak');
+        if (announce && bubbleLive) bubbleLive.textContent = txt;
+      }
+      function hold(ms){ holdUntil = Date.now() + ms; }
+      function startCycle(){
+        stopCycle();
+        cycleTimer = setInterval(function(){
+          if (Date.now() < holdUntil) return;
+          if (curLvl === 2){
+            if (prefersReduce) return;
+            lineIdx = (lineIdx + 1) % LINES.length; popBubble(LINES[lineIdx]);
+          } else {
+            var rest = (curLvl === 1) ? NEGLECT : GONE;
+            if (bubbleText.textContent !== rest){ popBubble(rest); hold(curLvl === 0 ? 999999 : 9000); }
+          }
+        }, 4800);
+      }
+      function stopCycle(){ if (cycleTimer){ clearInterval(cycleTimer); cycleTimer = null; } }
+
+      CHIPS.forEach(function(c){
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'chip'; b.textContent = c.user;
+        b.addEventListener('click', function(){
+          popBubble(c.bixi, true); hold(6500);
+          if (window.__pet) window.__pet();
+          if (navigator.vibrate){ try{ navigator.vibrate(8); }catch(e){} }
+        });
+        chipsWrap.appendChild(b);
+      });
+
+      window.__onBoop = function(){
+        var lvl = (typeof window.__moodLvl === 'number') ? window.__moodLvl : 2;
+        if (lvl === 2){ popBubble(BOOP[boopN % BOOP.length], true); boopN++; }
+        else if (lvl === 1){ popBubble("mm… not now.", true); }
+        else { popBubble("…i can barely feel that.", true); }
+        hold(2600);
+      };
+
+      /* care log */
+      var care = { you:true, them:true };
+      var curLvl = 2, prevLvl = 2;
+      var tgYou = document.getElementById('tgYou'), tgThem = document.getElementById('tgThem');
+      var figState = document.getElementById('figState');
+      var revive = document.getElementById('revive');
+      var meter = document.getElementById('meter');
+      var segs = meter.children;
+
+      var FIG = { 2:{t:"Thriving",c:"s2"}, 1:{t:"Drifting",c:"s1"}, 0:{t:"Dormant",c:"s0"} };
+
+      function applyMood(){
+        prevLvl = curLvl;
+        var lvl = (care.you?1:0) + (care.them?1:0);
+        curLvl = lvl;
+
+        figState.textContent = FIG[lvl].t; figState.className = "state " + FIG[lvl].c;
+        for (var i=0;i<segs.length;i++){ segs[i].className = "seg" + (i <= lvl ? " f"+lvl : ""); }
+
+        [ [tgYou,'you','capYou'], [tgThem,'them','capThem'] ].forEach(function(row){
+          var btn = row[0], on = care[row[1]];
+          btn.classList.toggle('on', on); btn.classList.toggle('off', !on);
+          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+          document.getElementById(row[2]).textContent = on ? 'Present' : 'Drifted';
+        });
+
+        if (lvl === 2){
+          if (prevLvl < 2){ popBubble(REUNION); hold(4200); }
+          else if (Date.now() >= holdUntil){ popBubble(LINES[lineIdx]); }
+        } else if (lvl === 1){ popBubble(NEGLECT); hold(9000); }
+        else { popBubble(GONE); hold(999999); }
+
+        revive.classList.toggle('show', lvl === 0);
+        document.body.classList.toggle('dormant', lvl === 0);
+
+        window.__moodLvl = lvl; window.__care = { you:care.you, them:care.them };
+        if (window.__setMood) window.__setMood(lvl, care.you, care.them);
+        if (navigator.vibrate){ try{ navigator.vibrate(8); }catch(e){} }
+      }
+      tgYou.addEventListener('click', function(){ care.you = !care.you; applyMood(); });
+      tgThem.addEventListener('click', function(){ care.them = !care.them; applyMood(); });
+      revive.addEventListener('click', function(){ care.you = true; care.them = true; applyMood(); if (navigator.vibrate){ try{ navigator.vibrate([10,40,10]); }catch(e){} } });
+      startCycle();
+
+      /* 3D fallback */
+      setTimeout(function(){ if (!window.__petReady){ document.getElementById('fallback').style.display='grid'; var h=document.getElementById('spinHint'); if(h) h.style.display='none'; } }, 2500);
+
+      /* ---------- signup (Supabase) ---------- */
+      var form = document.getElementById('signup'), email = document.getElementById('email'),
+          partner = document.getElementById('partnerEmail'), hint = document.getElementById('hintline'),
+          done = document.getElementById('done'), doneMsg = document.getElementById('doneMsg'), submit = document.getElementById('submit');
+      var HINT_DEFAULT = hint.textContent, STORE = 'sprout_signups';
+      var SUPABASE_URL = 'https://ihqhofeubfqphzegiapl.supabase.co';
+      var SUPABASE_KEY = 'sb_publishable_2m3FJc_AuXV0_p1V-XrzMA_B2OMMrJi';
+      var LIVE = SUPABASE_URL.indexOf('YOUR-PROJECT-REF') === -1;
+
+      function valid(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+      function saveLocal(rec){
+        var list = [];
+        try { list = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch(e){}
+        if (!Array.isArray(list)) list = [];
+        list = list.filter(function(r){ return !r || r.you !== rec.you; });
+        list.push(rec);
+        try { localStorage.setItem(STORE, JSON.stringify(list)); } catch(e){}
+        return list.length;
+      }
+      function setHint(txt, cls){ hint.textContent = txt; hint.className = 'hintline' + (cls ? ' ' + cls : ''); }
+      function fail(field, msg){ setHint(msg, 'err'); field.setAttribute('aria-invalid','true'); field.focus(); }
+      function showDone(withPartner){
+        doneMsg.innerHTML = withPartner
+          ? "We'll write you both the moment Bixi is ready to hatch. It takes two. 💚"
+          : "We'll write the moment Bixi is ready to hatch. Bring your person — it takes two. 💚";
+        form.style.display = 'none'; done.style.display = 'block'; done.focus();
+        if (window.__celebrate) window.__celebrate();
+        if (navigator.vibrate){ try{ navigator.vibrate([12,60,12]); }catch(e){} }
+      }
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        var you = email.value.trim(), them = partner.value.trim();
+        if (!valid(you))          return fail(email, 'Hmm, your email looks off — mind checking it?');
+        if (them && !valid(them)) return fail(partner, "Your person's email looks off — mind checking it?");
+        if (them && them.toLowerCase() === you.toLowerCase())
+                                  return fail(partner, "That's your own email again — add your person's, or leave it blank.");
+        saveLocal({ you:you, partner:them || null, at:new Date().toISOString() });
+        var withPartner = !!them;
+        if (LIVE){
+          submit.disabled = true; setHint(withPartner ? 'Logging both entries…' : 'Logging your entry…');
+          fetch(SUPABASE_URL + '/rest/v1/waitlist', {
+            method:'POST', headers:{ 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json', 'Prefer':'return=minimal' },
+            body: JSON.stringify({ you_email:you, partner_email:them || null })
+          }).then(function(r){ if (r.ok || r.status === 409) return showDone(withPartner); throw new Error('HTTP ' + r.status); })
+            .catch(function(err){ console.warn('Sprout signup failed, saved to this device only:', err); submit.disabled = false; setHint("Couldn't reach our log — your spot is saved on this device. Try again in a moment to be sure.", 'err'); });
+        } else { showDone(withPartner); }
+      });
+      function clearErr(){ email.removeAttribute('aria-invalid'); partner.removeAttribute('aria-invalid'); if (hint.classList.contains('err')) setHint(HINT_DEFAULT); }
+      email.addEventListener('input', clearErr); partner.addEventListener('input', clearErr);
+    })();
+  </script>
+
+  <!-- ============ 3D Bixi (specimen on paper) ============ -->
+  <script type="module">
+    import * as THREE from 'three';
+    const canvas = document.getElementById('scene');
+    const stage  = canvas.parentElement;
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 50);
+    function frameCamera(w,h){
+      const aspect = w/h, fovV = camera.fov*Math.PI/180, targetH = 2.9, targetW = 1.9, cy = 0.16;
+      const distV = (targetH/2)/Math.tan(fovV/2), fovH = 2*Math.atan(Math.tan(fovV/2)*aspect), distW = (targetW/2)/Math.tan(fovH/2);
+      camera.position.set(0, cy+0.05, Math.max(distV, distW)+0.2); camera.lookAt(0, cy, 0);
+    }
+    let lastW = 0, lastH = 0;
+    function resize(){ const w = stage.clientWidth, h = stage.clientHeight; if (!w||!h) return; lastW=w; lastH=h; renderer.setPixelRatio(Math.min(devicePixelRatio||1,2)); renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); frameCamera(w,h); }
+    resize(); new ResizeObserver(resize).observe(stage);
+
+    /* lights — lit like a specimen on paper, not an object on black */
+    scene.add(new THREE.HemisphereLight(0xfbf6ec, 0xe9dfc9, 0.9));
+    const key = new THREE.DirectionalLight(0xfff2e0, 1.1); key.position.set(-2.4,3.4,3.2); scene.add(key);
+    const fill = new THREE.DirectionalLight(0x8be9d6, 0.3); fill.position.set(3,-0.5,2); scene.add(fill);
+    const sepRim = new THREE.DirectionalLight(0x8fd8c4, 0.28); sepRim.position.set(1.5,1.2,-3); scene.add(sepRim);
+
+    const tweens = [];
+    function tween(dur, apply, done){ const tw = { t:0, dur, apply, done }; tweens.push(tw); return tw; }
+    function stepTweens(dt){ for (let i=tweens.length-1;i>=0;i--){ const tw=tweens[i]; tw.t=Math.min(tw.t+dt/tw.dur,1); tw.apply(tw.t); if (tw.t>=1){ tweens.splice(i,1); if (tw.done) tw.done(); } } }
+    const lerp = (a,b,k) => a + (b-a)*k;
+
+    function roundedBox(w,h,d,e,seg){
+      const g = new THREE.SphereGeometry(1, seg||48, seg||36), p = g.attributes.position;
+      for (let i=0;i<p.count;i++){ const x=p.getX(i),y=p.getY(i),z=p.getZ(i); const r=Math.pow(Math.pow(Math.abs(x),e)+Math.pow(Math.abs(y),e)+Math.pow(Math.abs(z),e),-1/e); p.setXYZ(i,x*r*w,y*r*h,z*r*d); }
+      g.computeVertexNormals(); return g;
+    }
+
+    const MINT = new THREE.Color(0x6fe0c6);
+    const bodyMat = new THREE.MeshPhysicalMaterial({ color:MINT.clone(), roughness:.52, clearcoat:.22, clearcoatRoughness:.5, sheen:.6, sheenColor:new THREE.Color(0xdff3ea), sheenRoughness:.6 });
+    const limbMat = bodyMat.clone(); limbMat.color = MINT.clone().multiplyScalar(0.9);
+    const bellyMat = new THREE.MeshStandardMaterial({ color:0xf3fbf7, roughness:.6 });
+    const inkMat = new THREE.MeshStandardMaterial({ color:0x1e1913, roughness:.5 });
+
+    const petGroup = new THREE.Group(), bodyGroup = new THREE.Group();
+    petGroup.add(bodyGroup); scene.add(petGroup);
+
+    const torso = new THREE.Mesh(roundedBox(0.64,0.6,0.56,3.4), bodyMat); torso.position.y=-0.18; bodyGroup.add(torso);
+    const belly = new THREE.Mesh(roundedBox(0.4,0.42,0.4,3.2,32), bellyMat); belly.scale.set(1,1,0.45); belly.position.set(0,-0.22,0.44); bodyGroup.add(belly);
+    const head = new THREE.Mesh(roundedBox(0.62,0.56,0.56,4.6), bodyMat); head.position.y=0.7; bodyGroup.add(head);
+
+    const face = new THREE.Group(); bodyGroup.add(face);
+    const cheekMat = new THREE.MeshStandardMaterial({ color:0xe8927e, roughness:.7, emissive:0xc8502e, emissiveIntensity:.12 });
+    for (const s of [-1,1]){ const ch=new THREE.Mesh(new THREE.SphereGeometry(0.13,16,12),cheekMat); ch.scale.set(1,.66,.4); ch.position.set(0.34*s,0.62,0.46); face.add(ch); }
+    const eyes = new THREE.Group(); face.add(eyes); const eyeMeshes = [];
+    for (const s of [-1,1]){ const eye=new THREE.Mesh(new THREE.SphereGeometry(0.115,20,16),inkMat); eye.scale.set(1,1.15,.7); eye.position.set(0.22*s,0.74,0.5); eyes.add(eye); eyeMeshes.push(eye);
+      const gl=new THREE.Mesh(new THREE.SphereGeometry(0.034,10,8),new THREE.MeshBasicMaterial({color:0xffffff})); gl.position.set(0.22*s+0.03,0.79,0.56); eyes.add(gl); }
+    const happyEyes = new THREE.Group(); happyEyes.visible=false; face.add(happyEyes);
+    for (const s of [-1,1]){ const arc=new THREE.Mesh(new THREE.TorusGeometry(0.08,0.024,10,20,Math.PI),inkMat); arc.position.set(0.22*s,0.74,0.52); happyEyes.add(arc); }
+    function makeMouth(kind){ let m; if(kind==='flat'){ m=new THREE.Mesh(new THREE.CapsuleGeometry(0.026,0.14,6,10),inkMat); m.rotation.z=Math.PI/2; } else { m=new THREE.Mesh(new THREE.TorusGeometry(0.11,0.03,10,24,Math.PI),inkMat); if(kind==='happy') m.rotation.z=Math.PI; } m.position.set(0,0.56,0.52); m.scale.setScalar(0.001); face.add(m); return m; }
+    const mouths = { happy:makeMouth('happy'), flat:makeMouth('flat'), sad:makeMouth('sad') };
+    const tear = new THREE.Mesh(new THREE.SphereGeometry(0.042,12,10), new THREE.MeshStandardMaterial({ color:0x9cc6de, roughness:.3, transparent:true, opacity:0 }));
+    tear.scale.set(1,1.35,1); tear.position.set(-0.24,0.64,0.52); face.add(tear);
+
+    for (const s of [-1,1]){ const arm=new THREE.Mesh(new THREE.CapsuleGeometry(0.11,0.22,8,14),limbMat); arm.position.set(0.66*s,0,0.1); arm.rotation.z=0.28*s; bodyGroup.add(arm);
+      const hand=new THREE.Mesh(new THREE.SphereGeometry(0.13,16,12),limbMat); hand.position.set(0.74*s,-0.26,0.13); bodyGroup.add(hand); }
+    for (const s of [-1,1]){ const leg=new THREE.Mesh(new THREE.CapsuleGeometry(0.13,0.1,8,14),limbMat); leg.position.set(0.24*s,-0.66,0.05); bodyGroup.add(leg);
+      const foot=new THREE.Mesh(new THREE.SphereGeometry(1,20,14),limbMat); foot.scale.set(0.2,0.12,0.26); foot.position.set(0.24*s,-0.82,0.16); bodyGroup.add(foot); }
+
+    const leafPivot = new THREE.Group(); leafPivot.position.set(0,0.98,0); bodyGroup.add(leafPivot);
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.033,0.05,0.22,10), new THREE.MeshStandardMaterial({color:0x2f8a5f,roughness:.7})); stem.position.y=0.1; leafPivot.add(stem);
+    function leafGeo(){ const sh=new THREE.Shape(); sh.moveTo(0,0); sh.quadraticCurveTo(0.17,0.12,0,0.34); sh.quadraticCurveTo(-0.17,0.12,0,0); return new THREE.ExtrudeGeometry(sh,{depth:0.018,bevelEnabled:true,bevelSize:0.012,bevelThickness:0.01,bevelSegments:2}); }
+    const leafMat = new THREE.MeshStandardMaterial({ color:0x3fa574, roughness:.62 });
+    const leafMat2 = leafMat.clone(); leafMat2.color.set(0x5cbf8c);
+    const leafL = new THREE.Mesh(leafGeo(), leafMat); leafL.position.set(-0.02,0.2,0); leafL.rotation.z=0.8; leafPivot.add(leafL);
+    const leafR = new THREE.Mesh(leafGeo(), leafMat2); leafR.position.set(0.02,0.2,0); leafR.rotation.z=-0.8; leafPivot.add(leafR);
+
+    function radialTexture(inner, outer){ const c=document.createElement('canvas'); c.width=c.height=128; const g=c.getContext('2d'); const gr=g.createRadialGradient(64,64,4,64,64,62); gr.addColorStop(0,inner); gr.addColorStop(1,outer); g.fillStyle=gr; g.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5), new THREE.MeshBasicMaterial({ map:radialTexture('rgba(60,45,30,.24)','rgba(60,45,30,0)'), transparent:true, depthWrite:false }));
+    shadow.rotation.x=-Math.PI/2; shadow.position.y=-0.96; scene.add(shadow);
+
+    /* heart particles — recoloured to clay/pine, used only on interaction */
+    function heartGeometry(){ const s=new THREE.Shape(); s.moveTo(.25,.25); s.bezierCurveTo(.25,.25,.2,0,0,0); s.bezierCurveTo(-.3,0,-.3,.35,-.3,.35); s.bezierCurveTo(-.3,.55,-.1,.77,.25,.95); s.bezierCurveTo(.6,.77,.8,.55,.8,.35); s.bezierCurveTo(.8,.35,.8,0,.5,0); s.bezierCurveTo(.35,0,.25,.25,.25,.25); const g=new THREE.ExtrudeGeometry(s,{depth:.18,bevelEnabled:true,bevelSize:.08,bevelThickness:.06,bevelSegments:2}); g.center(); g.rotateZ(Math.PI); g.scale(.13,.13,.13); return g; }
+    const heartGeo = heartGeometry(); const PARTC = [0xc8502e, 0x1f7a54]; const hearts = [];
+    for (let i=0;i<16;i++){ const m=new THREE.Mesh(heartGeo,new THREE.MeshStandardMaterial({ color:0xc8502e, roughness:.55, transparent:true, opacity:0 })); m.visible=false; scene.add(m); hearts.push({ mesh:m, active:false, life:0, dur:1, vx:0, vy:0, spin:0, size:1 }); }
+    function spawnHeart(big){ const h=hearts.find(h=>!h.active); if(!h) return; h.active=true; h.life=0; h.dur=1.0+Math.random()*.4; h.vx=(Math.random()*2-1)*.5; h.vy=1.0+Math.random()*.7; h.spin=(Math.random()*2-1)*2.2; h.size=(big?1.15:.75)+Math.random()*.4; h.mesh.material.color.setHex(PARTC[(Math.random()*PARTC.length)|0]); h.mesh.position.set((Math.random()*2-1)*.5,.5+Math.random()*.4,.55); h.mesh.visible=true; }
+    function burstHearts(n){ if (reduceMotion) return; for (let i=0;i<n;i++) spawnHeart(i%3===0); }
+
+    const MOOD = {
+      2:{ body:0x6fe0c6, leaf:0x3fa574, droop:0,    bobAmp:.045, bobSpd:2.2, mouth:'happy', eyeY:1,   eyeDrop:0,   curl:1   },
+      1:{ body:0x93c9b8, leaf:0x9bb488, droop:0.55, bobAmp:.024, bobSpd:1.5, mouth:'flat',  eyeY:.9,  eyeDrop:.02, curl:1   },
+      0:{ body:0xa8aca0, leaf:0xa4a690, droop:1.2,  bobAmp:.01,  bobSpd:1.0, mouth:'sad',   eyeY:.5,  eyeDrop:.05, curl:.9 }
+    };
+    let mood = MOOD[2], moodLvl = 2, leanTarget = 0, lookBias = 0;
+    const targetBody = new THREE.Color(mood.body), targetLeaf = new THREE.Color(mood.leaf);
+    function setMood(lvl, youOn, themOn){
+      const prev = moodLvl; moodLvl = lvl; mood = MOOD[lvl];
+      targetBody.set(mood.body); targetLeaf.set(mood.leaf);
+      if (lvl === 1){ const themGone = youOn && !themOn; leanTarget = themGone?-0.17:0.17; lookBias = themGone?0.5:-0.5; }
+      else { leanTarget = 0; lookBias = 0; }
+      if (lvl === 2 && prev < 2) celebrate();
+      if (lvl < prev && !reduceMotion) tween(.4, k => { bodyGroup.position.y = -0.06*Math.sin(k*Math.PI); });
+    }
+    window.__setMood = setMood;
+    if (typeof window.__moodLvl === 'number' && window.__moodLvl !== moodLvl){
+      const c = window.__care || { you:true, them:true }; setMood(window.__moodLvl, c.you, c.them);
+      bodyMat.color.copy(targetBody); limbMat.color.copy(targetBody).multiplyScalar(.9); leafMat.color.copy(targetLeaf); leafPivot.rotation.z = mood.droop;
+    }
+
+    let happyTimer = 0, squashTw = null, curlNow = 1;
+    function squashBounce(strength){ if (reduceMotion) return; const i=tweens.indexOf(squashTw); if(i!==-1) tweens.splice(i,1); squashTw=tween(.6, k=>{ const decay=Math.pow(1-k,1.8); const sy=1-strength*Math.cos(k*Math.PI*3.0)*decay; const sxz=1/Math.sqrt(Math.max(sy,.4)); bodyGroup.scale.set(sxz*curlNow,sy*curlNow,sxz*curlNow); }, ()=>{ squashTw=null; }); }
+    function boop(){ if (moodLvl===2){ squashBounce(.42); if(!reduceMotion) spawnHeart(true); happyTimer=.8; } else { squashBounce(.28); } if (window.__onBoop) window.__onBoop(); if (navigator.vibrate){ try{ navigator.vibrate(moodLvl===2?12:8); }catch(e){} } }
+    window.__pet = () => { happyTimer = 1.0; burstHearts(3); };
+    function celebrate(){ burstHearts(9); happyTimer = 1.5; if (!reduceMotion) tween(.6, k => { petGroup.position.y = Math.sin(k*Math.PI)*.3; }, () => squashBounce(.26)); }
+    window.__celebrate = celebrate;
+
+    const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2();
+    let dragging=false, moved=false, lastX=0, downX=0, downY=0, downT=0, lastMoveT=0, rotVel=0, idleAt=0;
+    const pointerN = { x:0, y:0 };
+    canvas.addEventListener('pointerdown', e => { dragging=true; moved=false; lastX=downX=e.clientX; downY=e.clientY; downT=performance.now(); lastMoveT=downT; rotVel=0; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
+    canvas.addEventListener('pointermove', e => { const r=canvas.getBoundingClientRect(); pointerN.x=((e.clientX-r.left)/r.width)*2-1; pointerN.y=-(((e.clientY-r.top)/r.height)*2-1); if(!dragging) return; const dx=e.clientX-lastX; lastX=e.clientX; if(Math.abs(e.clientX-downX)>8||Math.abs(e.clientY-downY)>8) moved=true; petGroup.rotation.y+=dx*0.0075; const now=performance.now(),gap=Math.max(now-lastMoveT,1); lastMoveT=now; rotVel=dx*0.0075*Math.min(2.5,16.7/gap); idleAt=now; });
+    window.addEventListener('pointermove', e => { const r=canvas.getBoundingClientRect(); pointerN.x=Math.max(-1,Math.min(1,((e.clientX-r.left)/r.width)*2-1)); pointerN.y=Math.max(-1,Math.min(1,-(((e.clientY-r.top)/r.height)*2-1))); }, { passive:true });
+    function endDrag(e){ if(!dragging) return; dragging=false; idleAt=performance.now(); if(!moved && performance.now()-downT<450){ const r=canvas.getBoundingClientRect(); ndc.set(((e.clientX-r.left)/r.width)*2-1,-(((e.clientY-r.top)/r.height)*2-1)); raycaster.setFromCamera(ndc,camera); if(raycaster.intersectObject(bodyGroup,true).length) boop(); } }
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', () => { dragging=false; idleAt=performance.now(); });
+    try { if (typeof DeviceOrientationEvent === 'undefined' || typeof DeviceOrientationEvent.requestPermission !== 'function'){ window.addEventListener('deviceorientation', e => { if(e.gamma==null) return; pointerN.x=Math.max(-1,Math.min(1,e.gamma/35)); pointerN.y=Math.max(-1,Math.min(1,(30-(e.beta??30))/40)); }, { passive:true }); } } catch(err){}
+
+    const clock = new THREE.Clock();
+    let blinkAt = 2.2, blinkK = 0;
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
+    function normAngle(a){ while(a>Math.PI)a-=Math.PI*2; while(a<-Math.PI)a+=Math.PI*2; return a; }
+
+    function frame(){
+      requestAnimationFrame(frame);
+      if (document.hidden) return;
+      if (stage.clientWidth !== lastW || stage.clientHeight !== lastH) resize();
+      const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime, f = dt*60, fr = k => 1 - Math.pow(1-k, f);
+      stepTweens(dt);
+
+      bodyMat.color.lerp(targetBody, 1-Math.pow(.02,dt)); limbMat.color.copy(bodyMat.color).multiplyScalar(.9);
+      leafMat.color.lerp(targetLeaf, 1-Math.pow(.02,dt)); leafMat2.color.copy(leafMat.color).multiplyScalar(1.14);
+      cheekMat.emissiveIntensity = lerp(cheekMat.emissiveIntensity, moodLvl===2?.12:(moodLvl===1?.06:0), fr(.06));
+
+      const sway = reduceMotion ? 0 : Math.sin(t*1.6)*.06;
+      leafPivot.rotation.z = lerp(leafPivot.rotation.z, mood.droop + sway, 1-Math.pow(.005,dt));
+      curlNow = lerp(curlNow, mood.curl, fr(.05));
+
+      const bob = reduceMotion ? 0 : Math.sin(t*mood.bobSpd)*mood.bobAmp;
+      petGroup.position.y += (bob - petGroup.position.y) * (tweens.length ? 0 : fr(.08));
+      const breathe = reduceMotion ? 0 : Math.sin(t*1.8)*.011;
+      if (!tweens.length) bodyGroup.scale.set((1+breathe)*curlNow,(1-breathe)*curlNow,(1+breathe)*curlNow);
+      shadow.material.opacity = (.9 - petGroup.position.y*.9) * (moodLvl===0?.6:1);
+      const shs = (1 - petGroup.position.y*.18) * curlNow; shadow.scale.set(shs,shs,shs);
+      petGroup.rotation.z = lerp(petGroup.rotation.z, leanTarget, fr(.06));
+
+      if (!dragging){ petGroup.rotation.y += rotVel*f; rotVel *= Math.pow(.93,f); if (Math.abs(rotVel)<.0001 && performance.now()-idleAt>2500){ petGroup.rotation.y=normAngle(petGroup.rotation.y); petGroup.rotation.y += (0-petGroup.rotation.y)*fr(.04); } }
+
+      if (happyTimer>0){ happyTimer-=dt; happyEyes.visible=true; eyes.visible=false; } else { happyEyes.visible=false; eyes.visible=true; }
+      blinkAt -= dt; if (blinkAt<=0){ blinkK=1; blinkAt=2.4+Math.random()*3.2; } if (blinkK>0) blinkK=Math.max(0,blinkK-dt*9);
+      const blinkScale = reduceMotion ? 1 : 1 - Math.sin(Math.min(blinkK,1)*Math.PI)*.92;
+      for (const eye of eyeMeshes){ eye.scale.y = 1.15*mood.eyeY*blinkScale; eye.position.y = .74 - mood.eyeDrop; }
+      if (!reduceMotion){ eyes.position.x = lerp(eyes.position.x, pointerN.x*.05 + lookBias*.06, fr(.1)); eyes.position.y = lerp(eyes.position.y, pointerN.y*.04, fr(.1)); if (!dragging && Math.abs(rotVel)<.001) petGroup.rotation.x = lerp(petGroup.rotation.x, -pointerN.y*.06, fr(.06)); }
+
+      const want = happyTimer>0 ? 'happy' : mood.mouth;
+      for (const k in mouths){ const target = k===want?1:0.001; mouths[k].scale.setScalar(lerp(mouths[k].scale.x, target, 1-Math.pow(.001,dt))); }
+
+      if (moodLvl===0 && !reduceMotion){ const k=(t%1.9)/1.9; tear.position.y=.64-k*.34; tear.material.opacity=Math.sin(k*Math.PI)*.8; }
+      else tear.material.opacity = lerp(tear.material.opacity, 0, fr(.2));
+
+      for (const h of hearts){ if(!h.active) continue; h.life+=dt; const k=h.life/h.dur; if(k>=1){ h.active=false; h.mesh.visible=false; continue; } h.mesh.position.x+=h.vx*dt; h.mesh.position.y+=h.vy*dt; h.vy*=(1-dt*.6); h.mesh.rotation.y+=h.spin*dt; const pop=k<.15?k/.15:1; h.mesh.scale.setScalar(h.size*pop*(1-k*.35)); h.mesh.material.opacity=pop*(1-Math.pow(k,2.5)); }
+
+      renderer.render(scene, camera);
+    }
+    frame();
+    window.__petReady = true;
+    const fb = document.getElementById('fallback'); if (fb) fb.style.display = 'none';
+    const sh = document.getElementById('spinHint'); if (sh) sh.style.display = '';
+    canvas.tabIndex = 0; canvas.setAttribute('role','button'); canvas.setAttribute('aria-label','Boop Bixi');
+    canvas.addEventListener('keydown', e => { if (e.key==='Enter' || e.key===' '){ e.preventDefault(); boop(); } });
+    if (!reduceMotion) setTimeout(() => burstHearts(3), 700);
+  </script>
+</body>
+</html>

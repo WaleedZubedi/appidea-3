@@ -1,0 +1,11 @@
+# local tooling / editor
+.claude/
+.vercel/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# node (in case you add tooling later)
+node_modules/
