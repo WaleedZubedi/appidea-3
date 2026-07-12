@@ -62,7 +62,7 @@
     .eyebrow .n{color:var(--clay-press)}
 
     /* ---------- masthead ---------- */
-    .mast{display:flex;flex-direction:column;align-items:center;gap:9px;padding-bottom:12px}
+    .mast{display:flex;align-items:center;justify-content:center;gap:11px;padding-bottom:9px}
     .word{font-family:var(--serif);font-weight:500;font-size:22px;letter-spacing:-.01em;color:var(--ink);display:flex;align-items:baseline;gap:7px}
     .word .leaf{color:var(--pine);font-size:16px}
     .status{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
@@ -70,7 +70,7 @@
     @keyframes breath{0%,100%{opacity:1}50%{opacity:.3}}
 
     /* ---------- headline ---------- */
-    .hero{padding:30px 0 8px}
+    .hero{padding:15px 0 6px}
     .kick{margin:0 0 16px}
     h1{
       font-family:var(--serif);font-weight:400;color:var(--ink);
@@ -86,24 +86,29 @@
     /* ---------- specimen plate ---------- */
     .plate-wrap{margin:26px 0 0}
     .plate{
-      position:relative;background:linear-gradient(180deg,#fdfdfc 0%,#f0f1ec 100%);
-      border:1px solid var(--ink);border-radius:2px;height:min(42vh,320px);overflow:hidden;
-      transition:filter .7s ease;
+      position:relative;background:#1a1420;cursor:pointer;
+      border:6px solid #271c10;border-radius:5px;aspect-ratio:1184/768;overflow:hidden;
+      box-shadow:inset 0 0 0 2px rgba(250,247,241,.8), 0 12px 28px rgba(30,25,19,.22);
     }
-    body.dormant .plate{filter:grayscale(.5) contrast(.96) brightness(1.02)}
-    .disc{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);width:56%;aspect-ratio:1;border-radius:50%;background:var(--sage);opacity:.9}
-    .plate canvas{position:relative;display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab}
-    .plate canvas:active{cursor:grabbing}
-    .plate canvas:focus-visible{outline:2px solid var(--clay);outline-offset:-4px}
-    /* clay corner crop-ticks (print registration) */
-    .tick{position:absolute;width:14px;height:14px;pointer-events:none}
-    .tick::before,.tick::after{content:"";position:absolute;background:var(--clay)}
-    .tick::before{width:14px;height:1.5px}.tick::after{width:1.5px;height:14px}
-    .tick.tl{top:7px;left:7px}.tick.tr{top:7px;right:7px}.tick.tr::before{right:0}.tick.tr::after{right:0}
-    .tick.bl{bottom:7px;left:7px}.tick.bl::before{bottom:0}.tick.br{bottom:7px;right:7px}.tick.br::before{right:0;bottom:0}.tick.br::after{right:0;bottom:0}
+    .plate:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
+    /* Bixi's room — base mood clip loops; reactions crossfade on top, then reveal it again */
+    .bxvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#1a1420;opacity:0;transition:opacity .4s ease}
+    .bxvid.show{opacity:1}
+    .bxvid.react{transition:opacity .16s ease}
+    /* tappable food & water hotspots in his room */
+    .spot{position:absolute;display:flex;flex-direction:column;align-items:center;border:0;background:none;padding:0;cursor:pointer;z-index:3;transform:translateX(-50%)}
+    .spot-feed{left:15%;bottom:4%}
+    .spot-water{left:73%;bottom:13%}
+    .spot .tag{font-family:var(--sans);font-weight:700;font-size:11px;color:#fff;background:rgba(30,25,19,.74);padding:4px 10px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.35);text-shadow:0 1px 2px rgba(0,0,0,.4)}
+    .spot .arw{width:22px;height:26px;margin:-2px 0}
+    .spot .arw path{fill:none;stroke:var(--clay);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.55))}
+    .spot .ring{width:clamp(30px,10vw,46px);aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.9);box-shadow:0 0 0 2px rgba(200,80,46,.78),0 2px 8px rgba(0,0,0,.4);animation:spotpulse 1.8s ease-in-out infinite}
+    .spot:hover .ring,.spot:focus-visible .ring{box-shadow:0 0 0 3px var(--clay),0 2px 12px rgba(0,0,0,.55)}
+    .spot:focus-visible{outline:none}
+    @keyframes spotpulse{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.16);opacity:.5}}
     #fallback{position:absolute;inset:0;display:none;place-items:center;pointer-events:none}
     #fallback svg{width:min(40vw,150px)}
-    .spin-hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);pointer-events:none}
+    .spin-hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.9);text-shadow:0 1px 4px rgba(0,0,0,.6);pointer-events:none}
     .figcap{
       display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
       font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);
@@ -134,17 +139,25 @@
     .chip:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
 
     /* ---------- care log ---------- */
-    .log{margin:40px 0 0}
+    .log{margin:24px 0 0}
     .loghead{display:flex;align-items:center;gap:12px;margin-bottom:14px}
     .loghead .rule{flex:1}
-    .toggles{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .toggles{display:grid;grid-template-columns:1fr 1fr;gap:9px}
     .toggle{
       position:relative;text-align:center;background:var(--card);border:1px solid var(--rule);border-radius:6px;
-      padding:14px 13px 12px;cursor:pointer;font-family:var(--sans);transition:box-shadow .13s,transform .13s,border-color .3s;
+      padding:11px 10px 9px;cursor:pointer;font-family:var(--sans);transition:box-shadow .13s,transform .13s,border-color .3s;
     }
-    .toggle .who{display:block;font-weight:700;font-size:13px;color:var(--ink);letter-spacing:.01em}
-    .toggle .heart{display:block;margin:0 auto 7px;width:16px;height:16px;color:var(--pine)}
-    .toggle .st{display:block;margin-top:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+    .toggle .who{display:block;font-weight:700;font-size:12px;color:var(--ink);letter-spacing:.01em}
+    .toggle .heart{display:block;margin:0 auto 4px;width:14px;height:14px;color:var(--pine)}
+    .toggle .st{display:block;margin-top:5px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+    /* care actions — momentary things you DO for Bixi */
+    .acts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:9px 0 0}
+    .act{display:flex;align-items:center;justify-content:center;gap:7px;background:var(--card);border:1px solid var(--ink);border-radius:6px;padding:10px 8px;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12px;color:var(--ink);box-shadow:3px 3px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+    .act .ico{font-size:15px;line-height:1}
+    .act:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+    .act.react{animation:actpop .4s ease}
+    @keyframes actpop{0%,100%{transform:translate(0,0);box-shadow:3px 3px 0 var(--ink)}45%{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}}
+    .act:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
     .toggle.on{border-color:var(--clay);border-width:1.5px;box-shadow:4px 4px 0 var(--ink);transform:translate(-1px,-1px)}
     .toggle.on .st{color:var(--pine)}
     .toggle.off{box-shadow:none;border-color:var(--rule);background:
@@ -175,14 +188,19 @@
       position:relative;margin:34px -24px 0;padding:28px 24px 26px;background:var(--tint);
       border-top:2px dashed var(--rule);
     }
-    .field{position:relative;display:flex;align-items:center;gap:10px;padding:11px 0 9px;border-bottom:1px solid var(--rule);transition:border-color .2s}
-    .field + .field{margin-top:4px}
-    .field:focus-within{border-color:var(--clay)}
-    .field .no{display:none}
-    .field:focus-within .no{color:var(--clay-press)}
-    input[type=email]{flex:1;border:0;background:transparent;color:var(--ink);font-family:var(--sans);font-weight:600;font-size:16px;padding:0;outline:none;min-width:0;text-align:center}
+    .couptag{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:0 0 20px}
+    /* specimen-intake card: a real, raised object holding the fields */
+    .entry{background:var(--card);border:1px solid var(--ink);border-radius:13px;padding:18px 16px 20px;box-shadow:4px 4px 0 var(--ink);margin-bottom:20px;text-align:center}
+    .flab{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);margin:0 0 7px}
+    .flab .opt{color:var(--mut)}
+    .field{background:var(--paper);border:1.5px solid var(--rule);border-radius:9px;transition:border-color .15s,box-shadow .15s,transform .15s}
+    .field:focus-within{border-color:var(--clay);box-shadow:3px 3px 0 var(--clay-press);transform:translate(-1px,-1px)}
+    input[type=email]{width:100%;border:0;background:transparent;color:var(--ink);font-family:var(--sans);font-weight:600;font-size:16px;padding:13px 14px;outline:none;text-align:center}
     input::placeholder{color:var(--mut);font-weight:500}
-    .optnote{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:8px 0 0;text-align:center}
+    /* little clay heart joining the two of you */
+    .join{display:flex;align-items:center;gap:10px;margin:14px 6px}
+    .join::before,.join::after{content:"";height:1px;flex:1;background:var(--rule)}
+    .jheart{color:var(--clay);font-size:12px;line-height:1}
     .cta{
       display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:22px 0 0;
       border:0;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
@@ -211,7 +229,7 @@
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
     @media (prefers-reduced-motion:reduce){
-      .rule,.h-line,.status .sq,.note p.speak,.cta,.cta .arw{animation:none}
+      .rule,.h-line,.status .sq,.cta,.cta .arw,.act.react,.spot .ring{animation:none}
       .h-line{opacity:1;transform:none}.rule{transform:none}
     }
   </style>
@@ -236,13 +254,23 @@
     </section>
 
     <!-- specimen plate -->
-    <section class="plate-wrap" aria-label="Bixi, a live 3D specimen — drag to rotate, tap to boop">
+    <section class="plate-wrap" aria-label="Bixi in his room — tap to pet him">
       <div class="plate" id="plate">
-        <div class="disc" aria-hidden="true"></div>
-        <canvas id="scene"></canvas>
-        <span class="tick tl" aria-hidden="true"></span><span class="tick tr" aria-hidden="true"></span>
-        <span class="tick bl" aria-hidden="true"></span><span class="tick br" aria-hidden="true"></span>
-        <span class="spin-hint" id="spinHint" aria-hidden="true">drag to rotate · tap to boop</span>
+        <video id="baseIdle" class="bxvid base show" src="videos/idle.mp4" poster="videos/poster.jpg" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+        <video id="baseDrift" class="bxvid base" src="videos/drift.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
+        <video id="baseDormant" class="bxvid base" src="videos/dormant.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
+        <video id="vReact" class="bxvid react" muted playsinline preload="none" aria-hidden="true"></video>
+        <button class="spot spot-feed" type="button" aria-label="Feed Bixi a snack">
+          <span class="tag">🍓 Feed</span>
+          <svg class="arw" viewBox="0 0 30 34" aria-hidden="true"><path d="M15 2 C 9 12, 21 18, 15 30"/><path d="M15 30 l -6 -6 M15 30 l 6 -6"/></svg>
+          <span class="ring"></span>
+        </button>
+        <button class="spot spot-water" type="button" aria-label="Give Bixi water">
+          <span class="tag">💧 Water</span>
+          <svg class="arw" viewBox="0 0 30 34" aria-hidden="true"><path d="M15 2 C 21 12, 9 18, 15 30"/><path d="M15 30 l -6 -6 M15 30 l 6 -6"/></svg>
+          <span class="ring"></span>
+        </button>
+        <span class="spin-hint" id="spinHint" aria-hidden="true">tap Bixi to pet him</span>
         <div id="fallback" aria-hidden="true">
           <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
             <line x1="100" y1="34" x2="100" y2="56" stroke="#1f7a54" stroke-width="5" stroke-linecap="round"/>
@@ -260,14 +288,6 @@
       </div>
     </section>
 
-    <!-- Bixi speaks -->
-    <div class="note">
-      <span class="by">Bixi —</span>
-      <p id="bubbleText">Hi… I'm Bixi. I'm only this happy when you're both here.</p>
-    </div>
-    <div id="bubbleLive" class="sr-only" role="status" aria-live="polite"></div>
-    <div class="chips" id="chips" role="group" aria-label="Talk to Bixi"></div>
-
     <!-- care log -->
     <section class="log">
       <div class="loghead"><span class="rule"></span><span class="eyebrow"><span class="n">02</span> · The care log</span><span class="rule"></span></div>
@@ -283,6 +303,10 @@
           <span class="st" id="capThem">Present</span>
         </button>
       </div>
+      <div class="acts">
+        <button class="act" id="btnWater" type="button"><span class="ico" aria-hidden="true">💧</span> Water</button>
+        <button class="act" id="btnFeed" type="button"><span class="ico" aria-hidden="true">🍓</span> Feed</button>
+      </div>
       <div class="vitals">
         <span class="lab">Vitals</span>
         <div class="meter" id="meter"><span class="seg"></span><span class="seg"></span><span class="seg"></span></div>
@@ -295,17 +319,20 @@
 
     <!-- coupon -->
     <section class="coupon">
-      <p class="eyebrow" style="margin:0 0 16px"><span class="n">03</span> · Reserve your specimen</p>
+      <p class="eyebrow" style="margin:0 0 5px"><span class="n">03</span> · Reserve your specimen</p>
+      <p class="couptag">Two seats · one Bixi · no spam ever</p>
       <form id="signup" novalidate>
-        <div class="field">
-          <span class="no" aria-hidden="true">01</span>
-          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="your email" aria-label="Your email" aria-describedby="hintline" required />
+        <div class="entry">
+          <label class="flab" for="email">Your email</label>
+          <div class="field">
+            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" aria-label="Your email" aria-describedby="hintline" required />
+          </div>
+          <div class="join" aria-hidden="true"><span class="jheart">♥</span></div>
+          <label class="flab" for="partnerEmail">Your person <span class="opt">· optional</span></label>
+          <div class="field">
+            <input id="partnerEmail" name="partner_email" type="email" inputmode="email" autocomplete="email" placeholder="them@email.com" aria-label="Your person's email (optional)" aria-describedby="hintline" />
+          </div>
         </div>
-        <div class="field">
-          <span class="no" aria-hidden="true">02</span>
-          <input id="partnerEmail" name="partner_email" type="email" inputmode="email" autocomplete="email" placeholder="your person's email" aria-label="Your person's email (optional)" aria-describedby="hintline" />
-        </div>
-        <p class="optnote">optional — invite them too</p>
         <button id="submit" class="cta" type="submit">Reserve our spot <span class="arw" aria-hidden="true">→</span></button>
         <div class="hintline" id="hintline" role="status">One field note each when he hatches. No spam.</div>
       </form>
@@ -323,80 +350,14 @@
   </div>
   <div class="grain" aria-hidden="true"></div>
 
-  <script type="importmap">{ "imports": { "three": "./libs/three.module.min.js" } }</script>
+
 
   <!-- ============ classic: personality + care log + form ============ -->
   <script>
     (function(){
       "use strict";
-      var prefersReduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      var LINES = [
-        "Hi… I'm Bixi. I'm only this happy when you're both here.",
-        "i'm a plant. i'm a baby. i'm your baby plant.",
-        "My little leaf grows every day you two show up.",
-        "One of you wanders off and I start to droop… no pressure.",
-        "Tuck me in from two phones and I'll bloom, promise."
-      ];
-      var CHIPS = [
-        { user:"Who are you?",      bixi:"Your shared little sprout — one pet, two phones, one squishy me." },
-        { user:"What do you need?", bixi:"Both of you. Every day. Even a tiny hello keeps my leaf green." },
-        { user:"What if we forget?",bixi:"I droop a little… and if you both go quiet, I fade. so please don't." },
-        { user:"You're cute",       bixi:"i know. now log both your emails before I wilt out of spite." }
-      ];
-      var NEGLECT = "…where'd they go? i'll wait right here.";
-      var GONE    = "it's dark without you two…";
-      var REUNION = "eee — you're both back!";
-      var BOOP    = ["hehe~ that tickles.","boop! i felt that.","eee, again? okay."];
-
-      var bubbleText = document.getElementById('bubbleText');
-      var bubbleLive = document.getElementById('bubbleLive');
-      var chipsWrap = document.getElementById('chips');
-      var lineIdx = 0, holdUntil = 0, cycleTimer = null, boopN = 0;
-
-      function popBubble(txt, announce){
-        bubbleText.textContent = txt;
-        bubbleText.classList.remove('speak'); void bubbleText.offsetWidth; bubbleText.classList.add('speak');
-        if (announce && bubbleLive) bubbleLive.textContent = txt;
-      }
-      function hold(ms){ holdUntil = Date.now() + ms; }
-      function startCycle(){
-        stopCycle();
-        cycleTimer = setInterval(function(){
-          if (Date.now() < holdUntil) return;
-          if (curLvl === 2){
-            if (prefersReduce) return;
-            lineIdx = (lineIdx + 1) % LINES.length; popBubble(LINES[lineIdx]);
-          } else {
-            var rest = (curLvl === 1) ? NEGLECT : GONE;
-            if (bubbleText.textContent !== rest){ popBubble(rest); hold(curLvl === 0 ? 999999 : 9000); }
-          }
-        }, 4800);
-      }
-      function stopCycle(){ if (cycleTimer){ clearInterval(cycleTimer); cycleTimer = null; } }
-
-      CHIPS.forEach(function(c){
-        var b = document.createElement('button');
-        b.type = 'button'; b.className = 'chip'; b.textContent = c.user;
-        b.addEventListener('click', function(){
-          popBubble(c.bixi, true); hold(6500);
-          if (window.__pet) window.__pet();
-          if (navigator.vibrate){ try{ navigator.vibrate(8); }catch(e){} }
-        });
-        chipsWrap.appendChild(b);
-      });
-
-      window.__onBoop = function(){
-        var lvl = (typeof window.__moodLvl === 'number') ? window.__moodLvl : 2;
-        if (lvl === 2){ popBubble(BOOP[boopN % BOOP.length], true); boopN++; }
-        else if (lvl === 1){ popBubble("mm… not now.", true); }
-        else { popBubble("…i can barely feel that.", true); }
-        hold(2600);
-      };
-
       /* care log */
       var care = { you:true, them:true };
-      var curLvl = 2, prevLvl = 2;
       var tgYou = document.getElementById('tgYou'), tgThem = document.getElementById('tgThem');
       var figState = document.getElementById('figState');
       var revive = document.getElementById('revive');
@@ -406,10 +367,7 @@
       var FIG = { 2:{t:"Thriving",c:"s2"}, 1:{t:"Drifting",c:"s1"}, 0:{t:"Dormant",c:"s0"} };
 
       function applyMood(){
-        prevLvl = curLvl;
         var lvl = (care.you?1:0) + (care.them?1:0);
-        curLvl = lvl;
-
         figState.textContent = FIG[lvl].t; figState.className = "state " + FIG[lvl].c;
         for (var i=0;i<segs.length;i++){ segs[i].className = "seg" + (i <= lvl ? " f"+lvl : ""); }
 
@@ -419,12 +377,6 @@
           btn.setAttribute('aria-pressed', on ? 'true' : 'false');
           document.getElementById(row[2]).textContent = on ? 'Present' : 'Drifted';
         });
-
-        if (lvl === 2){
-          if (prevLvl < 2){ popBubble(REUNION); hold(4200); }
-          else if (Date.now() >= holdUntil){ popBubble(LINES[lineIdx]); }
-        } else if (lvl === 1){ popBubble(NEGLECT); hold(9000); }
-        else { popBubble(GONE); hold(999999); }
 
         revive.classList.toggle('show', lvl === 0);
         document.body.classList.toggle('dormant', lvl === 0);
@@ -436,7 +388,18 @@
       tgYou.addEventListener('click', function(){ care.you = !care.you; applyMood(); });
       tgThem.addEventListener('click', function(){ care.them = !care.them; applyMood(); });
       revive.addEventListener('click', function(){ care.you = true; care.them = true; applyMood(); if (navigator.vibrate){ try{ navigator.vibrate([10,40,10]); }catch(e){} } });
-      startCycle();
+
+      // care actions — Bixi reacts, but these don't change presence/mood
+      function actReact(btn, fn){
+        if (!btn) return;
+        btn.addEventListener('click', function(){
+          btn.classList.remove('react'); void btn.offsetWidth; btn.classList.add('react');
+          if (window[fn]) window[fn]();
+          if (navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} }
+        });
+      }
+      actReact(document.getElementById('btnWater'), '__water');
+      actReact(document.getElementById('btnFeed'), '__feed');
 
       /* 3D fallback */
       setTimeout(function(){ if (!window.__petReady){ document.getElementById('fallback').style.display='grid'; var h=document.getElementById('spinHint'); if(h) h.style.display='none'; } }, 2500);
@@ -494,187 +457,87 @@
   </script>
 
   <!-- ============ 3D Bixi (specimen on paper) ============ -->
-  <script type="module">
-    import * as THREE from 'three';
-    const canvas = document.getElementById('scene');
-    const stage  = canvas.parentElement;
-    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  <script>
+    (function(){
+      "use strict";
+      var plate = document.getElementById('plate');
+      var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-    renderer.setClearColor(0x000000, 0);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
+      var bases  = { 2:document.getElementById('baseIdle'), 1:document.getElementById('baseDrift'), 0:document.getElementById('baseDormant') };
+      var vReact = document.getElementById('vReact');
+      var REACT  = { tap:'videos/tap.mp4', feed:'videos/feed.mp4', water:'videos/water.mp4', revive:'videos/revive.mp4' };
+      var curBase = 2;
+      function playSafe(v){ try{ var p=v.play(); if (p && p.catch) p.catch(function(){}); }catch(e){} }
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 50);
-    function frameCamera(w,h){
-      const aspect = w/h, fovV = camera.fov*Math.PI/180, targetH = 2.9, targetW = 1.9, cy = 0.16;
-      const distV = (targetH/2)/Math.tan(fovV/2), fovH = 2*Math.atan(Math.tan(fovV/2)*aspect), distW = (targetW/2)/Math.tan(fovH/2);
-      camera.position.set(0, cy+0.05, Math.max(distV, distW)+0.2); camera.lookAt(0, cy, 0);
-    }
-    let lastW = 0, lastH = 0;
-    function resize(){ const w = stage.clientWidth, h = stage.clientHeight; if (!w||!h) return; lastW=w; lastH=h; renderer.setPixelRatio(Math.min(devicePixelRatio||1,2)); renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); frameCamera(w,h); }
-    resize(); new ResizeObserver(resize).observe(stage);
+      /* ---- base mood loop: idle (2) / drift (1) / dormant (0) ---- */
+      function showBase(lvl){
+        if (lvl===curBase || !bases[lvl]) return;
+        var prev = bases[curBase]; curBase = lvl; var next = bases[lvl];
+        try{ next.currentTime = 0; }catch(e){}
+        var reveal = function(){
+          if (curBase!==lvl) return;                 // superseded by a newer toggle
+          next.classList.add('show'); prev.classList.remove('show');
+          setTimeout(function(){ if (prev!==bases[curBase]){ try{ prev.pause(); }catch(e){} } }, 480);
+        };
+        if (reduceMotion){ reveal(); return; }
+        if (next.readyState >= 2){ playSafe(next); reveal(); }
+        else {
+          var on = function(){ next.removeEventListener('canplay', on); playSafe(next); reveal(); };
+          next.addEventListener('canplay', on); playSafe(next);   // triggers the load
+        }
+      }
 
-    /* lights — lit like a specimen on paper, not an object on black */
-    scene.add(new THREE.HemisphereLight(0xfbf6ec, 0xe9dfc9, 0.9));
-    const key = new THREE.DirectionalLight(0xfff2e0, 1.1); key.position.set(-2.4,3.4,3.2); scene.add(key);
-    const fill = new THREE.DirectionalLight(0x8be9d6, 0.3); fill.position.set(3,-0.5,2); scene.add(fill);
-    const sepRim = new THREE.DirectionalLight(0x8fd8c4, 0.28); sepRim.position.set(1.5,1.2,-3); scene.add(sepRim);
+      /* ---- one-shot reactions (any new action overrides the one that's playing) ---- */
+      var reactGen = 0;
+      function hideReact(){ vReact.classList.remove('show'); try{ vReact.pause(); }catch(e){} }
+      function playReaction(name){
+        if (reduceMotion) return;
+        var gen = ++reactGen;                        // newest wins — later callbacks bail out
+        var src = REACT[name] || REACT.tap;
+        if (!vReact.src || vReact.src.indexOf(src)===-1) vReact.src = src;
+        try{ vReact.currentTime = 0; }catch(e){}
+        var p = vReact.play();
+        if (p && p.then) p.then(function(){ if (gen===reactGen) vReact.classList.add('show'); })
+                          .catch(function(){ if (gen===reactGen) hideReact(); });
+        else vReact.classList.add('show');
+      }
+      vReact.addEventListener('ended', function(){ reactGen++; hideReact(); });
 
-    const tweens = [];
-    function tween(dur, apply, done){ const tw = { t:0, dur, apply, done }; tweens.push(tw); return tw; }
-    function stepTweens(dt){ for (let i=tweens.length-1;i>=0;i--){ const tw=tweens[i]; tw.t=Math.min(tw.t+dt/tw.dur,1); tw.apply(tw.t); if (tw.t>=1){ tweens.splice(i,1); if (tw.done) tw.done(); } } }
-    const lerp = (a,b,k) => a + (b-a)*k;
+      // tap Bixi himself
+      plate.addEventListener('click', function(){ playReaction('tap'); if (navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} } });
+      plate.tabIndex = 0; plate.setAttribute('role','button'); plate.setAttribute('aria-label','Pet Bixi');
+      plate.addEventListener('keydown', function(e){ if (e.key==='Enter' || e.key===' '){ e.preventDefault(); playReaction('tap'); } });
 
-    function roundedBox(w,h,d,e,seg){
-      const g = new THREE.SphereGeometry(1, seg||48, seg||36), p = g.attributes.position;
-      for (let i=0;i<p.count;i++){ const x=p.getX(i),y=p.getY(i),z=p.getZ(i); const r=Math.pow(Math.pow(Math.abs(x),e)+Math.pow(Math.abs(y),e)+Math.pow(Math.abs(z),e),-1/e); p.setXYZ(i,x*r*w,y*r*h,z*r*d); }
-      g.computeVertexNormals(); return g;
-    }
+      // tap the snack / mug in his room — they feed / water him too
+      var sf=document.querySelector('.spot-feed'), sw=document.querySelector('.spot-water');
+      if (sf) sf.addEventListener('click', function(e){ e.stopPropagation(); playReaction('feed');  if(navigator.vibrate){try{navigator.vibrate(10);}catch(x){}} });
+      if (sw) sw.addEventListener('click', function(e){ e.stopPropagation(); playReaction('water'); if(navigator.vibrate){try{navigator.vibrate(10);}catch(x){}} });
 
-    const MINT = new THREE.Color(0x6fe0c6);
-    const bodyMat = new THREE.MeshPhysicalMaterial({ color:MINT.clone(), roughness:.52, clearcoat:.22, clearcoatRoughness:.5, sheen:.6, sheenColor:new THREE.Color(0xdff3ea), sheenRoughness:.6 });
-    const limbMat = bodyMat.clone(); limbMat.color = MINT.clone().multiplyScalar(0.9);
-    const bellyMat = new THREE.MeshStandardMaterial({ color:0xf3fbf7, roughness:.6 });
-    const inkMat = new THREE.MeshStandardMaterial({ color:0x1e1913, roughness:.5 });
+      // hooks the care buttons + mood system call
+      window.__pet   = function(){ playReaction('tap'); };
+      window.__feed  = function(){ playReaction('feed'); };
+      window.__water = function(){ playReaction('water'); };
+      window.__celebrate = function(){ playReaction('tap'); };                        // signup: a happy bounce
+      window.__onBoop = function(){};
+      window.__setMood = function(lvl){ var prev=curBase; reactGen++; hideReact(); showBase(lvl); if (lvl===2 && prev===0) playReaction('revive'); };
+      if (typeof window.__moodLvl === 'number') showBase(window.__moodLvl);
 
-    const petGroup = new THREE.Group(), bodyGroup = new THREE.Group();
-    petGroup.add(bodyGroup); scene.add(petGroup);
+      // ready once the idle clip can play -> hide the SVG fallback + restore the hint + warm the others
+      function ready(){
+        window.__petReady = true;
+        var fb = document.getElementById('fallback'); if (fb) fb.style.display = 'none';
+        var sh = document.getElementById('spinHint'); if (sh) sh.style.display = '';
+        [bases[1], bases[0]].forEach(function(v){ if (v){ v.preload='auto'; try{ v.load(); }catch(e){} } });
+      }
+      if (bases[2].readyState >= 2) ready();
+      bases[2].addEventListener('loadeddata', ready);
+      bases[2].addEventListener('canplay', ready);
+      bases[2].addEventListener('error', function(){ /* leave the SVG fallback visible */ });
 
-    const torso = new THREE.Mesh(roundedBox(0.64,0.6,0.56,3.4), bodyMat); torso.position.y=-0.18; bodyGroup.add(torso);
-    const belly = new THREE.Mesh(roundedBox(0.4,0.42,0.4,3.2,32), bellyMat); belly.scale.set(1,1,0.45); belly.position.set(0,-0.22,0.44); bodyGroup.add(belly);
-    const head = new THREE.Mesh(roundedBox(0.62,0.56,0.56,4.6), bodyMat); head.position.y=0.7; bodyGroup.add(head);
-
-    const face = new THREE.Group(); bodyGroup.add(face);
-    const cheekMat = new THREE.MeshStandardMaterial({ color:0xe8927e, roughness:.7, emissive:0xc8502e, emissiveIntensity:.12 });
-    for (const s of [-1,1]){ const ch=new THREE.Mesh(new THREE.SphereGeometry(0.13,16,12),cheekMat); ch.scale.set(1,.66,.4); ch.position.set(0.34*s,0.62,0.46); face.add(ch); }
-    const eyes = new THREE.Group(); face.add(eyes); const eyeMeshes = [];
-    for (const s of [-1,1]){ const eye=new THREE.Mesh(new THREE.SphereGeometry(0.115,20,16),inkMat); eye.scale.set(1,1.15,.7); eye.position.set(0.22*s,0.74,0.5); eyes.add(eye); eyeMeshes.push(eye);
-      const gl=new THREE.Mesh(new THREE.SphereGeometry(0.034,10,8),new THREE.MeshBasicMaterial({color:0xffffff})); gl.position.set(0.22*s+0.03,0.79,0.56); eyes.add(gl); }
-    const happyEyes = new THREE.Group(); happyEyes.visible=false; face.add(happyEyes);
-    for (const s of [-1,1]){ const arc=new THREE.Mesh(new THREE.TorusGeometry(0.08,0.024,10,20,Math.PI),inkMat); arc.position.set(0.22*s,0.74,0.52); happyEyes.add(arc); }
-    function makeMouth(kind){ let m; if(kind==='flat'){ m=new THREE.Mesh(new THREE.CapsuleGeometry(0.026,0.14,6,10),inkMat); m.rotation.z=Math.PI/2; } else { m=new THREE.Mesh(new THREE.TorusGeometry(0.11,0.03,10,24,Math.PI),inkMat); if(kind==='happy') m.rotation.z=Math.PI; } m.position.set(0,0.56,0.52); m.scale.setScalar(0.001); face.add(m); return m; }
-    const mouths = { happy:makeMouth('happy'), flat:makeMouth('flat'), sad:makeMouth('sad') };
-    const tear = new THREE.Mesh(new THREE.SphereGeometry(0.042,12,10), new THREE.MeshStandardMaterial({ color:0x9cc6de, roughness:.3, transparent:true, opacity:0 }));
-    tear.scale.set(1,1.35,1); tear.position.set(-0.24,0.64,0.52); face.add(tear);
-
-    for (const s of [-1,1]){ const arm=new THREE.Mesh(new THREE.CapsuleGeometry(0.11,0.22,8,14),limbMat); arm.position.set(0.66*s,0,0.1); arm.rotation.z=0.28*s; bodyGroup.add(arm);
-      const hand=new THREE.Mesh(new THREE.SphereGeometry(0.13,16,12),limbMat); hand.position.set(0.74*s,-0.26,0.13); bodyGroup.add(hand); }
-    for (const s of [-1,1]){ const leg=new THREE.Mesh(new THREE.CapsuleGeometry(0.13,0.1,8,14),limbMat); leg.position.set(0.24*s,-0.66,0.05); bodyGroup.add(leg);
-      const foot=new THREE.Mesh(new THREE.SphereGeometry(1,20,14),limbMat); foot.scale.set(0.2,0.12,0.26); foot.position.set(0.24*s,-0.82,0.16); bodyGroup.add(foot); }
-
-    const leafPivot = new THREE.Group(); leafPivot.position.set(0,0.98,0); bodyGroup.add(leafPivot);
-    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.033,0.05,0.22,10), new THREE.MeshStandardMaterial({color:0x2f8a5f,roughness:.7})); stem.position.y=0.1; leafPivot.add(stem);
-    function leafGeo(){ const sh=new THREE.Shape(); sh.moveTo(0,0); sh.quadraticCurveTo(0.17,0.12,0,0.34); sh.quadraticCurveTo(-0.17,0.12,0,0); return new THREE.ExtrudeGeometry(sh,{depth:0.018,bevelEnabled:true,bevelSize:0.012,bevelThickness:0.01,bevelSegments:2}); }
-    const leafMat = new THREE.MeshStandardMaterial({ color:0x3fa574, roughness:.62 });
-    const leafMat2 = leafMat.clone(); leafMat2.color.set(0x5cbf8c);
-    const leafL = new THREE.Mesh(leafGeo(), leafMat); leafL.position.set(-0.02,0.2,0); leafL.rotation.z=0.8; leafPivot.add(leafL);
-    const leafR = new THREE.Mesh(leafGeo(), leafMat2); leafR.position.set(0.02,0.2,0); leafR.rotation.z=-0.8; leafPivot.add(leafR);
-
-    function radialTexture(inner, outer){ const c=document.createElement('canvas'); c.width=c.height=128; const g=c.getContext('2d'); const gr=g.createRadialGradient(64,64,4,64,64,62); gr.addColorStop(0,inner); gr.addColorStop(1,outer); g.fillStyle=gr; g.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
-    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5), new THREE.MeshBasicMaterial({ map:radialTexture('rgba(60,45,30,.24)','rgba(60,45,30,0)'), transparent:true, depthWrite:false }));
-    shadow.rotation.x=-Math.PI/2; shadow.position.y=-0.96; scene.add(shadow);
-
-    /* heart particles — recoloured to clay/pine, used only on interaction */
-    function heartGeometry(){ const s=new THREE.Shape(); s.moveTo(.25,.25); s.bezierCurveTo(.25,.25,.2,0,0,0); s.bezierCurveTo(-.3,0,-.3,.35,-.3,.35); s.bezierCurveTo(-.3,.55,-.1,.77,.25,.95); s.bezierCurveTo(.6,.77,.8,.55,.8,.35); s.bezierCurveTo(.8,.35,.8,0,.5,0); s.bezierCurveTo(.35,0,.25,.25,.25,.25); const g=new THREE.ExtrudeGeometry(s,{depth:.18,bevelEnabled:true,bevelSize:.08,bevelThickness:.06,bevelSegments:2}); g.center(); g.rotateZ(Math.PI); g.scale(.13,.13,.13); return g; }
-    const heartGeo = heartGeometry(); const PARTC = [0xc8502e, 0x1f7a54]; const hearts = [];
-    for (let i=0;i<16;i++){ const m=new THREE.Mesh(heartGeo,new THREE.MeshStandardMaterial({ color:0xc8502e, roughness:.55, transparent:true, opacity:0 })); m.visible=false; scene.add(m); hearts.push({ mesh:m, active:false, life:0, dur:1, vx:0, vy:0, spin:0, size:1 }); }
-    function spawnHeart(big){ const h=hearts.find(h=>!h.active); if(!h) return; h.active=true; h.life=0; h.dur=1.0+Math.random()*.4; h.vx=(Math.random()*2-1)*.5; h.vy=1.0+Math.random()*.7; h.spin=(Math.random()*2-1)*2.2; h.size=(big?1.15:.75)+Math.random()*.4; h.mesh.material.color.setHex(PARTC[(Math.random()*PARTC.length)|0]); h.mesh.position.set((Math.random()*2-1)*.5,.5+Math.random()*.4,.55); h.mesh.visible=true; }
-    function burstHearts(n){ if (reduceMotion) return; for (let i=0;i<n;i++) spawnHeart(i%3===0); }
-
-    const MOOD = {
-      2:{ body:0x6fe0c6, leaf:0x3fa574, droop:0,    bobAmp:.045, bobSpd:2.2, mouth:'happy', eyeY:1,   eyeDrop:0,   curl:1   },
-      1:{ body:0x93c9b8, leaf:0x9bb488, droop:0.55, bobAmp:.024, bobSpd:1.5, mouth:'flat',  eyeY:.9,  eyeDrop:.02, curl:1   },
-      0:{ body:0xa8aca0, leaf:0xa4a690, droop:1.2,  bobAmp:.01,  bobSpd:1.0, mouth:'sad',   eyeY:.5,  eyeDrop:.05, curl:.9 }
-    };
-    let mood = MOOD[2], moodLvl = 2, leanTarget = 0, lookBias = 0;
-    const targetBody = new THREE.Color(mood.body), targetLeaf = new THREE.Color(mood.leaf);
-    function setMood(lvl, youOn, themOn){
-      const prev = moodLvl; moodLvl = lvl; mood = MOOD[lvl];
-      targetBody.set(mood.body); targetLeaf.set(mood.leaf);
-      if (lvl === 1){ const themGone = youOn && !themOn; leanTarget = themGone?-0.17:0.17; lookBias = themGone?0.5:-0.5; }
-      else { leanTarget = 0; lookBias = 0; }
-      if (lvl === 2 && prev < 2) celebrate();
-      if (lvl < prev && !reduceMotion) tween(.4, k => { bodyGroup.position.y = -0.06*Math.sin(k*Math.PI); });
-    }
-    window.__setMood = setMood;
-    if (typeof window.__moodLvl === 'number' && window.__moodLvl !== moodLvl){
-      const c = window.__care || { you:true, them:true }; setMood(window.__moodLvl, c.you, c.them);
-      bodyMat.color.copy(targetBody); limbMat.color.copy(targetBody).multiplyScalar(.9); leafMat.color.copy(targetLeaf); leafPivot.rotation.z = mood.droop;
-    }
-
-    let happyTimer = 0, squashTw = null, curlNow = 1;
-    function squashBounce(strength){ if (reduceMotion) return; const i=tweens.indexOf(squashTw); if(i!==-1) tweens.splice(i,1); squashTw=tween(.6, k=>{ const decay=Math.pow(1-k,1.8); const sy=1-strength*Math.cos(k*Math.PI*3.0)*decay; const sxz=1/Math.sqrt(Math.max(sy,.4)); bodyGroup.scale.set(sxz*curlNow,sy*curlNow,sxz*curlNow); }, ()=>{ squashTw=null; }); }
-    function boop(){ if (moodLvl===2){ squashBounce(.42); if(!reduceMotion) spawnHeart(true); happyTimer=.8; } else { squashBounce(.28); } if (window.__onBoop) window.__onBoop(); if (navigator.vibrate){ try{ navigator.vibrate(moodLvl===2?12:8); }catch(e){} } }
-    window.__pet = () => { happyTimer = 1.0; burstHearts(3); };
-    function celebrate(){ burstHearts(9); happyTimer = 1.5; if (!reduceMotion) tween(.6, k => { petGroup.position.y = Math.sin(k*Math.PI)*.3; }, () => squashBounce(.26)); }
-    window.__celebrate = celebrate;
-
-    const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2();
-    let dragging=false, moved=false, lastX=0, downX=0, downY=0, downT=0, lastMoveT=0, rotVel=0, idleAt=0;
-    const pointerN = { x:0, y:0 };
-    canvas.addEventListener('pointerdown', e => { dragging=true; moved=false; lastX=downX=e.clientX; downY=e.clientY; downT=performance.now(); lastMoveT=downT; rotVel=0; try{canvas.setPointerCapture(e.pointerId);}catch(err){} });
-    canvas.addEventListener('pointermove', e => { const r=canvas.getBoundingClientRect(); pointerN.x=((e.clientX-r.left)/r.width)*2-1; pointerN.y=-(((e.clientY-r.top)/r.height)*2-1); if(!dragging) return; const dx=e.clientX-lastX; lastX=e.clientX; if(Math.abs(e.clientX-downX)>8||Math.abs(e.clientY-downY)>8) moved=true; petGroup.rotation.y+=dx*0.0075; const now=performance.now(),gap=Math.max(now-lastMoveT,1); lastMoveT=now; rotVel=dx*0.0075*Math.min(2.5,16.7/gap); idleAt=now; });
-    window.addEventListener('pointermove', e => { const r=canvas.getBoundingClientRect(); pointerN.x=Math.max(-1,Math.min(1,((e.clientX-r.left)/r.width)*2-1)); pointerN.y=Math.max(-1,Math.min(1,-(((e.clientY-r.top)/r.height)*2-1))); }, { passive:true });
-    function endDrag(e){ if(!dragging) return; dragging=false; idleAt=performance.now(); if(!moved && performance.now()-downT<450){ const r=canvas.getBoundingClientRect(); ndc.set(((e.clientX-r.left)/r.width)*2-1,-(((e.clientY-r.top)/r.height)*2-1)); raycaster.setFromCamera(ndc,camera); if(raycaster.intersectObject(bodyGroup,true).length) boop(); } }
-    canvas.addEventListener('pointerup', endDrag);
-    canvas.addEventListener('pointercancel', () => { dragging=false; idleAt=performance.now(); });
-    try { if (typeof DeviceOrientationEvent === 'undefined' || typeof DeviceOrientationEvent.requestPermission !== 'function'){ window.addEventListener('deviceorientation', e => { if(e.gamma==null) return; pointerN.x=Math.max(-1,Math.min(1,e.gamma/35)); pointerN.y=Math.max(-1,Math.min(1,(30-(e.beta??30))/40)); }, { passive:true }); } } catch(err){}
-
-    const clock = new THREE.Clock();
-    let blinkAt = 2.2, blinkK = 0;
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-    function normAngle(a){ while(a>Math.PI)a-=Math.PI*2; while(a<-Math.PI)a+=Math.PI*2; return a; }
-
-    function frame(){
-      requestAnimationFrame(frame);
-      if (document.hidden) return;
-      if (stage.clientWidth !== lastW || stage.clientHeight !== lastH) resize();
-      const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime, f = dt*60, fr = k => 1 - Math.pow(1-k, f);
-      stepTweens(dt);
-
-      bodyMat.color.lerp(targetBody, 1-Math.pow(.02,dt)); limbMat.color.copy(bodyMat.color).multiplyScalar(.9);
-      leafMat.color.lerp(targetLeaf, 1-Math.pow(.02,dt)); leafMat2.color.copy(leafMat.color).multiplyScalar(1.14);
-      cheekMat.emissiveIntensity = lerp(cheekMat.emissiveIntensity, moodLvl===2?.12:(moodLvl===1?.06:0), fr(.06));
-
-      const sway = reduceMotion ? 0 : Math.sin(t*1.6)*.06;
-      leafPivot.rotation.z = lerp(leafPivot.rotation.z, mood.droop + sway, 1-Math.pow(.005,dt));
-      curlNow = lerp(curlNow, mood.curl, fr(.05));
-
-      const bob = reduceMotion ? 0 : Math.sin(t*mood.bobSpd)*mood.bobAmp;
-      petGroup.position.y += (bob - petGroup.position.y) * (tweens.length ? 0 : fr(.08));
-      const breathe = reduceMotion ? 0 : Math.sin(t*1.8)*.011;
-      if (!tweens.length) bodyGroup.scale.set((1+breathe)*curlNow,(1-breathe)*curlNow,(1+breathe)*curlNow);
-      shadow.material.opacity = (.9 - petGroup.position.y*.9) * (moodLvl===0?.6:1);
-      const shs = (1 - petGroup.position.y*.18) * curlNow; shadow.scale.set(shs,shs,shs);
-      petGroup.rotation.z = lerp(petGroup.rotation.z, leanTarget, fr(.06));
-
-      if (!dragging){ petGroup.rotation.y += rotVel*f; rotVel *= Math.pow(.93,f); if (Math.abs(rotVel)<.0001 && performance.now()-idleAt>2500){ petGroup.rotation.y=normAngle(petGroup.rotation.y); petGroup.rotation.y += (0-petGroup.rotation.y)*fr(.04); } }
-
-      if (happyTimer>0){ happyTimer-=dt; happyEyes.visible=true; eyes.visible=false; } else { happyEyes.visible=false; eyes.visible=true; }
-      blinkAt -= dt; if (blinkAt<=0){ blinkK=1; blinkAt=2.4+Math.random()*3.2; } if (blinkK>0) blinkK=Math.max(0,blinkK-dt*9);
-      const blinkScale = reduceMotion ? 1 : 1 - Math.sin(Math.min(blinkK,1)*Math.PI)*.92;
-      for (const eye of eyeMeshes){ eye.scale.y = 1.15*mood.eyeY*blinkScale; eye.position.y = .74 - mood.eyeDrop; }
-      if (!reduceMotion){ eyes.position.x = lerp(eyes.position.x, pointerN.x*.05 + lookBias*.06, fr(.1)); eyes.position.y = lerp(eyes.position.y, pointerN.y*.04, fr(.1)); if (!dragging && Math.abs(rotVel)<.001) petGroup.rotation.x = lerp(petGroup.rotation.x, -pointerN.y*.06, fr(.06)); }
-
-      const want = happyTimer>0 ? 'happy' : mood.mouth;
-      for (const k in mouths){ const target = k===want?1:0.001; mouths[k].scale.setScalar(lerp(mouths[k].scale.x, target, 1-Math.pow(.001,dt))); }
-
-      if (moodLvl===0 && !reduceMotion){ const k=(t%1.9)/1.9; tear.position.y=.64-k*.34; tear.material.opacity=Math.sin(k*Math.PI)*.8; }
-      else tear.material.opacity = lerp(tear.material.opacity, 0, fr(.2));
-
-      for (const h of hearts){ if(!h.active) continue; h.life+=dt; const k=h.life/h.dur; if(k>=1){ h.active=false; h.mesh.visible=false; continue; } h.mesh.position.x+=h.vx*dt; h.mesh.position.y+=h.vy*dt; h.vy*=(1-dt*.6); h.mesh.rotation.y+=h.spin*dt; const pop=k<.15?k/.15:1; h.mesh.scale.setScalar(h.size*pop*(1-k*.35)); h.mesh.material.opacity=pop*(1-Math.pow(k,2.5)); }
-
-      renderer.render(scene, camera);
-    }
-    frame();
-    window.__petReady = true;
-    const fb = document.getElementById('fallback'); if (fb) fb.style.display = 'none';
-    const sh = document.getElementById('spinHint'); if (sh) sh.style.display = '';
-    canvas.tabIndex = 0; canvas.setAttribute('role','button'); canvas.setAttribute('aria-label','Boop Bixi');
-    canvas.addEventListener('keydown', e => { if (e.key==='Enter' || e.key===' '){ e.preventDefault(); boop(); } });
-    if (!reduceMotion) setTimeout(() => burstHearts(3), 700);
+      // start the idle loop (or hold a still frame under reduced-motion)
+      if (reduceMotion){ for (var k in bases){ bases[k].removeAttribute('autoplay'); bases[k].removeAttribute('loop'); } bases[2].addEventListener('loadeddata', function(){ try{ bases[2].pause(); }catch(e){} }); }
+      else playSafe(bases[2]);
+    })();
   </script>
 </body>
 </html>
