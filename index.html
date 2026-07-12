@@ -50,7 +50,7 @@
     }
 
     .wrap{
-      position:relative;z-index:1;max-width:430px;margin:0 auto;
+      position:relative;z-index:1;max-width:430px;margin:0 auto;text-align:center;
       padding:calc(env(safe-area-inset-top) + 18px) 24px calc(env(safe-area-inset-bottom) + 26px);
     }
 
@@ -62,7 +62,7 @@
     .eyebrow .n{color:var(--clay-press)}
 
     /* ---------- masthead ---------- */
-    .mast{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:12px}
+    .mast{display:flex;flex-direction:column;align-items:center;gap:9px;padding-bottom:12px}
     .word{font-family:var(--serif);font-weight:500;font-size:22px;letter-spacing:-.01em;color:var(--ink);display:flex;align-items:baseline;gap:7px}
     .word .leaf{color:var(--pine);font-size:16px}
     .status{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
@@ -105,23 +105,23 @@
     #fallback svg{width:min(40vw,150px)}
     .spin-hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);pointer-events:none}
     .figcap{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
       font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);
       padding:9px 1px 0;
     }
     .figcap .state{font-weight:500}
     .figcap .state.s2{color:var(--pine)}.figcap .state.s1{color:var(--amber)}.figcap .state.s0{color:var(--mut)}
-    @media (max-width:415px){.figcap{flex-direction:column;align-items:flex-start;gap:3px}}
+    @media (max-width:415px){.figcap{flex-direction:column;align-items:center;gap:3px}}
 
     /* ---------- note card (Bixi speaks) ---------- */
     .note{position:relative;margin:22px 0 0;background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:14px 15px}
-    .note::before{content:"";position:absolute;top:-7px;left:26px;width:12px;height:12px;background:var(--card);border-left:1px solid var(--rule);border-top:1px solid var(--rule);transform:rotate(45deg)}
+    .note::before{content:"";position:absolute;top:-7px;left:50%;margin-left:-6px;width:12px;height:12px;background:var(--card);border-left:1px solid var(--rule);border-top:1px solid var(--rule);transform:rotate(45deg)}
     .note .by{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--clay-press);display:block;margin-bottom:4px}
     .note p{margin:0;font-family:var(--serif);font-style:italic;font-weight:500;font-size:16.5px;line-height:1.42;color:var(--ink)}
     .note p.speak{animation:speak .32s ease}
     @keyframes speak{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
-    .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+    .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:12px 0 0}
     .chip{
       font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink);
       background:transparent;border:1px solid rgba(30,25,19,.28);border-radius:5px;
@@ -139,11 +139,11 @@
     .loghead .rule{flex:1}
     .toggles{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     .toggle{
-      position:relative;text-align:left;background:var(--card);border:1px solid var(--rule);border-radius:6px;
+      position:relative;text-align:center;background:var(--card);border:1px solid var(--rule);border-radius:6px;
       padding:14px 13px 12px;cursor:pointer;font-family:var(--sans);transition:box-shadow .13s,transform .13s,border-color .3s;
     }
     .toggle .who{display:block;font-weight:700;font-size:13px;color:var(--ink);letter-spacing:.01em}
-    .toggle .heart{position:absolute;top:12px;right:12px;width:15px;height:15px;color:var(--pine)}
+    .toggle .heart{display:block;margin:0 auto 7px;width:16px;height:16px;color:var(--pine)}
     .toggle .st{display:block;margin-top:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
     .toggle.on{border-color:var(--clay);border-width:1.5px;box-shadow:4px 4px 0 var(--ink);transform:translate(-1px,-1px)}
     .toggle.on .st{color:var(--pine)}
@@ -151,9 +151,9 @@
       repeating-linear-gradient(45deg,transparent,transparent 7px,rgba(30,25,19,.035) 7px,rgba(30,25,19,.035) 8px),var(--card)}
     .toggle.off .heart{color:var(--mut)}
     .toggle:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
-    .vitals{display:flex;align-items:center;gap:10px;margin:16px 0 0}
+    .vitals{display:flex;flex-direction:column;align-items:center;gap:8px;margin:16px 0 0}
     .vitals .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
-    .meter{display:flex;gap:4px;flex:1}
+    .meter{display:flex;gap:4px;width:100%;max-width:240px}
     .seg{height:5px;flex:1;background:var(--rule);border-radius:1px;transition:background .4s}
     .seg.f2{background:var(--pine)}.seg.f1{background:var(--amber)}.seg.f0{background:var(--clay)}
 
@@ -167,7 +167,7 @@
     .revive:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
 
     /* ---------- standfirst ---------- */
-    .stand{margin:34px 0 0;font-size:15.5px;line-height:1.55;color:var(--body);max-width:38ch}
+    .stand{margin:34px auto 0;font-size:15.5px;line-height:1.55;color:var(--body);max-width:38ch}
     .stand b{color:var(--ink);font-weight:700}
 
     /* ---------- coupon / signup ---------- */
@@ -178,11 +178,11 @@
     .field{position:relative;display:flex;align-items:center;gap:10px;padding:11px 0 9px;border-bottom:1px solid var(--rule);transition:border-color .2s}
     .field + .field{margin-top:4px}
     .field:focus-within{border-color:var(--clay)}
-    .field .no{font-family:var(--mono);font-size:11px;color:var(--mut);width:20px;flex:none}
+    .field .no{display:none}
     .field:focus-within .no{color:var(--clay-press)}
-    input[type=email]{flex:1;border:0;background:transparent;color:var(--ink);font-family:var(--sans);font-weight:600;font-size:16px;padding:0;outline:none;min-width:0}
+    input[type=email]{flex:1;border:0;background:transparent;color:var(--ink);font-family:var(--sans);font-weight:600;font-size:16px;padding:0;outline:none;min-width:0;text-align:center}
     input::placeholder{color:var(--mut);font-weight:500}
-    .optnote{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:6px 0 0 30px}
+    .optnote{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:8px 0 0;text-align:center}
     .cta{
       display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:22px 0 0;
       border:0;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
@@ -270,16 +270,16 @@
 
     <!-- care log -->
     <section class="log">
-      <div class="loghead"><span class="eyebrow"><span class="n">02</span> · The care log</span><span class="rule"></span></div>
+      <div class="loghead"><span class="rule"></span><span class="eyebrow"><span class="n">02</span> · The care log</span><span class="rule"></span></div>
       <div class="toggles">
         <button class="toggle on" id="tgYou" type="button" aria-pressed="true">
-          <span class="who">You</span>
           <svg class="heart" viewBox="0 0 24 24" aria-hidden="true" id="hYou"><path fill="currentColor" d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
+          <span class="who">You</span>
           <span class="st" id="capYou">Present</span>
         </button>
         <button class="toggle on" id="tgThem" type="button" aria-pressed="true">
-          <span class="who">Your person</span>
           <svg class="heart" viewBox="0 0 24 24" aria-hidden="true" id="hThem"><path fill="currentColor" d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
+          <span class="who">Your person</span>
           <span class="st" id="capThem">Present</span>
         </button>
       </div>
@@ -305,7 +305,7 @@
           <span class="no" aria-hidden="true">02</span>
           <input id="partnerEmail" name="partner_email" type="email" inputmode="email" autocomplete="email" placeholder="your person's email" aria-label="Your person's email (optional)" aria-describedby="hintline" />
         </div>
-        <p class="optnote">02 optional — invite them too</p>
+        <p class="optnote">optional — invite them too</p>
         <button id="submit" class="cta" type="submit">Reserve our spot <span class="arw" aria-hidden="true">→</span></button>
         <div class="hintline" id="hintline" role="status">One field note each when he hatches. No spam.</div>
       </form>
