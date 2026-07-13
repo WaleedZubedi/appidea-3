@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Bixi — app preview</title>
+  <meta name="theme-color" content="#f5f1e8" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+
+  <style>
+    :root{
+      --paper:#f6f2ea;      /* app chrome background   */
+      --sheet:#ffffff;      /* the white content sheet */
+      --card:#ffffff;
+      --tint:#f4efe5;
+      --ink:#1e1913;
+      --body:#4a4335;
+      --mut:#8a8072;
+      --line:#eee6d7;
+      --line2:#efe9dd;
+      --pine:#1f7a54;       /* love / positive green   */
+      --pine-d:#186043;
+      --clay:#c8502e;       /* Day 001 / accents       */
+      --sky:#2f97cf;        /* hydration blue          */
+      --amber:#e0a52a;      /* energy amber            */
+      --heart:#d6452f;      /* red heart               */
+      --serif:"Fraunces",Georgia,serif;
+      --sans:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;padding:0;height:100%}
+    body{
+      font-family:var(--sans);color:var(--body);
+      background:#e7e1d4;                       /* neutral matte behind the phone on desktop */
+      -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+      display:flex;justify-content:center;
+    }
+
+    /* ---------- the phone canvas ---------- */
+    .app{
+      position:relative;width:100%;max-width:430px;min-height:100dvh;
+      background:var(--paper);display:flex;flex-direction:column;overflow:hidden;
+      box-shadow:0 0 40px rgba(30,25,19,.14);
+    }
+
+    /* ---------- fake status bar ---------- */
+    .statusbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:calc(env(safe-area-inset-top) + 12px) 24px 6px;
+      font-weight:700;font-size:15px;color:var(--ink);letter-spacing:.02em;
+    }
+    .statusbar .sig{display:flex;align-items:center;gap:6px}
+    .statusbar svg{display:block}
+
+    /* ---------- app bar ---------- */
+    .appbar{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:4px 16px 10px}
+    .appbar .icon{width:44px;height:44px;display:grid;place-items:center;color:var(--ink);border:0;background:none;cursor:pointer;border-radius:12px}
+    .appbar .icon:active{background:rgba(30,25,19,.06)}
+    .brand{text-align:center;line-height:1}
+    .brand .name{font-family:var(--serif);font-weight:500;font-size:26px;color:var(--ink);letter-spacing:-.01em}
+    .brand .day{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--clay);margin-top:3px}
+    .bell{position:relative}
+    .bell .dot{position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--clay);border:2px solid var(--paper)}
+
+    /* ---------- scrollable screen ---------- */
+    .screens{flex:1;position:relative;overflow:hidden}
+    .screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:104px;display:none}
+    .screen.on{display:block}
+    .screen::-webkit-scrollbar{width:0}
+
+    /* ---------- the room scene (video) ---------- */
+    .scene{position:relative;margin:0 14px;border-radius:22px;overflow:hidden;aspect-ratio:1/1;background:#20182a;
+      box-shadow:0 10px 26px rgba(30,25,19,.18)}
+    .bxvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#20182a;opacity:0;transition:opacity .45s ease}
+    .bxvid.show{opacity:1}
+    .bxvid.react{transition:opacity .16s ease}
+    .scene::after{content:"";position:absolute;inset:0;pointer-events:none;
+      background:linear-gradient(180deg,rgba(20,15,10,.10),transparent 22%,transparent 74%,rgba(20,15,10,.14))}
+    #fallback{position:absolute;inset:0;display:none;place-items:center;pointer-events:none;background:#1a1420}
+    #fallback svg{width:44%}
+
+    /* overlay chips on the scene */
+    .ov{position:absolute;z-index:3}
+    .pill{display:inline-flex;align-items:center;gap:9px;background:rgba(246,242,234,.82);backdrop-filter:blur(8px);
+      border-radius:999px;padding:8px 13px;box-shadow:0 4px 14px rgba(20,15,10,.16)}
+    .presence{top:14px;left:14px;max-width:62%}
+    .presence .hh{display:flex;flex-direction:column;gap:1px}
+    .presence .hh svg{width:15px;height:15px;display:block}
+    .presence .tx .a{font-weight:700;font-size:12.5px;color:var(--ink);line-height:1.15}
+    .presence .tx .b{font-weight:600;font-size:11px;color:var(--pine);line-height:1.2}
+    .presence.warn .tx .b{color:var(--clay)}
+    .carelog{top:14px;right:14px;font-weight:700;font-size:12.5px;color:var(--ink);cursor:pointer;border:0}
+    .carelog svg{width:15px;height:15px}
+    .carelog:active{transform:translateY(1px)}
+
+    /* Bixi speech bubble */
+    .bubble{position:absolute;z-index:4;left:16px;top:88px;max-width:60%;
+      background:rgba(255,255,255,.94);backdrop-filter:blur(6px);color:var(--ink);
+      font-weight:600;font-size:14px;line-height:1.32;padding:11px 14px;border-radius:16px 16px 16px 4px;
+      box-shadow:0 6px 18px rgba(20,15,10,.18);opacity:0;transform:translateY(6px) scale(.96);
+      transition:opacity .22s ease,transform .22s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+    .bubble.show{opacity:1;transform:none}
+
+    /* mood card */
+    .mood{position:absolute;z-index:3;right:14px;bottom:14px;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);
+      border-radius:16px;padding:10px 15px 11px;text-align:left;box-shadow:0 6px 18px rgba(20,15,10,.18);min-width:96px}
+    .mood .lab{display:flex;align-items:center;gap:5px;font-weight:700;font-size:11.5px;color:var(--ink)}
+    .mood .lab svg{width:13px;height:13px;color:var(--pine)}
+    .mood .pct{font-weight:800;font-size:27px;color:var(--ink);line-height:1.1;margin-top:1px;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+    .mood .st{font-weight:700;font-size:12px;color:var(--pine)}
+    .mood .st.mid{color:var(--amber)} .mood .st.low{color:var(--clay)}
+
+    /* tap-to-pet hint */
+    .taphint{position:absolute;z-index:3;left:50%;bottom:14px;transform:translateX(-50%);
+      font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#fff;
+      background:rgba(18,13,8,.6);padding:5px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;
+      opacity:0;animation:hintfade 4.5s ease forwards}
+    @keyframes hintfade{0%,72%{opacity:1}100%{opacity:0;visibility:hidden}}
+
+    /* ---------- action cards ---------- */
+    .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;padding:20px 14px 0}
+    .act{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 8px 13px;text-align:center;cursor:pointer;
+      box-shadow:0 2px 10px rgba(30,25,19,.05);transition:transform .12s ease,box-shadow .12s ease}
+    .act:active{transform:scale(.96)}
+    .act.pop{animation:pop .4s ease}
+    @keyframes pop{0%,100%{transform:scale(1)}40%{transform:scale(1.07)}}
+    .act .emo{font-size:30px;line-height:1;display:block;height:34px}
+    .act .nm{display:block;margin-top:9px;font-weight:800;font-size:15px;color:var(--ink)}
+    .act .sub{display:block;margin-top:2px;font-weight:600;font-size:12px}
+    .act[data-k=pet] .sub{color:var(--heart)} .act[data-k=water] .sub{color:var(--sky)} .act[data-k=feed] .sub{color:var(--pine)}
+
+    /* play row */
+    .play{display:flex;align-items:center;gap:13px;margin:12px 14px 0;background:var(--card);border:1px solid var(--line);
+      border-radius:18px;padding:15px 16px;cursor:pointer;box-shadow:0 2px 10px rgba(30,25,19,.05);transition:transform .12s}
+    .play:active{transform:scale(.985)}
+    .play .pi{width:34px;height:34px;display:grid;place-items:center;color:var(--mut)}
+    .play .pt{flex:1}
+    .play .pt .a{font-weight:800;font-size:15.5px;color:var(--ink)}
+    .play .pt .b{font-weight:600;font-size:12.5px;color:var(--mut);margin-top:1px}
+    .play .ball{font-size:22px}
+    .play .chev{color:var(--mut)}
+
+    /* vitals */
+    .vhead{display:flex;align-items:center;justify-content:space-between;padding:22px 18px 12px}
+    .vhead .t{font-weight:800;font-size:17px;color:var(--ink)}
+    .vhead .all{font-weight:700;font-size:13.5px;color:var(--pine);cursor:pointer}
+    .vitals{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;padding:0 14px}
+    .vit{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 12px 14px;box-shadow:0 2px 10px rgba(30,25,19,.05)}
+    .vit .h{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px;color:var(--ink)}
+    .vit .h svg{width:15px;height:15px}
+    .vit .n{font-weight:800;font-size:20px;color:var(--ink);margin:6px 0 8px;font-variant-numeric:tabular-nums}
+    .bar{height:7px;border-radius:99px;background:var(--line);overflow:hidden}
+    .bar i{display:block;height:100%;border-radius:99px;width:0;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+    .vit.love .bar i{background:var(--pine)} .vit.love svg{color:var(--heart)}
+    .vit.hyd .bar i{background:var(--sky)} .vit.hyd svg{color:var(--sky)}
+    .vit.enr .bar i{background:var(--amber)} .vit.enr svg{color:var(--amber)}
+
+    /* revive banner (dormant) */
+    .revive{display:none;margin:16px 14px 0;background:#fff;border:1.5px solid var(--clay);border-radius:16px;
+      padding:14px 16px;align-items:center;gap:12px;cursor:pointer}
+    .revive.show{display:flex}
+    .revive .rt{flex:1}
+    .revive .rt .a{font-weight:800;font-size:15px;color:var(--clay)}
+    .revive .rt .b{font-weight:600;font-size:12.5px;color:var(--mut);margin-top:1px}
+    .revive .go{font-weight:800;font-size:13px;color:#fff;background:var(--clay);border-radius:10px;padding:9px 14px}
+
+    /* ---------- generic placeholder screens ---------- */
+    .ph{padding:8px 20px 0}
+    .ph h2{font-family:var(--serif);font-weight:500;font-size:26px;color:var(--ink);margin:6px 0 4px}
+    .ph .lead{font-size:14.5px;line-height:1.5;color:var(--body);margin:0 0 20px}
+    .tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(30,25,19,.05)}
+    .tile .k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--clay);margin-bottom:6px}
+    .tile .v{font-weight:700;font-size:16px;color:var(--ink)}
+    .tile .d{font-size:13.5px;color:var(--mut);margin-top:4px;line-height:1.45}
+    .memgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .memgrid .m{aspect-ratio:1;border-radius:16px;background:var(--tint);border:1px dashed var(--line);display:grid;place-items:center;color:var(--mut);font-weight:600;font-size:13px;text-align:center;padding:10px}
+    .stage{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+    .stage .em{font-size:34px}
+    .growbar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:14px}
+    .growbar i{display:block;height:100%;width:12%;background:linear-gradient(90deg,var(--pine),#3aa876)}
+
+    /* ---------- bottom nav ---------- */
+    .nav{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);
+      background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+      padding:9px 6px calc(env(safe-area-inset-bottom) + 12px);z-index:20}
+    .tab{display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none;cursor:pointer;color:var(--mut);padding:4px}
+    .tab svg{width:24px;height:24px}
+    .tab .lb{font-weight:700;font-size:11px}
+    .tab.on{color:var(--pine)}
+    .homebar{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);width:130px;height:5px;border-radius:99px;background:var(--ink);opacity:.32;z-index:21;pointer-events:none}
+
+    /* ---------- care-log bottom sheet ---------- */
+    .scrim{position:absolute;inset:0;background:rgba(20,15,10,.42);opacity:0;visibility:hidden;transition:opacity .25s;z-index:40}
+    .scrim.show{opacity:1;visibility:visible}
+    .sheetm{position:absolute;left:0;right:0;bottom:0;z-index:41;background:var(--sheet);border-radius:24px 24px 0 0;
+      padding:10px 20px calc(env(safe-area-inset-bottom) + 22px);transform:translateY(102%);transition:transform .3s cubic-bezier(.2,.8,.2,1);
+      box-shadow:0 -10px 40px rgba(20,15,10,.25)}
+    .sheetm.show{transform:none}
+    .grab{width:40px;height:5px;border-radius:99px;background:var(--line);margin:0 auto 14px}
+    .sheetm h3{font-family:var(--serif);font-weight:500;font-size:22px;color:var(--ink);margin:0 0 3px;text-align:center}
+    .sheetm .sub{text-align:center;font-size:13px;color:var(--mut);margin:0 0 18px}
+    .who2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .whobtn{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:15px 10px;text-align:center;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+    .whobtn svg{width:22px;height:22px;color:var(--pine)}
+    .whobtn .nm{display:block;font-weight:700;font-size:13.5px;color:var(--ink);margin-top:6px}
+    .whobtn .st{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--pine);margin-top:5px}
+    .whobtn.off{border-style:dashed;background:var(--tint)}
+    .whobtn.off svg{color:var(--mut)} .whobtn.off .st{color:var(--clay)}
+    .whobtn.on{border-color:var(--pine);box-shadow:0 3px 0 var(--pine-d)}
+    .sheetnote{margin:16px 0 0;font-size:13px;line-height:1.5;color:var(--body);text-align:center}
+    .sheetnote b{color:var(--ink)}
+    .sheetdone{margin-top:16px;width:100%;border:0;border-radius:14px;background:var(--ink);color:#fff;font-weight:700;font-size:14px;padding:14px;cursor:pointer}
+
+    /* ---------- director / admin panel (NOT part of the app — hidden with the D key for recording) ---------- */
+    #director{position:fixed;inset:0 0 0 auto;z-index:9999;pointer-events:none;font-family:var(--sans)}
+    #director.hidden{display:none}
+    .dir-tab{position:absolute;top:50%;right:0;transform:translateY(-50%);pointer-events:auto;cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;gap:7px;background:#14110d;color:#eae4d8;border:0;
+      border-radius:13px 0 0 13px;padding:15px 8px;font-size:18px;line-height:1;box-shadow:-5px 4px 20px rgba(0,0,0,.4)}
+    .dir-tab .lbl{writing-mode:vertical-rl;font-size:9.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#c9c0b3}
+    #director.open .dir-tab{display:none}
+    .dir{position:absolute;top:0;right:0;height:100%;width:274px;max-width:85vw;pointer-events:auto;
+      background:#14110d;color:#eae4d8;transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);
+      overflow-y:auto;box-shadow:-12px 0 46px rgba(0,0,0,.5)}
+    #director.open .dir{transform:none}
+    .dir-hd{display:flex;align-items:center;justify-content:space-between;padding:15px 16px 11px;position:sticky;top:0;
+      background:#14110d;border-bottom:1px solid rgba(255,255,255,.08);z-index:2}
+    .dir-hd .t{font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+    .dir-hd .x{background:none;border:0;color:#9c948a;font-size:26px;cursor:pointer;line-height:1;padding:0 4px}
+    .dir-sec{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .dir-sec>label{display:block;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8f877c;margin-bottom:9px}
+    .dir-presets{display:flex;flex-direction:column;gap:7px}
+    .dir-presets button{display:flex;align-items:center;gap:8px;background:#201a14;border:1px solid rgba(255,255,255,.09);
+      color:#eae4d8;border-radius:10px;padding:10px 11px;font-weight:700;font-size:13px;cursor:pointer;text-align:left;transition:background .14s,border-color .14s,transform .08s}
+    .dir-presets button:hover{background:#2a231a;border-color:rgba(255,255,255,.2)}
+    .dir-presets button:active{transform:scale(.98)}
+    .dir-row{display:flex;gap:8px}.dir-row.wrap{flex-wrap:wrap}
+    .dir-tog,.dir-mini{flex:1;min-width:0;background:#201a14;border:1px solid rgba(255,255,255,.09);color:#cfc7bb;
+      border-radius:9px;padding:9px 6px;font-weight:700;font-size:12.5px;cursor:pointer;transition:transform .08s}
+    .dir-mini:active,.dir-tog:active{transform:scale(.96)}
+    .dir-tog.on{background:#12402f;border-color:#46c088;color:#7fe0b3}
+    .dir-slider{display:flex;align-items:center;gap:9px;margin-bottom:11px}.dir-slider:last-child{margin-bottom:0}
+    .dir-slider span{font-size:12px;width:78px;color:#cfc7bb}
+    .dir-slider input[type=range]{flex:1;min-width:0;accent-color:#46c088}
+    .dir-slider b{width:28px;text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;color:#eae4d8}
+    .dir-day{display:flex;align-items:center;justify-content:center;gap:14px}
+    .dir-day button{width:36px;height:36px;border-radius:9px;background:#201a14;border:1px solid rgba(255,255,255,.12);color:#eae4d8;font-size:19px;cursor:pointer}
+    .dir-day b{min-width:74px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums;font-size:15px}
+    .dir-hide{margin:14px 16px 22px;width:calc(100% - 32px);background:none;border:1px solid rgba(255,255,255,.18);
+      color:#cfc7bb;border-radius:10px;padding:11px;font-weight:800;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+    .dir-hide:hover{background:#201a14}
+
+    @media (max-width:360px){ .act .emo{font-size:26px} .brand .name{font-size:24px} }
+    @media (prefers-reduced-motion:reduce){ *{animation:none!important} .bxvid{transition:none} }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+
+    <!-- status bar -->
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="sig" aria-hidden="true">
+        <svg width="18" height="12" viewBox="0 0 18 12"><g fill="#1e1913"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></g></svg>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="#1e1913"><path d="M8.5 2.4c2.3 0 4.4.9 6 2.4l1.4-1.5A11 11 0 0 0 8.5.3 11 11 0 0 0 1 3.3l1.4 1.5A8.6 8.6 0 0 1 8.5 2.4Zm0 3.6c1.3 0 2.6.5 3.5 1.4l1.4-1.5a7.5 7.5 0 0 0-9.8 0l1.4 1.5A5 5 0 0 1 8.5 6Zm0 3.3L10.7 11l-2.2 1-2.2-1 2.2-1.7Z"/></svg>
+        <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3" fill="none" stroke="#1e1913" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="1.5" fill="#1e1913"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="#1e1913" opacity=".4"/></svg>
+      </span>
+    </div>
+
+    <!-- app bar -->
+    <div class="appbar">
+      <button class="icon" id="menuBtn" aria-label="Menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="brand">
+        <div class="name">Bixi</div>
+        <div class="day" id="dayLabel">Day 001</div>
+      </div>
+      <button class="icon bell" id="bellBtn" aria-label="Notifications">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span class="dot"></span>
+      </button>
+    </div>
+
+    <!-- ============ SCREENS ============ -->
+    <div class="screens">
+
+      <!-- HOME -->
+      <section class="screen on" id="scr-home">
+        <div class="scene" id="scene">
+          <video id="baseIdle"    class="bxvid show" src="videos/idle.mp4"    poster="videos/poster.jpg" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+          <video id="baseDrift"   class="bxvid" src="videos/drift.mp4"   muted loop playsinline preload="none" aria-hidden="true"></video>
+          <video id="baseDormant" class="bxvid" src="videos/dormant.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
+          <video id="vReact"      class="bxvid react" muted playsinline preload="none" aria-hidden="true"></video>
+
+          <div class="ov pill presence" id="presence">
+            <span class="hh" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="#d6452f"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
+              <svg viewBox="0 0 24 24" fill="#1f7a54"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
+            </span>
+            <span class="tx"><span class="a">You + Your person</span><span class="b" id="presenceSub">Taking care together</span></span>
+          </div>
+
+          <button class="ov pill carelog" id="careLogBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1e1913" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h4"/></svg>
+            Care Log
+          </button>
+
+          <div class="bubble" id="bubble">Thanks for petting me! 💚</div>
+
+          <div class="ov mood" id="moodCard">
+            <div class="lab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg> Mood</div>
+            <div class="pct" id="moodPct">75%</div>
+            <div class="st" id="moodSt">Happy</div>
+          </div>
+
+          <div class="taphint" id="tapHint">tap Bixi to pet him</div>
+
+          <div id="fallback" aria-hidden="true">
+            <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+              <line x1="100" y1="34" x2="100" y2="56" stroke="#1f7a54" stroke-width="5" stroke-linecap="round"/>
+              <path d="M100 40 C100 22 116 14 128 18 C126 34 114 44 100 44 Z" fill="#1f7a54" opacity=".8"/>
+              <rect x="46" y="52" width="108" height="92" rx="34" fill="#6fe0c6"/>
+              <rect x="52" y="132" width="96" height="74" rx="30" fill="#6fe0c6"/>
+              <circle cx="72" cy="96" r="7" fill="#1e1913"/><circle cx="112" cy="96" r="7" fill="#1e1913"/>
+              <path d="M82 112 Q92 121 102 112" fill="none" stroke="#1e1913" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- actions -->
+        <div class="row3">
+          <button class="act" data-k="pet"   id="btnPet"><span class="emo">🫶</span><span class="nm">Pet</span><span class="sub">+ Love</span></button>
+          <button class="act" data-k="water" id="btnWater"><span class="emo">💧</span><span class="nm">Water</span><span class="sub">+ Hydration</span></button>
+          <button class="act" data-k="feed"  id="btnFeed"><span class="emo">🌱</span><span class="nm">Feed</span><span class="sub">+ Energy</span></button>
+        </div>
+
+        <!-- play -->
+        <div class="play" id="btnPlay">
+          <span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/></svg></span>
+          <span class="pt"><span class="a">Play with Bixi</span><span class="b">Spend time together</span></span>
+          <span class="ball">🔴</span>
+          <span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </div>
+
+        <!-- revive banner -->
+        <div class="revive" id="reviveBanner">
+          <span style="font-size:26px">🥀</span>
+          <span class="rt"><span class="a">Bixi went dormant</span><span class="b">You both drifted away — bring him back</span></span>
+          <span class="go">Revive</span>
+        </div>
+
+        <!-- vitals -->
+        <div class="vhead"><span class="t">Vitals</span><span class="all" id="seeAll">See all</span></div>
+        <div class="vitals">
+          <div class="vit love">
+            <div class="h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg> Love</div>
+            <div class="n" id="nLove">75%</div><div class="bar"><i id="bLove"></i></div>
+          </div>
+          <div class="vit hyd">
+            <div class="h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s7 8 7 12a7 7 0 0 1-14 0c0-4 7-12 7-12z"/></svg> Hydration</div>
+            <div class="n" id="nHyd">60%</div><div class="bar"><i id="bHyd"></i></div>
+          </div>
+          <div class="vit enr">
+            <div class="h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg> Energy</div>
+            <div class="n" id="nEnr">85%</div><div class="bar"><i id="bEnr"></i></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MEMORIES -->
+      <section class="screen" id="scr-mem">
+        <div class="ph">
+          <h2>Memories</h2>
+          <p class="lead">Every moment you and your person share with Bixi is pressed here like a leaf in a journal.</p>
+          <div class="memgrid">
+            <div class="m">First hatch 🐣<br>Day 001</div>
+            <div class="m">First pet 🫶<br>+ Love</div>
+            <div class="m" style="border-style:solid;background:#fff;color:var(--ink)">Watered together 💧<br><span style="color:var(--mut);font-weight:600">just now</span></div>
+            <div class="m">More to come…</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GROWTH -->
+      <section class="screen" id="scr-grow">
+        <div class="ph">
+          <h2>Growth</h2>
+          <p class="lead">Keep Bixi thriving and he grows — from a sprout, to a bloom, to something you raised together.</p>
+          <div class="stage">
+            <span class="em">🌱</span>
+            <div><div style="font-weight:800;font-size:16px;color:var(--ink)">Sprout · Stage 1</div>
+            <div style="font-size:13px;color:var(--mut);margin-top:2px">12% to the next stage</div></div>
+          </div>
+          <div class="growbar"><i></i></div>
+          <div class="tile" style="margin-top:16px"><div class="k">Streak</div><div class="v">1 day cared for together</div><div class="d">Both of you showed up today. Come back tomorrow to keep the streak alive.</div></div>
+          <div class="tile"><div class="k">Next milestone</div><div class="v">Day 007 — First Bloom 🌸</div><div class="d">Reach a full week of care and Bixi sprouts his first flower.</div></div>
+        </div>
+      </section>
+
+      <!-- YOU -->
+      <section class="screen" id="scr-you">
+        <div class="ph">
+          <h2>You + Your person</h2>
+          <p class="lead">One Bixi, two of you. This is your shared little world.</p>
+          <div class="tile"><div class="k">Your pair</div><div class="v">you@email.com 💚 them@email.com</div><div class="d">Both connected · caring since Day 001</div></div>
+          <div class="tile"><div class="k">Notifications</div><div class="v">Nudge when Bixi needs us</div><div class="d">We'll gently remind you if one of you drifts.</div></div>
+          <div class="tile"><div class="k">Your specimen</div><div class="v">Bixi · Cubus sproutii</div><div class="d">Specimen Nº01 — raised by two.</div></div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- bottom nav -->
+    <nav class="nav" id="nav">
+      <button class="tab on" data-scr="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>
+        <span class="lb">Home</span>
+      </button>
+      <button class="tab" data-scr="mem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.6"/><path d="M21 15l-5-5L5 20"/></svg>
+        <span class="lb">Memories</span>
+      </button>
+      <button class="tab" data-scr="grow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V11"/><path d="M12 11c0-3 2.5-5 6-5 0 3-2.5 5-6 5z"/><path d="M12 14c0-2.5-2-4.5-5-4.5 0 2.5 2 4.5 5 4.5z"/></svg>
+        <span class="lb">Growth</span>
+      </button>
+      <button class="tab" data-scr="you">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <span class="lb">You</span>
+      </button>
+    </nav>
+    <div class="homebar"></div>
+
+    <!-- care-log bottom sheet -->
+    <div class="scrim" id="scrim"></div>
+    <div class="sheetm" id="sheet">
+      <div class="grab"></div>
+      <h3>The Care Log</h3>
+      <p class="sub">Bixi only thrives when you both show up.</p>
+      <div class="who2">
+        <button class="whobtn on" id="whoYou">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
+          <span class="nm">You</span><span class="st" id="stYou">Present</span>
+        </button>
+        <button class="whobtn on" id="whoThem">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
+          <span class="nm">Your person</span><span class="st" id="stThem">Present</span>
+        </button>
+      </div>
+      <p class="sheetnote" id="sheetNote">Both of you are here — Bixi is <b>thriving</b>. Toggle one off to see him droop.</p>
+      <button class="sheetdone" id="sheetDone">Done</button>
+    </div>
+
+  </div>
+
+  <!-- ============ DIRECTOR PANEL (recording control — press D to hide) ============ -->
+  <div id="director">
+    <button class="dir-tab" id="dirTab" aria-label="Open director panel">🎬<span class="lbl">Director</span></button>
+    <aside class="dir" role="dialog" aria-label="Director panel">
+      <div class="dir-hd"><span class="t">🎬 Director</span><button class="x" id="dirClose" aria-label="Collapse panel">›</button></div>
+
+      <div class="dir-sec">
+        <label>Starting state</label>
+        <div class="dir-presets">
+          <button data-preset="thriving">🌟 Thriving — both here</button>
+          <button data-preset="happy">🙂 Happy (default)</button>
+          <button data-preset="sad">🥺 Sad &amp; hungry</button>
+          <button data-preset="drift">💔 Drifted — partner away</button>
+          <button data-preset="dormant">🥀 Dormant — both gone</button>
+        </div>
+      </div>
+
+      <div class="dir-sec">
+        <label>Who's present</label>
+        <div class="dir-row">
+          <button class="dir-tog" id="dirYou">You</button>
+          <button class="dir-tog" id="dirThem">Partner</button>
+        </div>
+      </div>
+
+      <div class="dir-sec">
+        <label>Vitals</label>
+        <div class="dir-slider"><span>❤️ Love</span><input type="range" id="sLove" min="0" max="100" value="75"><b id="vLoveD">75</b></div>
+        <div class="dir-slider"><span>💧 Hydration</span><input type="range" id="sHyd" min="0" max="100" value="60"><b id="vHydD">60</b></div>
+        <div class="dir-slider"><span>⚡ Energy</span><input type="range" id="sEnr" min="0" max="100" value="85"><b id="vEnrD">85</b></div>
+      </div>
+
+      <div class="dir-sec">
+        <label>Day counter</label>
+        <div class="dir-day">
+          <button id="dayMinus" aria-label="Previous day">−</button>
+          <b id="dayValD">Day 001</b>
+          <button id="dayPlus" aria-label="Next day">+</button>
+        </div>
+      </div>
+
+      <div class="dir-sec">
+        <label>Trigger a clip</label>
+        <div class="dir-row wrap">
+          <button class="dir-mini" data-clip="tap">🫶 Pet</button>
+          <button class="dir-mini" data-clip="water">💧 Water</button>
+          <button class="dir-mini" data-clip="feed">🌱 Feed</button>
+          <button class="dir-mini" data-clip="revive">✨ Revive</button>
+        </div>
+      </div>
+
+      <button class="dir-hide" id="dirHide">Hide panel · press D</button>
+    </aside>
+  </div>
+
+  <script>
+  (function(){
+    "use strict";
+    var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function vibe(p){ if(navigator.vibrate){ try{ navigator.vibrate(p); }catch(e){} } }
+
+    /* ---------------- state ---------------- */
+    var V = { love:75, hyd:60, enr:85 };            // vitals 0..100
+    var care = { you:true, them:true };             // presence
+
+    /* ---------------- video engine (same idea as the landing page) ---------------- */
+    var bases  = { 2:document.getElementById('baseIdle'), 1:document.getElementById('baseDrift'), 0:document.getElementById('baseDormant') };
+    var vReact = document.getElementById('vReact');
+    var REACT  = { tap:'videos/tap.mp4', feed:'videos/feed.mp4', water:'videos/water.mp4', revive:'videos/revive.mp4' };
+    var curBase = 2;
+    function playSafe(v){ try{ var p=v.play(); if(p&&p.catch) p.catch(function(){}); }catch(e){} }
+
+    function showBase(lvl){
+      if(lvl===curBase || !bases[lvl]) return;
+      var prev = bases[curBase]; curBase = lvl; var next = bases[lvl];
+      try{ next.currentTime = 0; }catch(e){}
+      var reveal = function(){
+        if(curBase!==lvl) return;
+        next.classList.add('show'); prev.classList.remove('show');
+        setTimeout(function(){ if(prev!==bases[curBase]){ try{ prev.pause(); }catch(e){} } }, 480);
+      };
+      if(reduceMotion){ reveal(); return; }
+      if(next.readyState>=2){ playSafe(next); reveal(); }
+      else { var on=function(){ next.removeEventListener('canplay',on); playSafe(next); reveal(); }; next.addEventListener('canplay',on); playSafe(next); }
+    }
+
+    var reactGen = 0;
+    function hideReact(){ vReact.classList.remove('show'); try{ vReact.pause(); }catch(e){} }
+    function playReaction(name){
+      if(reduceMotion) return;
+      var gen = ++reactGen, src = REACT[name] || REACT.tap;
+      if(!vReact.src || vReact.src.indexOf(src)===-1) vReact.src = src;
+      try{ vReact.currentTime = 0; }catch(e){}
+      var p = vReact.play();
+      if(p&&p.then) p.then(function(){ if(gen===reactGen) vReact.classList.add('show'); }).catch(function(){ if(gen===reactGen) hideReact(); });
+      else vReact.classList.add('show');
+    }
+    vReact.addEventListener('ended', function(){ reactGen++; hideReact(); });
+
+    /* ---------------- Bixi speech ---------------- */
+    var bubble = document.getElementById('bubble'), bubbleTimer=null;
+    function say(txt, ms){
+      bubble.textContent = txt; bubble.classList.add('show');
+      clearTimeout(bubbleTimer); bubbleTimer = setTimeout(function(){ bubble.classList.remove('show'); }, ms||2600);
+    }
+    var annoyN=0, ANNOYED=["not now…","please… I just want them back","leave me be…"];
+
+    /* ---------------- mood maths ---------------- */
+    function present(){ return (care.you?1:0)+(care.them?1:0); }
+    function avgVit(){ return Math.round((V.love+V.hyd+V.enr)/3); }
+    function moodLevel(){                 // which base video
+      var pc=present(); if(pc===0) return 0; if(pc===1) return 1; return avgVit()<18?1:2;
+    }
+    function moodPct(){
+      var base=avgVit(), pc=present();
+      if(pc===2) return base;
+      if(pc===1) return Math.round(base*0.5);
+      return Math.max(0, Math.round(base*0.12));
+    }
+    function moodWord(p){
+      if(p>=85) return ['Thriving','']; if(p>=65) return ['Happy',''];
+      if(p>=45) return ['Content','mid']; if(p>=22) return ['Drooping','mid'];
+      return ['Dormant','low'];
+    }
+
+    /* ---------------- render ---------------- */
+    var moodPctEl=document.getElementById('moodPct'), moodStEl=document.getElementById('moodSt'),
+        presenceEl=document.getElementById('presence'), presenceSub=document.getElementById('presenceSub'),
+        reviveB=document.getElementById('reviveBanner'), tapHint=document.getElementById('tapHint');
+    var VN={love:document.getElementById('nLove'),hyd:document.getElementById('nHyd'),enr:document.getElementById('nEnr')};
+    var VB={love:document.getElementById('bLove'),hyd:document.getElementById('bHyd'),enr:document.getElementById('bEnr')};
+
+    function render(prevLevel){
+      // vitals
+      ['love','hyd','enr'].forEach(function(k){ VN[k].textContent=Math.round(V[k])+'%'; VB[k].style.width=V[k]+'%'; });
+      // mood card — "Dormant" is reserved for when he's truly gone (both drifted)
+      var mp=moodPct(), mw=moodWord(mp);
+      if(moodLevel()>0 && mw[0]==='Dormant') mw=['Drooping','low'];
+      moodPctEl.textContent=mp+'%'; moodStEl.textContent=mw[0]; moodStEl.className='st '+mw[1];
+      // presence pill
+      var pc=present();
+      presenceEl.classList.toggle('warn', pc<2);
+      presenceSub.textContent = pc===2 ? 'Taking care together' : pc===1 ? 'One of you drifted…' : 'Nobody is here…';
+      // revive banner + hide tap hint when sad
+      var lvl=moodLevel();
+      reviveB.classList.toggle('show', lvl===0);
+      // care-log sheet mirror
+      syncSheet();
+      // director panel mirror
+      syncDir();
+      // video
+      showBase(lvl);
+      if(lvl===2 && prevLevel!==undefined && prevLevel<2) playReaction('revive');
+    }
+
+    /* ---------------- care actions ---------------- */
+    var SAY = { pet:"Thanks for petting me! 💚", water:"Ahh — so refreshing! 💧", feed:"Yum, Bixi Bites! 😋", play:"Yay, let's play! 🎉" };
+    function bump(k, amt){ V[k]=Math.min(100, V[k]+amt); }
+    function refuse(){                          // a parent's away → Bixi won't be cared for
+      say(ANNOYED[annoyN++ % ANNOYED.length], 2200); vibe(24);
+    }
+    function pop(btn){ if(btn){ btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); } }
+
+    function doAction(kind, btn){
+      pop(btn); vibe(10);
+      if(present()<2){ refuse(); return; }
+      var prev=moodLevel();
+      if(kind==='pet'){ bump('love',7); playReaction('tap'); }
+      else if(kind==='water'){ bump('hyd',9); playReaction('water'); }
+      else if(kind==='feed'){ bump('enr',9); bump('love',2); playReaction('feed'); }
+      else if(kind==='play'){ bump('love',6); bump('enr',3); playReaction('tap'); }
+      say(SAY[kind]);
+      render(prev);
+    }
+    document.getElementById('btnPet').addEventListener('click',   function(){ doAction('pet', this); });
+    document.getElementById('btnWater').addEventListener('click', function(){ doAction('water', this); });
+    document.getElementById('btnFeed').addEventListener('click',  function(){ doAction('feed', this); });
+    document.getElementById('btnPlay').addEventListener('click',  function(){ doAction('play', this); });
+
+    // tap Bixi himself
+    var scene=document.getElementById('scene');
+    scene.addEventListener('click', function(e){
+      if(e.target.closest('.carelog')) return;       // let the Care Log button do its own thing
+      if(present()<2){ refuse(); return; }
+      var prev=moodLevel(); bump('love',5); playReaction('tap'); say(SAY.pet); vibe(10); render(prev);
+    });
+
+    // revive banner
+    reviveB.addEventListener('click', function(){
+      var prev=moodLevel();
+      care.you=true; care.them=true;
+      V.love=Math.max(V.love,62); V.hyd=Math.max(V.hyd,62); V.enr=Math.max(V.enr,62);
+      say("You're both back! 🌱", 2800); vibe([10,40,10]); render(prev);
+    });
+
+    /* ---------------- care-log bottom sheet ---------------- */
+    var scrim=document.getElementById('scrim'), sheet=document.getElementById('sheet'),
+        whoYou=document.getElementById('whoYou'), whoThem=document.getElementById('whoThem'),
+        stYou=document.getElementById('stYou'), stThem=document.getElementById('stThem'),
+        sheetNote=document.getElementById('sheetNote');
+    function openSheet(){ scrim.classList.add('show'); sheet.classList.add('show'); }
+    function closeSheet(){ scrim.classList.remove('show'); sheet.classList.remove('show'); }
+    document.getElementById('careLogBtn').addEventListener('click', function(e){ e.stopPropagation(); openSheet(); });
+    scrim.addEventListener('click', closeSheet);
+    document.getElementById('sheetDone').addEventListener('click', closeSheet);
+    function syncSheet(){
+      [[whoYou,stYou,care.you],[whoThem,stThem,care.them]].forEach(function(r){
+        r[0].classList.toggle('on', r[2]); r[0].classList.toggle('off', !r[2]);
+        r[1].textContent = r[2] ? 'Present' : 'Drifted';
+      });
+      var pc=present();
+      sheetNote.innerHTML = pc===2 ? 'Both of you are here — Bixi is <b>thriving</b>. Toggle one off to see him droop.'
+                          : pc===1 ? 'One of you drifted — Bixi is <b>drooping</b> and won’t accept care.'
+                          : 'You both left — Bixi went <b>dormant</b>. Come back for him.';
+    }
+    whoYou.addEventListener('click', function(){ var prev=moodLevel(); care.you=!care.you; vibe(8); render(prev); });
+    whoThem.addEventListener('click', function(){ var prev=moodLevel(); care.them=!care.them; vibe(8); render(prev); });
+
+    /* ---------------- bottom nav ---------------- */
+    var scrById={home:document.getElementById('scr-home'),mem:document.getElementById('scr-mem'),grow:document.getElementById('scr-grow'),you:document.getElementById('scr-you')};
+    document.getElementById('nav').addEventListener('click', function(e){
+      var tab=e.target.closest('.tab'); if(!tab) return;
+      var id=tab.getAttribute('data-scr');
+      [].forEach.call(this.querySelectorAll('.tab'), function(t){ t.classList.toggle('on', t===tab); });
+      for(var k in scrById) scrById[k].classList.toggle('on', k===id);
+      scrById[id].scrollTop=0; vibe(6);
+    });
+    document.getElementById('seeAll').addEventListener('click', function(){ document.querySelector('.tab[data-scr=grow]').click(); });
+
+    /* ---------------- video fallback wiring ---------------- */
+    setTimeout(function(){ if(!window.__ready){ document.getElementById('fallback').style.display='grid'; } }, 2600);
+    function ready(){
+      if(window.__ready) return;                    // guard: fires on both loadeddata & canplay
+      window.__ready=true; document.getElementById('fallback').style.display='none';
+      [bases[1],bases[0]].forEach(function(v){ if(v){ v.preload='auto'; try{ v.load(); }catch(e){} } });
+    }
+    if(bases[2].readyState>=2) ready();
+    bases[2].addEventListener('loadeddata', ready);
+    bases[2].addEventListener('canplay', ready);
+    if(reduceMotion){ for(var k in bases){ bases[k].removeAttribute('autoplay'); bases[k].removeAttribute('loop'); } }
+    else playSafe(bases[2]);
+
+    /* ---------------- director / admin panel (recording control) ---------------- */
+    var director=document.getElementById('director');
+    var dirYou=document.getElementById('dirYou'), dirThem=document.getElementById('dirThem');
+    var sLove=document.getElementById('sLove'), sHyd=document.getElementById('sHyd'), sEnr=document.getElementById('sEnr');
+    var vLoveD=document.getElementById('vLoveD'), vHydD=document.getElementById('vHydD'), vEnrD=document.getElementById('vEnrD');
+    var dayValD=document.getElementById('dayValD'), dayLabelEl=document.getElementById('dayLabel'), day=1;
+
+    function setDay(n){ day=Math.max(1,n); var s='Day '+String(day).padStart(3,'0'); dayLabelEl.textContent=s; if(dayValD) dayValD.textContent=s; }
+
+    // keep the panel's controls in sync with the live app state (called from render)
+    function syncDir(){
+      if(!sLove) return;
+      dirYou.classList.toggle('on',care.you); dirThem.classList.toggle('on',care.them);
+      sLove.value=Math.round(V.love); vLoveD.textContent=Math.round(V.love);
+      sHyd.value =Math.round(V.hyd);  vHydD.textContent =Math.round(V.hyd);
+      sEnr.value =Math.round(V.enr);  vEnrD.textContent =Math.round(V.enr);
+    }
+    // director sets the scene without firing a reaction clip (render() with no prev level)
+    function dirRender(){ reactGen++; hideReact(); render(); }
+
+    var PRESETS={
+      thriving:{you:true, them:true,  love:90, hyd:85, enr:92},
+      happy:   {you:true, them:true,  love:75, hyd:60, enr:85},
+      sad:     {you:true, them:true,  love:12, hyd:10, enr:14},   // both here but starving → he droops
+      drift:   {you:true, them:false, love:55, hyd:45, enr:60},   // partner away → drift clip
+      dormant: {you:false,them:false, love:20, hyd:15, enr:22}    // both gone → dormant + revive banner
+    };
+    [].forEach.call(document.querySelectorAll('.dir-presets button'), function(b){
+      b.addEventListener('click', function(){
+        var p=PRESETS[b.getAttribute('data-preset')]; if(!p) return;
+        care.you=p.you; care.them=p.them; V.love=p.love; V.hyd=p.hyd; V.enr=p.enr; dirRender(); vibe(6);
+      });
+    });
+    dirYou.addEventListener('click',  function(){ care.you =!care.you;  dirRender(); });
+    dirThem.addEventListener('click', function(){ care.them=!care.them; dirRender(); });
+    sLove.addEventListener('input', function(){ V.love=+this.value; dirRender(); });
+    sHyd.addEventListener('input',  function(){ V.hyd =+this.value; dirRender(); });
+    sEnr.addEventListener('input',  function(){ V.enr =+this.value; dirRender(); });
+    document.getElementById('dayMinus').addEventListener('click', function(){ setDay(day-1); });
+    document.getElementById('dayPlus').addEventListener('click',  function(){ setDay(day+1); });
+    [].forEach.call(document.querySelectorAll('.dir-mini[data-clip]'), function(b){
+      b.addEventListener('click', function(){ playReaction(b.getAttribute('data-clip')); });
+    });
+
+    document.getElementById('dirTab').addEventListener('click',   function(){ director.classList.add('open'); });
+    document.getElementById('dirClose').addEventListener('click', function(){ director.classList.remove('open'); });
+    document.getElementById('dirHide').addEventListener('click',  function(){ director.classList.remove('open'); director.classList.add('hidden'); });
+    // press D to hide/show the whole director (so it never shows up in a recording)
+    document.addEventListener('keydown', function(e){
+      if(e.key==='d' || e.key==='D'){ var t=e.target; if(t && (t.tagName==='INPUT'||t.tagName==='TEXTAREA')) return; director.classList.toggle('hidden'); }
+    });
+    setDay(1);
+
+    /* first paint */
+    render();
+  })();
+  </script>
+
+  <!-- Vercel Web Analytics (page views) — static-site snippet; script is served by Vercel when Analytics is enabled -->
+  <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
