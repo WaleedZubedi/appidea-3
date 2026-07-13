@@ -95,20 +95,11 @@
     .bxvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#1a1420;opacity:0;transition:opacity .4s ease}
     .bxvid.show{opacity:1}
     .bxvid.react{transition:opacity .16s ease}
-    /* tappable food & water hotspots in his room */
-    .spot{position:absolute;display:flex;flex-direction:column;align-items:center;border:0;background:none;padding:0;cursor:pointer;z-index:3;transform:translateX(-50%)}
-    .spot-feed{left:15%;bottom:4%}
-    .spot-water{left:73%;bottom:13%}
-    .spot .tag{font-family:var(--sans);font-weight:700;font-size:11px;color:#fff;background:rgba(30,25,19,.74);padding:4px 10px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.35);text-shadow:0 1px 2px rgba(0,0,0,.4)}
-    .spot .arw{width:22px;height:26px;margin:-2px 0}
-    .spot .arw path{fill:none;stroke:var(--clay);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.55))}
-    .spot .ring{width:clamp(30px,10vw,46px);aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.9);box-shadow:0 0 0 2px rgba(200,80,46,.78),0 2px 8px rgba(0,0,0,.4);animation:spotpulse 1.8s ease-in-out infinite}
-    .spot:hover .ring,.spot:focus-visible .ring{box-shadow:0 0 0 3px var(--clay),0 2px 12px rgba(0,0,0,.55)}
-    .spot:focus-visible{outline:none}
-    @keyframes spotpulse{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.16);opacity:.5}}
     #fallback{position:absolute;inset:0;display:none;place-items:center;pointer-events:none}
     #fallback svg{width:min(40vw,150px)}
-    .spin-hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.9);text-shadow:0 1px 4px rgba(0,0,0,.6);pointer-events:none}
+    .spin-hint{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:rgba(18,13,8,.66);padding:5px 12px;border-radius:999px;white-space:nowrap;pointer-events:none}
+    /* Bixi's line — same pill style, sits just above the tap hint */
+    .say{position:absolute;bottom:38px;left:50%;transform:translateX(-50%);display:none;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:rgba(18,13,8,.7);padding:5px 12px;border-radius:999px;max-width:90%;white-space:nowrap;text-align:center;pointer-events:none}
     .figcap{
       display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
       font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);
@@ -152,8 +143,7 @@
     .toggle .st{display:block;margin-top:5px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
     /* care actions — momentary things you DO for Bixi */
     .acts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:9px 0 0}
-    .act{display:flex;align-items:center;justify-content:center;gap:7px;background:var(--card);border:1px solid var(--ink);border-radius:6px;padding:10px 8px;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12px;color:var(--ink);box-shadow:3px 3px 0 var(--ink);transition:transform .1s,box-shadow .1s}
-    .act .ico{font-size:15px;line-height:1}
+    .act{background:var(--card);border:1px solid var(--ink);border-radius:6px;padding:11px 8px;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12.5px;color:var(--ink);box-shadow:3px 3px 0 var(--ink);transition:transform .1s,box-shadow .1s}
     .act:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
     .act.react{animation:actpop .4s ease}
     @keyframes actpop{0%,100%{transform:translate(0,0);box-shadow:3px 3px 0 var(--ink)}45%{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}}
@@ -229,7 +219,7 @@
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
     @media (prefers-reduced-motion:reduce){
-      .rule,.h-line,.status .sq,.cta,.cta .arw,.act.react,.spot .ring{animation:none}
+      .rule,.h-line,.status .sq,.cta,.cta .arw,.act.react{animation:none}
       .h-line{opacity:1;transform:none}.rule{transform:none}
     }
   </style>
@@ -260,16 +250,7 @@
         <video id="baseDrift" class="bxvid base" src="videos/drift.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
         <video id="baseDormant" class="bxvid base" src="videos/dormant.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
         <video id="vReact" class="bxvid react" muted playsinline preload="none" aria-hidden="true"></video>
-        <button class="spot spot-feed" type="button" aria-label="Feed Bixi a snack">
-          <span class="tag">🍓 Feed</span>
-          <svg class="arw" viewBox="0 0 30 34" aria-hidden="true"><path d="M15 2 C 9 12, 21 18, 15 30"/><path d="M15 30 l -6 -6 M15 30 l 6 -6"/></svg>
-          <span class="ring"></span>
-        </button>
-        <button class="spot spot-water" type="button" aria-label="Give Bixi water">
-          <span class="tag">💧 Water</span>
-          <svg class="arw" viewBox="0 0 30 34" aria-hidden="true"><path d="M15 2 C 21 12, 9 18, 15 30"/><path d="M15 30 l -6 -6 M15 30 l 6 -6"/></svg>
-          <span class="ring"></span>
-        </button>
+        <span class="say" id="bxsay" aria-hidden="true"></span>
         <span class="spin-hint" id="spinHint" aria-hidden="true">tap Bixi to pet him</span>
         <div id="fallback" aria-hidden="true">
           <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
@@ -304,8 +285,8 @@
         </button>
       </div>
       <div class="acts">
-        <button class="act" id="btnWater" type="button"><span class="ico" aria-hidden="true">💧</span> Water</button>
-        <button class="act" id="btnFeed" type="button"><span class="ico" aria-hidden="true">🍓</span> Feed</button>
+        <button class="act" id="btnWater" type="button">Water</button>
+        <button class="act" id="btnFeed" type="button">Feed</button>
       </div>
       <div class="vitals">
         <span class="lab">Vitals</span>
@@ -389,17 +370,21 @@
       tgThem.addEventListener('click', function(){ care.them = !care.them; applyMood(); });
       revive.addEventListener('click', function(){ care.you = true; care.them = true; applyMood(); if (navigator.vibrate){ try{ navigator.vibrate([10,40,10]); }catch(e){} } });
 
-      // care actions — Bixi reacts, but these don't change presence/mood
-      function actReact(btn, fn){
-        if (!btn) return;
-        btn.addEventListener('click', function(){
-          btn.classList.remove('react'); void btn.offsetWidth; btn.classList.add('react');
-          if (window[fn]) window[fn]();
-          if (navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} }
-        });
+      // care actions — feeding & watering cheer Bixi back up: he returns to thriving,
+      // so a drift/dormant loop never resumes after the feed/water clip finishes
+      function careAction(kind, btn){
+        if (btn){ btn.classList.remove('react'); void btn.offsetWidth; btn.classList.add('react'); }
+        if (!care.you || !care.them){                // a parent's away — he won't eat or drink
+          if (window.__annoyed) window.__annoyed();
+          return;
+        }
+        var play = window['__' + kind];              // __feed / __water — play the clip
+        if (play) play();
+        if (navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} }
       }
-      actReact(document.getElementById('btnWater'), '__water');
-      actReact(document.getElementById('btnFeed'), '__feed');
+      var bWater = document.getElementById('btnWater'), bFeed = document.getElementById('btnFeed');
+      if (bWater) bWater.addEventListener('click', function(){ careAction('water', bWater); });
+      if (bFeed)  bFeed.addEventListener('click',  function(){ careAction('feed',  bFeed); });
 
       /* 3D fallback */
       setTimeout(function(){ if (!window.__petReady){ document.getElementById('fallback').style.display='grid'; var h=document.getElementById('spinHint'); if(h) h.style.display='none'; } }, 2500);
@@ -503,15 +488,23 @@
       }
       vReact.addEventListener('ended', function(){ reactGen++; hideReact(); });
 
-      // tap Bixi himself
-      plate.addEventListener('click', function(){ playReaction('tap'); if (navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} } });
-      plate.tabIndex = 0; plate.setAttribute('role','button'); plate.setAttribute('aria-label','Pet Bixi');
-      plate.addEventListener('keydown', function(e){ if (e.key==='Enter' || e.key===' '){ e.preventDefault(); playReaction('tap'); } });
+      // Bixi's line above the tap-hint (same pill style)
+      var say = document.getElementById('bxsay');
+      var MISS = { 1:"I miss my other parent…", 0:"I miss both my parents…" };
+      var ANNOYED = ["not now…", "please… I just want them back", "leave me be…"];
+      var annoyN = 0, sayTimer = null;
+      function setSay(txt){ if (!say) return; if (txt){ say.textContent = txt; say.style.display = 'block'; } else { say.style.display = 'none'; } }
+      function moodSay(){ setSay(curBase===2 ? '' : (MISS[curBase] || '')); }        // hidden when thriving
+      function annoyed(){ setSay(ANNOYED[annoyN % ANNOYED.length]); annoyN++; if (navigator.vibrate){ try{ navigator.vibrate(24); }catch(e){} } clearTimeout(sayTimer); sayTimer = setTimeout(moodSay, 2400); }
+      window.__annoyed = annoyed;                    // care-log buttons use this to refuse when he's sad
 
-      // tap the snack / mug in his room — they feed / water him too
-      var sf=document.querySelector('.spot-feed'), sw=document.querySelector('.spot-water');
-      if (sf) sf.addEventListener('click', function(e){ e.stopPropagation(); playReaction('feed');  if(navigator.vibrate){try{navigator.vibrate(10);}catch(x){}} });
-      if (sw) sw.addEventListener('click', function(e){ e.stopPropagation(); playReaction('water'); if(navigator.vibrate){try{navigator.vibrate(10);}catch(x){}} });
+      // tap Bixi — you can only pet him when he's thriving; otherwise he's too sad and gets annoyed
+      function petOrAnnoy(){ if (curBase===2){ playReaction('tap'); if (navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} } } else annoyed(); }
+      plate.addEventListener('click', petOrAnnoy);
+      plate.tabIndex = 0; plate.setAttribute('role','button'); plate.setAttribute('aria-label','Pet Bixi');
+      plate.addEventListener('keydown', function(e){ if (e.key==='Enter' || e.key===' '){ e.preventDefault(); petOrAnnoy(); } });
+
+      // (the snack / mug hotspots are wired by the care-log script so they also lift his mood)
 
       // hooks the care buttons + mood system call
       window.__pet   = function(){ playReaction('tap'); };
@@ -519,8 +512,9 @@
       window.__water = function(){ playReaction('water'); };
       window.__celebrate = function(){ playReaction('tap'); };                        // signup: a happy bounce
       window.__onBoop = function(){};
-      window.__setMood = function(lvl){ var prev=curBase; reactGen++; hideReact(); showBase(lvl); if (lvl===2 && prev===0) playReaction('revive'); };
+      window.__setMood = function(lvl){ var prev=curBase; reactGen++; hideReact(); showBase(lvl); if (lvl===2 && prev<2) playReaction('revive'); moodSay(); };
       if (typeof window.__moodLvl === 'number') showBase(window.__moodLvl);
+      moodSay();
 
       // ready once the idle clip can play -> hide the SVG fallback + restore the hint + warm the others
       function ready(){
