@@ -141,9 +141,12 @@
     .toggle .who{display:block;font-weight:700;font-size:12px;color:var(--ink);letter-spacing:.01em}
     .toggle .heart{display:block;margin:0 auto 4px;width:14px;height:14px;color:var(--pine)}
     .toggle .st{display:block;margin-top:5px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
-    /* care actions — momentary things you DO for Bixi */
-    .acts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:9px 0 0}
-    .act{background:var(--card);border:1px solid var(--ink);border-radius:6px;padding:11px 8px;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12.5px;color:var(--ink);box-shadow:3px 3px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+    /* care actions — a tagline + arrow points at the Water/Feed buttons so it's obvious they're tappable */
+    .acthint{display:flex;align-items:center;justify-content:center;gap:7px;margin:0 0 9px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--clay-press)}
+    .acthint svg{width:17px;height:20px}
+    .acthint svg path{fill:none;stroke:var(--clay-press);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .acts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .act{background:var(--card);border:1.5px solid var(--clay-press);border-radius:6px;padding:12px 8px;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12.5px;letter-spacing:.03em;color:var(--clay-press);box-shadow:3px 3px 0 var(--ink);transition:transform .1s,box-shadow .1s}
     .act:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
     .act.react{animation:actpop .4s ease}
     @keyframes actpop{0%,100%{transform:translate(0,0);box-shadow:3px 3px 0 var(--ink)}45%{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}}
@@ -272,6 +275,9 @@
     <!-- care log -->
     <section class="log">
       <div class="loghead"><span class="rule"></span><span class="eyebrow"><span class="n">02</span> · The care log</span><span class="rule"></span></div>
+      <div class="acthint">Interact with Bixi
+        <svg viewBox="0 0 20 22" aria-hidden="true"><path d="M10 2 C 6 8, 14 11, 10 19"/><path d="M10 19 l -4 -4 M10 19 l 4 -4"/></svg>
+      </div>
       <div class="toggles">
         <button class="toggle on" id="tgYou" type="button" aria-pressed="true">
           <svg class="heart" viewBox="0 0 24 24" aria-hidden="true" id="hYou"><path fill="currentColor" d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
