@@ -210,6 +210,18 @@
     .hintline.ok{color:var(--pine)}
     .hintline.err{color:var(--brick)}
 
+    /* download-intent CTA */
+    .dlwrap{margin:30px 0 0;text-align:center}
+    .dl{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;cursor:pointer;
+      font-family:var(--sans);font-weight:700;font-size:15px;letter-spacing:.02em;color:var(--paper);
+      background:var(--clay-press);border-radius:9px;padding:15px 28px;box-shadow:4px 4px 0 var(--ink);
+      transition:transform .12s,box-shadow .12s}
+    .dl .dlic{width:20px;height:20px}
+    .dl:hover{box-shadow:3px 3px 0 var(--ink);transform:translate(1px,1px)}
+    .dl:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+    .dl:focus-visible{outline:2px solid var(--clay);outline-offset:3px}
+    .dlnote{margin:11px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+
     .done{display:none;margin:22px 0 0;padding:20px;background:var(--card);border:1px solid var(--clay)}
     .done:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
     .done .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--clay-press);display:block;margin-bottom:6px}
@@ -274,7 +286,6 @@
 
     <!-- care log -->
     <section class="log">
-      <div class="loghead"><span class="rule"></span><span class="eyebrow"><span class="n">02</span> · The care log</span><span class="rule"></span></div>
       <div class="acthint">Interact with Bixi
         <svg viewBox="0 0 20 22" aria-hidden="true"><path d="M10 2 C 6 8, 14 11, 10 19"/><path d="M10 19 l -4 -4 M10 19 l 4 -4"/></svg>
       </div>
@@ -294,15 +305,20 @@
         <button class="act" id="btnWater" type="button">Water</button>
         <button class="act" id="btnFeed" type="button">Feed</button>
       </div>
-      <div class="vitals">
-        <span class="lab">Vitals</span>
-        <div class="meter" id="meter"><span class="seg"></span><span class="seg"></span><span class="seg"></span></div>
-      </div>
       <button class="revive" id="revive" type="button">↺ Revive Bixi</button>
     </section>
 
     <!-- standfirst -->
     <p class="stand">Bixi <b>blooms</b> when you both show up, <b>droops</b> when one of you drifts — and won't make it without you both.</p>
+
+    <!-- download CTA — records the intent click, then routes to the email capture -->
+    <div class="dlwrap">
+      <button id="downloadBtn" class="dl" type="button">
+        <svg class="dlic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0l-4-4m4 4l4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Download the app
+      </button>
+      <p class="dlnote">Coming soon to iOS &amp; Android</p>
+    </div>
 
     <!-- coupon -->
     <section class="coupon">
@@ -349,7 +365,7 @@
       var figState = document.getElementById('figState');
       var revive = document.getElementById('revive');
       var meter = document.getElementById('meter');
-      var segs = meter.children;
+      var segs = meter ? meter.children : [];
 
       var FIG = { 2:{t:"Thriving",c:"s2"}, 1:{t:"Drifting",c:"s1"}, 0:{t:"Dormant",c:"s0"} };
 
@@ -421,6 +437,7 @@
           ? "We'll write you both the moment Bixi is ready to hatch. It takes two. 💚"
           : "We'll write the moment Bixi is ready to hatch. Bring your person — it takes two. 💚";
         form.style.display = 'none'; done.style.display = 'block'; done.focus();
+        try { if (window.va) window.va('event', { name: 'waitlist_signup' }); } catch(e){}
         if (window.__celebrate) window.__celebrate();
         if (navigator.vibrate){ try{ navigator.vibrate([12,60,12]); }catch(e){} }
       }
@@ -444,6 +461,22 @@
       });
       function clearErr(){ email.removeAttribute('aria-invalid'); partner.removeAttribute('aria-invalid'); if (hint.classList.contains('err')) setHint(HINT_DEFAULT); }
       email.addEventListener('input', clearErr); partner.addEventListener('input', clearErr);
+
+      /* ---------- download-intent CTA: record the click, then ask for their email ---------- */
+      var downloadBtn = document.getElementById('downloadBtn');
+      if (downloadBtn){
+        downloadBtn.addEventListener('click', function(){
+          // record the intent — shows up in Vercel Analytics → Events as "download_app_click"
+          try { if (window.va) window.va('event', { name: 'download_app_click' }); } catch(e){}
+          try { localStorage.setItem('dl_clicks', String((parseInt(localStorage.getItem('dl_clicks') || '0', 10) || 0) + 1)); } catch(e){}
+          if (navigator.vibrate){ try{ navigator.vibrate(12); }catch(e){} }
+          // the app isn't live yet → send them to the email capture
+          if (form && form.style.display !== 'none') setHint("The app isn't live yet — leave your email and we'll send your download link on launch day. 💚");
+          var target = document.getElementById('signup') || document.querySelector('.coupon');
+          if (target) target.scrollIntoView({ behavior:'smooth', block:'center' });
+          setTimeout(function(){ try{ email.focus({ preventScroll:true }); }catch(e){ try{ email.focus(); }catch(_){} } }, 480);
+        });
+      }
     })();
   </script>
 
