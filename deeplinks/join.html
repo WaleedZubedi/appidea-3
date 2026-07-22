@@ -1,0 +1,45 @@
+<!doctype html>
+<!--
+  Host at  https://bixi.pet/join/<token>  (Vercel rewrite: /join/:token -> /join.html).
+  Tries to open the app; falls back to the store. Universal/App Links (see
+  .well-known/*) let installed apps open this directly without the bounce.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Join a Bixi</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f6f2ea;color:#1e1913;
+         display:flex;min-height:100vh;margin:0;align-items:center;justify-content:center;text-align:center}
+    .card{max-width:340px;padding:28px}
+    h1{font-size:22px;margin:0 0 8px} p{color:#4a4335;line-height:1.5}
+    a.btn{display:inline-block;margin-top:16px;background:#c8502e;color:#fff;text-decoration:none;
+          padding:12px 22px;border-radius:10px;font-weight:600}
+    .muted{color:#8a8072;font-size:13px;margin-top:18px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🌱 You're invited to raise Bixi</h1>
+    <p>Opening the Bixi app…</p>
+    <a class="btn" id="store" href="#">Get the app</a>
+    <p class="muted">Once installed, open this link again to join.</p>
+  </div>
+  <script>
+    (function () {
+      var token = location.pathname.split('/').filter(Boolean).pop() || '';
+      var APP_STORE = 'https://apps.apple.com/app/idYOUR_APP_ID';       // TODO
+      var PLAY_STORE = 'https://play.google.com/store/apps/details?id=pet.bixi.app'; // TODO
+      var ua = navigator.userAgent || '';
+      var isAndroid = /Android/i.test(ua);
+      document.getElementById('store').href = isAndroid ? PLAY_STORE : APP_STORE;
+      // try the custom scheme (installed app)
+      if (token) {
+        var t = setTimeout(function () {}, 100);
+        window.location.href = 'bixi://join/' + token;
+      }
+    })();
+  </script>
+</body>
+</html>

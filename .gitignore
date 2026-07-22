@@ -9,3 +9,6 @@ desktop.ini
 
 # node (in case you add tooling later)
 node_modules/
+
+# stray nested clone (not part of this project)
+appidea\#3/
