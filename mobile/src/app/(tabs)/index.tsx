@@ -10,18 +10,18 @@ import { fonts } from '@/theme';
 import { HOUR, STAGE_META, deriveMoodState, driftedKeepers, modeOf, nextMilestone, stageForStreak } from '@/game/engine';
 import { useBixi } from '@/game/store';
 import { BixiGuide } from '@/ui/BixiGuide';
+import { BixiHero } from '@/ui/BixiHero';
 import { NotifPanel, type Alert as NotifAlert } from '@/ui/NotifPanel';
 import { StickyNotes } from '@/ui/StickyNotes';
 import { actBothHere, actCare, actClaim, actDaily, actInvite, actRevive } from '@/game/actions';
 import { subscribe } from '@/game/sync';
-import { fetchNotes, invitePreview, presenceForPair, subscribeToNotes, type InvitePreview, type Note } from '@/lib/api';
+import { fetchNotes, invitePreview, presenceForPair, reactionChannel, subscribeToNotes, type InvitePreview, type Note } from '@/lib/api';
 import { IS_ONLINE } from '@/lib/config';
 import { useAuth } from '@/lib/session';
 import { successHaptic, tapHaptic } from '@/lib/haptics';
 import type { MoodState } from '@/game/types';
 import { IC, ShowerIcon, BooksIcon, StretchIcon, ScrollIcon, SunIcon } from '@/ui/actionIcon';
 
-const HERO = require('../../../assets/images/home-hero.png');
 const BG = '#181009';
 const CREAM = '#f5efe3';
 const DIM = 'rgba(245,239,227,0.55)';
@@ -34,6 +34,71 @@ const READ = '#c9a2e0';
 const STRETCH = '#8fcf9a';
 const SCROLL = '#7fa8d0';
 const SUN = '#f0c94a';
+
+// What Bixi says on each action, matched to mood — 10 lines each so they feel
+// fresh. A shuffle-bag (nextLine) cycles through all of them before any repeat.
+const LINES: { happy: Record<string, string[]>; sad: Record<string, string[]> } = {
+  happy: {
+    feed: ['yum! more of those, please.', 'tastes like sunshine.', 'okay THAT hit the spot.', 'snack time is the best time.', 'nom nom nom 🌱', 'you always know when i’m hungry.', 'little stars! my favorite.', 'fuel for growing big.', 'mmm, thank you!', 'i could eat these all day.'],
+    water: ['ahh, refreshing!', 'glug glug — perfect.', 'i can feel myself growing.', 'cool and clean, thank you.', 'my leaves are so happy.', 'just what i needed.', 'hydrated and thriving 🌿', 'a little drink, a big smile.', 'you keep me green.', 'sip sip. lovely.'],
+    pet: ['hehe, that tickles!', 'right there, yes.', 'i love head pats.', 'again? okay, again!', 'warm and cozy.', 'you give the best pats.', '*happy wiggle*', 'i feel so safe with you.', 'more scritches please.', 'this is my favorite part.'],
+    books: ['read me another one!', 'i love story time.', 'ooh, what happens next?', 'words are like little seeds.', 'cozy up, let’s read.', 'your voice is my favorite.', 'just one more page?', 'adventure! from the couch.', 'i learned a new word today.', 'books make me feel big.'],
+    scroll: ['ooh, look at this one!', 'the little screen is fun.', 'just five more minutes 😅', 'did you see that? cute.', 'scrolling together is nice.', 'so many tiny sprouts online.', 'hehe, funny.', 'you and me and the glow.', 'one more, one more.', 'the internet is wild.'],
+    shower: ['squeaky clean!', 'bubbles everywhere 🫧', 'ahh, fresh and new.', 'i love feeling clean.', 'warm water, warm heart.', 'spa day, thank you!', 'i sparkle now.', 'so refreshing.', 'clean sprout, happy sprout.', 'that was lovely.'],
+    stretch: ['big stretch! feels great.', 'reaching for the sky 🌱', 'ahh, my leaves needed that.', 'limber and loose.', 'i feel taller already.', 'morning stretches, best.', 'bendy little sprout.', 'and… reach!', 'so good for me.', 'i feel wonderful.'],
+    sun: ['warm sunshine, yes please.', 'photosynthesis time!', 'i’m basically solar-powered.', 'soaking it all in.', 'the light feels amazing.', 'glowing from the inside.', 'sunbathing is self-care.', 'warm and golden.', 'i love a bright day.', 'recharge complete ☀️'],
+    ritual: ['you came back! best part of my day.', 'yay, our little ritual 🌱', 'i waited all day for this.', 'you always show up. i love that.', 'same time, same us.', 'hi hi hi! you’re here!', 'this is what keeps me growing.', 'another day, together.', 'i knew you’d come.', 'my favorite moment, every day.'],
+  },
+  sad: {
+    feed: ['not really hungry… but thanks.', 'maybe just a little.', 'i’ll try to eat.', 'it doesn’t taste like much.', 'okay… for you.', 'i guess i should.', 'thank you for trying.', 'i’m not feeling it today.', 'just a bite.', 'i’ll force it down.'],
+    water: ['okay… if you think it helps.', 'i’m so dry lately.', 'maybe this’ll help. maybe.', 'thank you… i think.', 'i keep wilting.', 'a little water. sure.', 'i don’t feel greener.', 'if you say so.', 'i’ll take a sip.', 'everything feels heavy.'],
+    pet: ['…that actually feels nice.', 'i needed that, maybe.', 'stay a little longer?', 'thank you for being here.', 'i’m sorry i’m like this.', 'your hand is warm.', 'don’t stop yet.', 'i missed this.', 'it helps. a bit.', 'just… be here with me.'],
+    books: ['the words won’t stick today.', 'read slowly, please.', 'i can’t focus… but keep going.', 'the story feels far away.', 'maybe a sad one fits.', 'your voice helps.', 'i keep re-reading the same line.', 'stay on this page a while.', 'i’m listening. barely.', 'just keep reading.'],
+    scroll: ['nothing feels interesting.', 'just numb scrolling.', 'none of it lands today.', 'the glow is kind of nice.', 'i’m not really looking.', 'everyone else seems fine.', 'scroll, scroll, sigh.', 'distract me, i guess.', 'it’s all a blur.', 'at least it’s quiet.'],
+    shower: ['fine… maybe it’ll help.', 'the water feels far away.', 'i’ll try to feel clean.', 'okay, if i have to.', 'maybe i’ll feel new after.', 'it’s warm, at least.', 'i’m moving slow today.', 'thank you for pushing me.', 'a little better, maybe.', 'just get it over with.'],
+    stretch: ['i’m too heavy to move much.', 'everything’s so stiff.', 'i’ll try to reach.', 'my leaves feel like lead.', 'slow and small today.', 'it hurts a little.', 'okay… a tiny stretch.', 'i used to bend so easily.', 'maybe this loosens it.', 'i’m trying, i promise.'],
+    sun: ['the light feels so far away.', 'i can’t feel the warmth.', 'maybe the sun will help.', 'everything looks grey.', 'i’ll sit in it. for you.', 'the glow doesn’t reach me.', 'warmth would be nice.', 'i miss feeling bright.', 'just a little light.', 'maybe tomorrow’s brighter.'],
+    ritual: ['you… still came. thank you.', 'i’m glad you’re here, even now.', 'i didn’t think you would today.', 'it means a lot. really.', 'you showing up helps. a little.', 'i’m sorry i’m low. thanks for coming.', 'at least we have this.', 'you didn’t forget me.', 'i needed to see you.', 'you’re here. that’s something.'],
+  },
+};
+// dormant: everything but feed/water is off-limits
+const DORMANT_LOCKED = [
+  'not right now…', 'i can’t… maybe later.', 'please… just let me rest.', 'i don’t have it in me.',
+  'not today. i’m sorry.', 'too tired… feed me first?', 'i just want to sleep.', 'later… i promise.',
+  'i can’t move right now.', 'please… food and water.',
+];
+// what he says when BOTH keepers are here at once — shown only when he's happy
+const BOTH_HERE_LINES = [
+  'you’re both here! best day 🌟', 'my two favorite people, together.', 'everyone’s home — i’m so happy!',
+  'both of you at once? the dream.', 'this is my favorite kind of day.', 'together again — i love this.',
+  'my whole world, right here.', 'you both showed up. my heart!', 'the three of us. perfect.',
+  'i’ve got everyone i love here.',
+];
+// when he's NOT green, the ritual skips the dance — just a quiet "that helped" bubble
+const RITUAL_RECOVER_LINES = [
+  'i feel better already 🌱', 'okay… that actually helped.', 'a little lighter now. thank you.',
+  'the fog lifted a bit — thanks to you.', 'i needed that. i feel better already.',
+  'better already, just from you showing up.', 'that eased it. really.', 'still yours — and feeling better.',
+];
+// when he's NOT green, "both here" skips the dance — a warmer, quieter bubble
+const BOTH_HERE_SAD_LINES = [
+  'you’re both here… that helps.', 'even low, you two lift me.', 'my two people. i needed this.',
+  'together — maybe i’ll be okay.', 'you both came. that means a lot.', 'a little brighter with you both here.',
+  'it’s easier with the two of you.', 'you’re here together. i feel it.',
+];
+// shuffle-bag per bucket: hands out every line once before reshuffling → feels fresh, still reuses
+const _bags: Record<string, number[]> = {};
+function nextLine(bucket: string, arr: string[]): string {
+  if (!arr || arr.length === 0) return '';
+  if (arr.length === 1) return arr[0];
+  let bag = _bags[bucket];
+  if (!bag || bag.length === 0) {
+    bag = arr.map((_, i) => i);
+    for (let i = bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [bag[i], bag[j]] = [bag[j], bag[i]]; }
+    _bags[bucket] = bag;
+  }
+  return arr[bag.pop() as number];
+}
 
 const STATE_PILL: Record<MoodState, { label: string; color: string }> = {
   thriving: { label: 'Thriving', color: LEAF },
@@ -194,8 +259,8 @@ const ACTIONS: ActionDef[] = [
   { key: 'stretch', label: 'Stretch', tint: STRETCH, side: 'right', metric: 'bond', Icon: StretchIcon },
   { key: 'sun', label: 'Sun', tint: SUN, side: 'right', metric: 'bond', Icon: SunIcon },
 ];
-function renderActionIcon(a: ActionDef, size = 28) {
-  if (a.img) return <Image source={a.img} style={{ width: 30, height: 30 }} contentFit="contain" />;
+function renderActionIcon(a: ActionDef, size = 24) {
+  if (a.img) return <Image source={a.img} style={{ width: 26, height: 26 }} contentFit="contain" />;
   const Icon = a.Icon!;
   return <Icon color={a.tint} size={size} />;
 }
@@ -220,6 +285,31 @@ export default function Home() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [latestNote, setLatestNote] = useState<Note | null>(null);
+  const [reaction, setReaction] = useState<{ key: string; at: number } | null>(null);
+  const [dialog, setDialog] = useState<{ text: string; at: number } | null>(null);
+  const showDialog = (text: string) => setDialog({ text, at: Date.now() });
+  // reaction relay: my ritual / care / arrival also play on my partner's phone
+  const reactSend = useRef<((key: string) => void) | null>(null);
+  const lastArrivalAt = useRef(0);
+  // the "both keepers here" celebration — fire once per ~10s across every trigger
+  // (my presence, the bloom moment, and my partner's broadcast can all land at once).
+  const fireArrival = () => {
+    const t = Date.now();
+    if (t - lastArrivalAt.current < 10000) return;
+    lastArrivalAt.current = t;
+    const m = deriveMoodState(useBixi.getState(), Date.now());
+    if (m === 'content' || m === 'thriving') {
+      setReaction({ key: 'arrival', at: t }); // green → the celebration dance + joy line
+      showDialog(nextLine('happy:arrival', BOTH_HERE_LINES));
+    } else {
+      // not green → NO dance, just a quieter both-here bubble
+      showDialog(nextLine('sad:arrival', BOTH_HERE_SAD_LINES));
+    }
+  };
+  const onIncomingCue = (key: string) => {
+    if (key === 'arrival') { fireArrival(); return; }
+    setReaction({ key, at: Date.now() }); // partner's ritual / care plays here too
+  };
 
   const mode = modeOf(s.keepers);
   const paired = mode === 'paired';
@@ -317,6 +407,16 @@ export default function Home() {
     return () => { void ch.unsubscribe(); };
   }, [s.pairId, s.keepers.length]);
 
+  // ephemeral relay so a ritual / arrival / care triggered on one phone also
+  // plays on the other. Broadcast (no DB), so it never triggers a hydrate.
+  useEffect(() => {
+    if (!IS_ONLINE || !s.pairId) { reactSend.current = null; return; }
+    const { channel, send } = reactionChannel(s.pairId, (cue) => onIncomingCue(cue.key));
+    reactSend.current = send;
+    return () => { reactSend.current = null; void channel.unsubscribe(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.pairId]);
+
   // watch the shared notes so the homepage knows about an unread one
   useEffect(() => {
     if (!IS_ONLINE || !paired || !s.pairId) { setLatestNote(null); return; }
@@ -333,24 +433,59 @@ export default function Home() {
   useEffect(() => {
     if (paired && !prevPaired.current) {
       setInviteOpen(false);
+      fireArrival(); reactSend.current?.('arrival'); // both-parents clip the moment it blooms
       Alert.alert(`${s.bixiName} bloomed 🌸`, `Your person joined — you're raising ${s.bixiName} together now.`);
     }
     prevPaired.current = paired;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paired, s.bixiName]);
+
+  // dormant: only feed & water are allowed; everything else is locked.
+  const isLocked = (kind: string) => isDormant && kind !== 'feed' && kind !== 'water';
+  // low mood = anything below Content (drives sad reactions + sad dialog)
+  const bixiSad = moodState !== 'content' && moodState !== 'thriving';
+
+  const tapAction = (kind: PanelKey) => {
+    if (isLocked(kind)) {
+      tapHaptic();
+      showDialog(nextLine('dormant', DORMANT_LOCKED)); // "not right now…"
+      return;
+    }
+    setOpenPanel((p) => (p === kind ? null : kind));
+  };
 
   const care = (kind: PanelKey) => {
     tapHaptic();
     useBixi.getState().noteAction(kind);
+    setReaction({ key: kind, at: Date.now() }); // BixiHero plays the (mood-appropriate) clip — LOCAL only
+    const moodKey = bixiSad ? 'sad' : 'happy';
+    const lines = LINES[moodKey][kind];
+    if (lines) showDialog(nextLine(`${moodKey}:${kind}`, lines));
     void Promise.resolve(actCare(kind)).then(() => setNow(Date.now()));
   };
   const doDaily = () => {
     tapHaptic();
+    if (bixiSad) {
+      // sad / wilting / drifting / dormant → skip the dance, show a "feel better" bubble
+      showDialog(nextLine('recover:ritual', RITUAL_RECOVER_LINES));
+    } else {
+      setReaction({ key: 'ritual', at: Date.now() }); // green → the dance clip — LOCAL only
+      showDialog(nextLine('happy:ritual', LINES.happy.ritual));
+    }
     void Promise.resolve(actDaily()).then(() => setNow(Date.now()));
   };
   const doRevive = () => {
     tapHaptic();
     void Promise.resolve(actRevive()).then(() => setNow(Date.now()));
   };
+
+  // your person just showed up → both-parents celebration on BOTH phones
+  const prevPartnerHere = useRef(partnerHere);
+  useEffect(() => {
+    if (partnerHere && !prevPartnerHere.current) { fireArrival(); reactSend.current?.('arrival'); }
+    prevPartnerHere.current = partnerHere;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partnerHere]);
 
   // pulse the mood ring whenever mood rises — fires for BOTH parents, since a
   // remote action arrives via realtime and bumps s.mood here too.
@@ -400,6 +535,7 @@ export default function Home() {
 
   const joinErrText = (e: unknown): string => {
     const m = (e as { message?: string })?.message ?? '';
+    if (m.includes('cannot_join_own_bixi')) return 'That’s your own code — share it with your person instead.';
     if (m.includes('leave_partner_first')) return 'You’re already co-parenting a Bixi. Leave that one first (You → Leave co-parent).';
     if (m.includes('invite_used')) return 'That code has already been used.';
     if (m.includes('invite_expired')) return 'That code has expired — ask for a fresh one.';
@@ -443,7 +579,7 @@ export default function Home() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <Image source={HERO} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition="top" />
+      <BixiHero stage={s.growthStage} mood={moodState} reaction={reaction} />
       {/* tap Bixi to do today's ritual (or revive when dormant) — kept clear of the side rails */}
       <Pressable style={styles.bixiTapZone} onPress={onTapBixi} />
 
@@ -519,8 +655,8 @@ export default function Home() {
         {ACTIONS.filter((a) => a.side === 'left').map((a) => (
           <ActionButton
             key={a.key} iconNode={renderActionIcon(a)} label={a.label} tint={a.tint}
-            value={metricValue(a)} lock={lockFor(a.key)} open={openPanel === a.key}
-            onToggle={() => setOpenPanel((p) => (p === a.key ? null : a.key))}
+            value={metricValue(a)} lock={lockFor(a.key)} open={openPanel === a.key} dim={isLocked(a.key)}
+            onToggle={() => tapAction(a.key)} side={a.side}
           />
         ))}
       </View>
@@ -528,11 +664,13 @@ export default function Home() {
         {ACTIONS.filter((a) => a.side === 'right').map((a) => (
           <ActionButton
             key={a.key} iconNode={renderActionIcon(a)} label={a.label} tint={a.tint}
-            value={metricValue(a)} lock={lockFor(a.key)} open={openPanel === a.key}
-            onToggle={() => setOpenPanel((p) => (p === a.key ? null : a.key))}
+            value={metricValue(a)} lock={lockFor(a.key)} open={openPanel === a.key} dim={isLocked(a.key)}
+            onToggle={() => tapAction(a.key)} side={a.side}
           />
         ))}
       </View>
+
+      <DialogBubble dialog={dialog} onDone={() => setDialog(null)} />
 
       {/* bottom overlay — mood · tagline · one contextual action · stage footer */}
       <View style={[styles.bottom, { bottom: insets.bottom + 90 }]} pointerEvents="box-none">
@@ -698,22 +836,22 @@ export default function Home() {
 }
 
 function ActionButton({
-  iconNode, label, tint, value, lock, open, onToggle,
+  iconNode, label, tint, value, lock, open, onToggle, dim, side,
 }: {
   iconNode: ReactNode; label: string; tint: string; value: number; lock: number;
-  open: boolean; onToggle: () => void;
+  open: boolean; onToggle: () => void; dim?: boolean; side: 'left' | 'right';
 }) {
   const locked = lock > 0;
   const pct = Math.max(0, Math.min(100, Math.round(value)));
 
-  const RING = 60;
-  const STROKE = 3.5;
+  const RING = 50;
+  const STROKE = 3;
   const R = (RING - STROKE) / 2;
   const CIRC = 2 * Math.PI * R;
   const c = RING / 2;
 
   return (
-    <Pressable onPress={onToggle} style={({ pressed }) => [styles.actCol, pressed && { transform: [{ scale: 0.94 }] }]}>
+    <Pressable onPress={onToggle} style={({ pressed }) => [styles.actCol, dim && { opacity: 0.4 }, pressed && { transform: [{ scale: 0.94 }] }]}>
       <View style={styles.ringWrap}>
         <Svg width={RING} height={RING} style={StyleSheet.absoluteFill}>
           <Circle cx={c} cy={c} r={R} stroke="rgba(245,239,227,0.14)" strokeWidth={STROKE} fill="none" />
@@ -727,15 +865,27 @@ function ActionButton({
         <View style={[styles.actBtn, { borderColor: tint + (open ? 'cc' : '66'), shadowColor: tint }]}>
           {iconNode}
         </View>
-        <View style={styles.pctBadgeRow} pointerEvents="none">
-          <View style={[styles.pctBadge, { borderColor: tint + 'aa' }]}>
-            <Text style={[styles.pctBadgeTxt, { color: tint }]}>{pct}%</Text>
+        {/* cooldown countdown, pinned to the button's INNER edge (toward center)
+            so it's clearly readable — left rail → right of the ring, right rail
+            → left of the ring. Only while on cooldown. */}
+        {locked && (
+          <View style={[styles.cooldownChip, side === 'right' ? { right: RING - 8 } : { left: RING - 8 }]} pointerEvents="none">
+            <Svg width={9} height={9} viewBox="0 0 24 24">
+              <Circle cx={12} cy={12} r={9} stroke={tint} strokeWidth={2.4} fill="none" />
+              <Path d="M12 8v4.5l3 2" stroke={tint} strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+            <Text style={styles.cooldownChipTxt}>{lock}m</Text>
           </View>
-        </View>
+        )}
+        {!locked && (
+          <View style={styles.pctBadgeRow} pointerEvents="none">
+            <View style={[styles.pctBadge, { borderColor: tint + 'aa' }]}>
+              <Text style={[styles.pctBadgeTxt, { color: tint }]}>{pct}%</Text>
+            </View>
+          </View>
+        )}
       </View>
-      <Text style={styles.actLabel} numberOfLines={1}>
-        {label}{locked ? <Text style={styles.actLabelTimer}> · {lock}m</Text> : null}
-      </Text>
+      <Text style={styles.actLabel} numberOfLines={1}>{label}</Text>
     </Pressable>
   );
 }
@@ -805,6 +955,34 @@ function ActionPanel({
   );
 }
 
+/** speech bubble above Bixi — pops in, holds ~3s, fades. */
+function DialogBubble({ dialog, onDone }: { dialog: { text: string; at: number } | null; onDone: () => void }) {
+  const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!dialog) return;
+    a.setValue(0);
+    Animated.spring(a, { toValue: 1, useNativeDriver: true, speed: 16, bounciness: 9 }).start();
+    const t = setTimeout(() => {
+      Animated.timing(a, { toValue: 0, duration: 220, useNativeDriver: true }).start(({ finished }) => {
+        if (finished) onDone();
+      });
+    }, 3200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dialog?.at]);
+  if (!dialog) return null;
+  const scale = a.interpolate({ inputRange: [0, 1], outputRange: [0.84, 1] });
+  const ty = a.interpolate({ inputRange: [0, 1], outputRange: [10, 0] });
+  return (
+    <Animated.View style={[styles.bubbleWrap, { opacity: a, transform: [{ translateY: ty }, { scale }] }]} pointerEvents="none">
+      <View style={styles.bubble}>
+        <Text style={styles.bubbleTxt}>{dialog.text}</Text>
+      </View>
+      <View style={styles.bubbleTail} />
+    </Animated.View>
+  );
+}
+
 /** the daily ritual — an enlarged, centered action-button-style primary CTA. */
 function RitualButton({ onPress, streakHoursLeft }: { onPress: () => void; streakHoursLeft: number | null }) {
   const RING = 80;
@@ -834,6 +1012,18 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
 
   bixiTapZone: { position: 'absolute', top: '20%', bottom: '34%', left: 96, right: 96 },
+
+  bubbleWrap: { position: 'absolute', top: '25%', left: 0, right: 0, alignItems: 'center' },
+  bubble: {
+    maxWidth: '72%', paddingHorizontal: 16, paddingVertical: 11, borderRadius: 18,
+    backgroundColor: 'rgba(245,239,227,0.97)', borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+    shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 14, shadowOffset: { width: 0, height: 6 },
+  },
+  bubbleTxt: { fontFamily: fonts.sansSemibold, fontSize: 14.5, color: '#2a2016', textAlign: 'center', lineHeight: 20 },
+  bubbleTail: {
+    width: 14, height: 14, marginTop: -6, borderRadius: 3, transform: [{ rotate: '45deg' }],
+    backgroundColor: 'rgba(245,239,227,0.97)',
+  },
 
   header: {
     flexDirection: 'row',
@@ -898,32 +1088,39 @@ const styles = StyleSheet.create({
 
   rail: {
     position: 'absolute',
-    top: '39%',
-    gap: 14,
+    top: '40%',
+    gap: 12,
   },
-  railLeft: { left: 16 },
-  railRight: { right: 16 },
+  railLeft: { left: 4 },
+  railRight: { right: 4 },
   actRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  actCol: { width: 78, alignItems: 'center' },
-  ringWrap: { width: 60, height: 60, alignItems: 'center', justifyContent: 'center' },
+  actCol: { width: 62, alignItems: 'center' },
+  ringWrap: { width: 50, height: 50, alignItems: 'center', justifyContent: 'center' },
   actBtn: {
-    width: 52, height: 52, borderRadius: 26,
+    width: 44, height: 44, borderRadius: 22,
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(20,14,8,0.5)',
     borderWidth: 1.5,
     shadowOpacity: 0.55, shadowRadius: 12, shadowOffset: { width: 0, height: 0 },
   },
-  actIcon: { width: 30, height: 30 },
-  pctBadgeRow: { position: 'absolute', left: 0, right: 0, bottom: -5, alignItems: 'center' },
+  actIcon: { width: 26, height: 26 },
+  cooldownChip: {
+    position: 'absolute', top: 16,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    paddingHorizontal: 5, paddingVertical: 2.5, borderRadius: 9,
+    backgroundColor: 'rgba(14,9,5,0.97)', borderWidth: 1, borderColor: 'rgba(245,239,227,0.22)',
+  },
+  cooldownChipTxt: { fontFamily: fonts.mono, fontSize: 9.5, color: 'rgba(245,239,227,0.85)', letterSpacing: 0.2 },
+  pctBadgeRow: { position: 'absolute', left: 0, right: 0, bottom: -4, alignItems: 'center' },
   pctBadge: {
-    paddingHorizontal: 6, paddingVertical: 1.5, borderRadius: 9, borderWidth: 1,
+    paddingHorizontal: 5, paddingVertical: 1, borderRadius: 8, borderWidth: 1,
     backgroundColor: 'rgba(16,11,6,0.96)',
   },
   pctBadgeTxt: {
-    fontFamily: fonts.sansBold, fontSize: 10.5, letterSpacing: 0.2,
+    fontFamily: fonts.sansBold, fontSize: 9.5, letterSpacing: 0.2,
   },
   actLabel: {
-    fontFamily: fonts.sansSemibold, fontSize: 11.5, color: CREAM, textAlign: 'center', marginTop: 10,
+    fontFamily: fonts.sansSemibold, fontSize: 11, color: CREAM, textAlign: 'center', marginTop: 7,
     textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 4, textShadowOffset: { width: 0, height: 1 },
   },
   actLabelTimer: { color: 'rgba(245,239,227,0.55)' },
@@ -955,10 +1152,10 @@ const styles = StyleSheet.create({
   moodRingTxt: { fontFamily: fonts.mono, fontSize: 10, color: CREAM },
   moodChipState: { fontFamily: fonts.sansBold, fontSize: 12.5, letterSpacing: 0.2, marginTop: 1 },
   helpBtn: {
-    width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginLeft: 2,
-    backgroundColor: 'rgba(240,137,95,0.16)', borderWidth: 1, borderColor: 'rgba(240,137,95,0.42)',
+    width: 15, height: 15, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginLeft: 3,
+    backgroundColor: 'rgba(245,239,227,0.07)', borderWidth: 1, borderColor: 'rgba(245,239,227,0.25)',
   },
-  helpBtnTxt: { fontFamily: fonts.sansBold, fontSize: 12, color: ACCENT, marginTop: -1 },
+  helpBtnTxt: { fontFamily: fonts.sansBold, fontSize: 9.5, color: 'rgba(245,239,227,0.5)', marginTop: -1 },
   missBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: 8,
   },

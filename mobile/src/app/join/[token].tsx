@@ -21,10 +21,13 @@ export default function JoinDeepLink() {
       if (IS_ONLINE && userId) {
         try {
           await actClaim(String(token));
+          router.replace('/(tabs)'); // claimed → home
         } catch {
-          /* invalid/expired — fall through */
+          // invalid / expired / already-has-Bixi → send to the join screen where
+          // the code is prefilled and the real reason is shown (don't silently
+          // drop them on home as if it worked).
+          router.replace({ pathname: '/onboarding/join', params: { code: String(token) } });
         }
-        router.replace('/(tabs)');
       } else {
         router.replace({ pathname: '/onboarding/join', params: { code: String(token) } });
       }

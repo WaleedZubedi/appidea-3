@@ -1,15 +1,26 @@
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, fonts, space } from '@/theme';
+import { fonts } from '@/theme';
 import { actHatch } from '@/game/actions';
 import type { Mode, RelationshipKind } from '@/game/types';
 import { successHaptic, tapHaptic } from '@/lib/haptics';
-import { Eyebrow, Txt } from '@/ui/primitives';
 
+// tap progression: intact → crack → bigger crack → hatched
+const FRAMES = [
+  require('../../../assets/bixi/hatch0.jpg'),
+  require('../../../assets/bixi/hatch1.jpg'),
+  require('../../../assets/bixi/hatch2.jpg'),
+  require('../../../assets/bixi/hatchedFinal.jpg'),
+];
 const TAPS_TO_HATCH = 3;
+const AFTER_HATCH_MS = 1600; // linger on the hatched frame before leaving
+const CREAM = '#f5efe3';
+const ACCENT = '#f0895f';
 
 export default function Hatch() {
   const router = useRouter();
@@ -18,99 +29,94 @@ export default function Hatch() {
   const [taps, setTaps] = useState(0);
   const [hatched, setHatched] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const scale = useRef(new Animated.Value(1)).current;
-
   const mode = (params.mode === 'paired' ? 'paired' : 'solo') as Mode;
-
-  const wobble = () => {
-    Animated.sequence([
-      Animated.timing(scale, { toValue: 0.9, duration: 70, useNativeDriver: true }),
-      Animated.spring(scale, { toValue: 1, friction: 3, useNativeDriver: true }),
-    ]).start();
-  };
 
   const onTap = async () => {
     if (hatched) return;
     const n = taps + 1;
     setTaps(n);
-    wobble();
-    if (n >= TAPS_TO_HATCH) {
+    if (n < TAPS_TO_HATCH) {
       tapHaptic();
-      successHaptic();
-      setErr(null);
-      setHatched(true);
-      const kind = (params.kind ? params.kind : null) as RelationshipKind;
-      try {
-        await actHatch(mode, params.name ?? '', kind);
-        // only navigate once the server hatch actually succeeded
-        setTimeout(() => {
-          if (mode === 'paired') router.replace('/onboarding/invite');
-          else router.replace('/(tabs)');
-        }, 1100);
-      } catch (e) {
-        const msg = (e as { message?: string })?.message ?? '';
-        setHatched(false);
-        setTaps(0);
-        setErr(
-          msg.includes('already_has_bixi')
-            ? 'This account already has a Bixi. Sign in on your other device, or reset from You → Delete account.'
-            : 'Hatching failed — check your connection and tap the egg again.'
-        );
-      }
-    } else {
-      tapHaptic();
+      return;
+    }
+    tapHaptic();
+    successHaptic();
+    setErr(null);
+    setHatched(true);
+
+    const kind = (params.kind ? params.kind : null) as RelationshipKind;
+    try {
+      await actHatch(mode, params.name ?? '', kind);
+      setTimeout(() => {
+        if (mode === 'paired') router.replace('/onboarding/invite');
+        else router.replace('/(tabs)');
+      }, AFTER_HATCH_MS);
+    } catch (e) {
+      const msg = (e as { message?: string })?.message ?? '';
+      setHatched(false);
+      setTaps(0);
+      setErr(
+        msg.includes('already_has_bixi')
+          ? 'This account already has a Bixi. Sign in on your other device, or reset from You → Delete account.'
+          : 'Hatching failed — check your connection and tap the egg again.'
+      );
     }
   };
 
-  const crackedEmoji = hatched ? '🐣' : taps === 0 ? '🥚' : taps === 1 ? '🥚' : '🐣';
+  const name = params.name?.trim() || 'Bixi';
+  const frameIdx = Math.min(taps, TAPS_TO_HATCH);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.center}>
-        <Eyebrow color={colors.clayPress}>
-          {hatched ? 'Day 001' : 'Tap to wake him'}
-        </Eyebrow>
-        <Pressable onPress={onTap} style={styles.plate}>
-          <Animated.Text style={[styles.egg, { transform: [{ scale }] }]}>
-            {crackedEmoji}
-          </Animated.Text>
-        </Pressable>
-        <Txt style={styles.title}>
-          {hatched ? 'He\'s here.' : 'Something\'s stirring…'}
-        </Txt>
-        <Txt variant="body" center style={{ maxWidth: 300 }}>
-          {hatched
-            ? `Say hello to ${params.name?.trim() || 'Bixi'}.`
-            : `Give the egg a few taps to coax him out.`}
-        </Txt>
-        {!hatched && (
-          <View style={styles.dots}>
-            {Array.from({ length: TAPS_TO_HATCH }).map((_, idx) => (
-              <View key={idx} style={[styles.dot, idx < taps && styles.dotOn]} />
-            ))}
-          </View>
-        )}
-        {err ? (
-          <Txt variant="body" color={colors.brick} center style={{ maxWidth: 300, marginTop: 8 }}>
-            {err}
-          </Txt>
-        ) : null}
-      </View>
-    </SafeAreaView>
+    <View style={styles.root}>
+      <StatusBar style="light" />
+      {/* all frames are mounted + preloaded so the hatched frame is already
+          decoded when we reach it — no black screen, no last-second pop */}
+      {FRAMES.map((src, i) => (
+        <Image
+          key={i}
+          source={src}
+          style={[StyleSheet.absoluteFill, { opacity: i === frameIdx ? 1 : 0 }]}
+          contentFit="cover"
+          priority="high"
+          cachePolicy="memory-disk"
+          transition={150}
+        />
+      ))}
+      <Pressable style={StyleSheet.absoluteFill} onPress={onTap} disabled={hatched} />
+
+      <SafeAreaView edges={['top', 'bottom']} style={styles.overlay} pointerEvents="box-none">
+        <View style={styles.bottom} pointerEvents="none">
+          <Text style={styles.eyebrow}>{hatched ? 'DAY 001' : 'TAP TO WAKE HIM'}</Text>
+          <Text style={styles.title}>{hatched ? `Say hello to ${name}.` : 'Something’s stirring…'}</Text>
+          {!hatched ? (
+            <>
+              <Text style={styles.sub}>Give the egg a few taps to coax him out.</Text>
+              <View style={styles.dots}>
+                {Array.from({ length: TAPS_TO_HATCH }).map((_, i) => (
+                  <View key={i} style={[styles.dot, i < taps && styles.dotOn]} />
+                ))}
+              </View>
+            </>
+          ) : null}
+          {err ? <Text style={styles.err}>{err}</Text> : null}
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
+// legibility over the artwork comes from a soft text shadow, not a black bar
+const shadow = { textShadowColor: 'rgba(0,0,0,0.85)', textShadowRadius: 10, textShadowOffset: { width: 0, height: 1 } } as const;
+
 const styles = StyleSheet.create({
-  safe: { flex: 1, paddingHorizontal: space.xl },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
-  plate: {
-    width: 200, height: 200, borderRadius: 22, backgroundColor: colors.ink,
-    alignItems: 'center', justifyContent: 'center', marginVertical: 18,
-    borderWidth: 6, borderColor: colors.tint,
-  },
-  egg: { fontSize: 96 },
-  title: { fontFamily: fonts.serif, fontSize: 26, color: colors.ink, marginTop: 4 },
-  dots: { flexDirection: 'row', gap: 8, marginTop: 16 },
-  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.rule },
-  dotOn: { backgroundColor: colors.clay },
+  root: { flex: 1, backgroundColor: '#0d0a06' },
+  overlay: { flex: 1, justifyContent: 'flex-end' },
+  bottom: { paddingHorizontal: 28, paddingBottom: 46, alignItems: 'center', gap: 8 },
+  eyebrow: { fontFamily: fonts.sansBold, fontSize: 12, letterSpacing: 1.8, color: ACCENT, ...shadow },
+  title: { fontFamily: fonts.serifSemibold, fontSize: 27, color: CREAM, textAlign: 'center', ...shadow },
+  sub: { fontFamily: fonts.sans, fontSize: 15, color: 'rgba(245,239,227,0.9)', textAlign: 'center', ...shadow },
+  dots: { flexDirection: 'row', gap: 9, marginTop: 12 },
+  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: 'rgba(245,239,227,0.35)' },
+  dotOn: { backgroundColor: ACCENT },
+  err: { fontFamily: fonts.sans, fontSize: 14, color: '#ff8a7a', textAlign: 'center', marginTop: 8, ...shadow },
 });

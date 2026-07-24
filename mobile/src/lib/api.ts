@@ -62,15 +62,17 @@ export interface PairBundle {
 
 export async function getMyPairId(): Promise<string | null> {
   const sb = requireSupabase();
-  const { data: auth } = await sb.auth.getUser();
+  const { data: auth, error: authErr } = await sb.auth.getUser();
+  if (authErr) throw authErr; // transient (network/token) — caller must NOT treat as "no pair"
   const uid = auth.user?.id;
-  if (!uid) return null;
-  const { data } = await sb
+  if (!uid) return null; // authoritatively signed out
+  const { data, error } = await sb
     .from('pair_members')
     .select('pair_id')
     .eq('profile_id', uid)
     .maybeSingle();
-  return data?.pair_id ?? null;
+  if (error) throw error; // transient DB error — not the same as "no pair"
+  return data?.pair_id ?? null; // authoritatively: this user has no pair
 }
 
 export async function getPairBundle(pairId: string): Promise<PairBundle | null> {
@@ -313,6 +315,34 @@ export function subscribeToPair(pairId: string, onChange: () => void): RealtimeC
     .on('postgres_changes', { event: '*', schema: 'public', table: 'bixi_state', filter: `pair_id=eq.${pairId}` }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'pair_members', filter: `pair_id=eq.${pairId}` }, onChange)
     .subscribe();
+}
+
+/**
+ * Ephemeral reaction relay — one parent triggers a ritual / care / "both here"
+ * clip and the OTHER parent's Bixi plays it too. Uses Realtime broadcast (no DB
+ * write, no hydrate), so it's instant and can't loop back on the sender
+ * (`self: false`). Payload is just a cue key; each phone maps it to its own
+ * mood-appropriate clip.
+ */
+export interface ReactionCue {
+  key: string;
+}
+export function reactionChannel(
+  pairId: string,
+  onCue: (cue: ReactionCue) => void
+): { channel: RealtimeChannel; send: (key: string) => void } {
+  const sb = requireSupabase();
+  const ch = sb.channel(`react:${pairId}`, { config: { broadcast: { self: false } } });
+  ch.on('broadcast', { event: 'cue' }, (msg) => {
+    const c = (msg?.payload ?? null) as ReactionCue | null;
+    if (c && typeof c.key === 'string') onCue({ key: c.key });
+  }).subscribe();
+  return {
+    channel: ch,
+    send: (key: string) => {
+      void ch.send({ type: 'broadcast', event: 'cue', payload: { key } });
+    },
+  };
 }
 
 /** presence channel for the "both here now" moment — reports how many keepers are live. */

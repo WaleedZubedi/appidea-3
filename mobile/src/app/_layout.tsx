@@ -17,6 +17,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
+import { AppState } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -50,6 +51,16 @@ export default function RootLayout() {
       setSynced(true);
     }
   }, [authReady, userId]);
+
+  // re-settle decay/mood when the app returns to the foreground (realtime only
+  // covers changes while open; a long background makes on-screen state stale)
+  useEffect(() => {
+    if (!IS_ONLINE) return;
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') void actHydrate();
+    });
+    return () => sub.remove();
+  }, []);
 
   const [fontsLoaded] = useFonts({
     Fraunces_400Regular,
@@ -86,7 +97,7 @@ export default function RootLayout() {
           <Stack.Screen name="onboarding" />
           <Stack.Screen name="(tabs)" />
         </Stack>
-        <DevReset />
+        {__DEV__ && <DevReset />}
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

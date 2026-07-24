@@ -32,21 +32,20 @@ export const useAuth = create<AuthState>((set) => ({
       set({ ready: true, userId: null });
       return;
     }
-    // never let a slow/unreachable backend block the first render
-    try {
-      const timeout = new Promise<{ data: { session: null } }>((res) =>
-        setTimeout(() => res({ data: { session: null } }), 4000)
-      );
-      const { data } = await Promise.race([supabase.auth.getSession(), timeout]);
-      set({ userId: data.session?.user?.id ?? null });
-      supabase.auth.onAuthStateChange((_e, session) => {
-        set({ userId: session?.user?.id ?? null });
-      });
-    } catch {
-      /* offline / unreachable — proceed unauthenticated */
-    } finally {
-      set({ ready: true });
-    }
+    // The listener fires an INITIAL_SESSION event on subscribe with the restored
+    // session, and again on any refresh/sign-in/out — this is the source of truth.
+    supabase.auth.onAuthStateChange((_e, session) => {
+      set({ userId: session?.user?.id ?? null, ready: true });
+    });
+    // Back it up with getSession, but NEVER null a valid session just because a
+    // slow refresh lost a timeout race — only unblock first render.
+    const load = supabase.auth
+      .getSession()
+      .then(({ data }) => set({ userId: data.session?.user?.id ?? null }))
+      .catch(() => {});
+    const guard = new Promise<void>((res) => setTimeout(res, 4000));
+    await Promise.race([load, guard]);
+    set({ ready: true });
   },
 
   signUpWithPassword: async (email, password) => {

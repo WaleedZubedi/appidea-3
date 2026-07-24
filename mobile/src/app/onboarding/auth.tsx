@@ -23,7 +23,7 @@ import { useAuth } from '@/lib/session';
 import { Sprout } from '@/ui/SpecimenSeal';
 import { Txt } from '@/ui/primitives';
 
-const HERO = require('../../../assets/images/auth-hero.png');
+const HERO = require('../../../assets/images/auth-hero.jpg');
 const CREAM = '#f5efe3';
 const ACCENT = '#f0895f';
 const LEAF = '#a9d182';
@@ -120,7 +120,7 @@ export default function Auth() {
           bounces={false}
         >
           {/* ── hero ── */}
-          <ImageBackground source={HERO} style={styles.hero} contentFit="cover" contentPosition={{ top: -90 }}>
+          <ImageBackground source={HERO} style={styles.hero} contentFit="cover" contentPosition={{ top: -90 }} priority="high" cachePolicy="memory-disk" transition={220}>
             <LinearGradient
               colors={['rgba(14,10,6,0.66)', 'rgba(14,10,6,0.2)', 'rgba(14,10,6,0)', 'rgba(14,10,6,0)']}
               locations={[0, 0.24, 0.5, 1]}

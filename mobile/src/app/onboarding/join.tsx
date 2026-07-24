@@ -53,6 +53,7 @@ export default function Join() {
 
   const friendlyError = (e: unknown): string => {
     const m = (e as { message?: string })?.message ?? '';
+    if (m.includes('cannot_join_own_bixi')) return 'That’s your own code — share it with your person instead.';
     if (m.includes('leave_partner_first')) return 'You’re already co-parenting a Bixi. Leave that one first (You → Leave co-parent).';
     if (m.includes('already_has_bixi')) return 'You already have a Bixi — leave it first to join another.';
     if (m.includes('invite_used')) return 'That invite has already been used.';

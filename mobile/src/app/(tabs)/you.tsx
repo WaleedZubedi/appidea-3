@@ -126,8 +126,12 @@ export default function You() {
   };
 
   const invite = async () => {
-    const code = await actInvite();
-    Share.share({ message: `Come raise ${s.bixiName} with me on Bixi 🌱 — code ${code}` }).catch(() => {});
+    try {
+      const code = await actInvite();
+      Share.share({ message: `Come raise ${s.bixiName} with me on Bixi 🌱 — code ${code}` }).catch(() => {});
+    } catch {
+      Alert.alert('Couldn’t create an invite', 'Check your connection and try again.');
+    }
   };
 
   const leave = () => {

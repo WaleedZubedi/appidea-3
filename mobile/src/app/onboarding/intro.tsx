@@ -9,7 +9,7 @@ import Svg, { Path } from 'react-native-svg';
 import { fonts } from '@/theme';
 import { IS_ONLINE } from '@/lib/config';
 
-const HERO = require('../../../assets/images/home-hero.png');
+const HERO = require('../../../assets/images/home-hero.jpg');
 const CREAM = '#f5efe3';
 const ACCENT = '#f0895f';
 

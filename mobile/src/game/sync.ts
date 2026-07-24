@@ -80,9 +80,16 @@ function applyBundle(b: api.PairBundle, uid: string | null) {
 export async function hydrate(): Promise<string | null> {
   if (!IS_ONLINE) return null;
   const uid = useAuth.getState().userId;
-  const pairId = await api.getMyPairId();
+  let pairId: string | null;
+  try {
+    pairId = await api.getMyPairId();
+  } catch {
+    // transient read failure (network / token refresh): keep the persisted pair
+    // so the routing Gate doesn't bounce a real user to onboarding.
+    return useBixi.getState().pairId;
+  }
   if (!pairId) {
-    useBixi.setState({ pairId: null });
+    useBixi.setState({ pairId: null }); // authoritative: no pair → onboarding is correct
     return null;
   }
   const b = await api.getPairBundle(pairId);
@@ -218,10 +225,16 @@ export function subscribe(): (() => void) | undefined {
   if (!IS_ONLINE) return undefined;
   const pid = useBixi.getState().pairId;
   if (!pid) return undefined;
+  // a single action writes bixi_state AND pair_members → a burst of change
+  // events. Coalesce them into ONE hydrate so both phones re-render once, not
+  // three times (that thrash was part of the "everything freezes" report).
+  let t: ReturnType<typeof setTimeout> | null = null;
   const ch = api.subscribeToPair(pid, () => {
-    void hydrate();
+    if (t) clearTimeout(t);
+    t = setTimeout(() => { t = null; void hydrate(); }, 250);
   });
   return () => {
+    if (t) clearTimeout(t);
     void ch.unsubscribe();
   };
 }

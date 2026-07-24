@@ -52,6 +52,7 @@ export function StickyNotes({
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const [sendErr, setSendErr] = useState<string | null>(null);
   const scRef = useRef<ScrollView>(null);
 
   // fetchNotes returns newest-first; a chat reads oldest-first
@@ -88,14 +89,20 @@ export function StickyNotes({
     const body = text.trim();
     if (!body || busy || !pairId || locked) return;
     setBusy(true);
+    setSendErr(null);
     try {
       await addNote(pairId, body, ACCENT);
       setText('');
       const n = await fetchNotes(pairId);
       setNotes(n);
       toBottom();
-    } catch {
-      /* ignore while testing */
+    } catch (e) {
+      const m = (e as { message?: string })?.message ?? '';
+      setSendErr(
+        m.includes('note_cooldown')
+          ? 'You can leave one note every 6 hours — hang tight.'
+          : 'Couldn’t send that note. Check your connection and try again.'
+      );
     }
     setBusy(false);
   };
@@ -148,7 +155,9 @@ export function StickyNotes({
             </ScrollView>
 
             <View style={styles.hintRow}>
-              {locked ? (
+              {sendErr ? (
+                <Text style={styles.hintErr}>{sendErr}</Text>
+              ) : locked ? (
                 <Text style={styles.hintLocked}>🔒  One note every 6 hours · next in {countdown(remaining)}</Text>
               ) : (
                 <Text style={styles.hint}>💌  One note every 6 hours — make it count.</Text>
@@ -217,6 +226,7 @@ const styles = StyleSheet.create({
   hintRow: { paddingTop: 8, paddingBottom: 2, alignItems: 'center' },
   hint: { fontFamily: fonts.sansSemibold, fontSize: 11.5, color: DIM, letterSpacing: 0.2 },
   hintLocked: { fontFamily: fonts.sansBold, fontSize: 11.5, color: ACCENT, letterSpacing: 0.2 },
+  hintErr: { fontFamily: fonts.sansBold, fontSize: 11.5, color: '#ff8a7a', letterSpacing: 0.2, textAlign: 'center' },
   composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingTop: 8, borderTopWidth: 1, borderTopColor: LINE },
   inputLocked: { opacity: 0.5 },
   input: {
