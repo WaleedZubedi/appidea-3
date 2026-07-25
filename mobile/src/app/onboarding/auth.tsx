@@ -82,16 +82,28 @@ function Heart() {
 export default function Auth() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { signInWithPassword, signUpWithPassword } = useAuth();
+  const { signInWithPassword, signUpWithPassword, verifySignupCode, resendSignupCode } = useAuth();
   const [mode, setMode] = useState<'up' | 'in'>('up');
+  const [step, setStep] = useState<'form' | 'code'>('form');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [resent, setResent] = useState(false);
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const isUp = mode === 'up';
   const canSubmit = email.trim().length >= 4 && password.length >= 6;
+
+  const friendlyAuthError = (m: string): string => {
+    const s = m.toLowerCase();
+    if (s.includes('already registered') || s.includes('already exists')) return 'That email already has an account — sign in instead.';
+    if (s.includes('invalid login')) return 'Wrong email or password.';
+    if (s.includes('token') || s.includes('otp') || s.includes('expired')) return 'That code is wrong or expired. Resend and try again.';
+    if (s.includes('for security') || s.includes('rate')) return 'Hang on a few seconds, then try again.';
+    return m;
+  };
 
   const afterAuth = async () => {
     const uid = useAuth.getState().userId;
@@ -106,11 +118,36 @@ export default function Auth() {
     if (!canSubmit || busy) return;
     setErr(null);
     setBusy(true);
-    const fn = isUp ? signUpWithPassword : signInWithPassword;
-    const e = await fn(email.trim().toLowerCase(), password);
+    const em = email.trim().toLowerCase();
+    if (isUp) {
+      const res = await signUpWithPassword(em, password);
+      setBusy(false);
+      if (res.error) return setErr(friendlyAuthError(res.error));
+      if (res.needsCode) { setResent(false); setStep('code'); return; }
+      await afterAuth(); // confirmation off → already signed in
+    } else {
+      const e = await signInWithPassword(em, password);
+      setBusy(false);
+      if (e) return setErr(friendlyAuthError(e));
+      await afterAuth();
+    }
+  };
+
+  const verify = async () => {
+    if (code.trim().length < 6 || busy) return;
+    setErr(null);
+    setBusy(true);
+    const e = await verifySignupCode(email.trim().toLowerCase(), code);
     setBusy(false);
-    if (e) setErr(e);
-    else await afterAuth();
+    if (e) return setErr(friendlyAuthError(e));
+    await afterAuth();
+  };
+
+  const resend = async () => {
+    if (busy) return;
+    setErr(null); setResent(false);
+    const e = await resendSignupCode(email.trim().toLowerCase());
+    if (e) setErr(friendlyAuthError(e)); else setResent(true);
   };
 
   return (
@@ -160,70 +197,114 @@ export default function Auth() {
               <Star size={13} color={ACCENT} />
             </View>
 
-            <View style={styles.field}>
-              <View style={styles.chip}><MailIcon /></View>
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
-                placeholder="you@email.com"
-                placeholderTextColor={colors.muted}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoCorrect={false}
-                textContentType="none"
-                autoComplete="off"
-                importantForAutofill="no"
-                style={styles.input}
-              />
-            </View>
+            {step === 'form' ? (
+              <>
+                <View style={styles.field}>
+                  <View style={styles.chip}><MailIcon /></View>
+                  <TextInput
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="you@email.com"
+                    placeholderTextColor={colors.muted}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    autoCorrect={false}
+                    textContentType="none"
+                    autoComplete="off"
+                    importantForAutofill="no"
+                    style={styles.input}
+                  />
+                </View>
 
-            <View style={styles.field}>
-              <View style={styles.chip}><LockIcon /></View>
-              <TextInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder="password (min 6 characters)"
-                placeholderTextColor={colors.muted}
-                autoCapitalize="none"
-                autoCorrect={false}
-                secureTextEntry={!show}
-                textContentType="none"
-                autoComplete="off"
-                importantForAutofill="no"
-                passwordRules=""
-                onSubmitEditing={submit}
-                style={styles.input}
-              />
-              <Pressable onPress={() => setShow((s) => !s)} hitSlop={10} style={styles.eye}>
-                <EyeIcon off={show} />
-              </Pressable>
-            </View>
+                <View style={styles.field}>
+                  <View style={styles.chip}><LockIcon /></View>
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="password (min 6 characters)"
+                    placeholderTextColor={colors.muted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    secureTextEntry={!show}
+                    textContentType="none"
+                    autoComplete="off"
+                    importantForAutofill="no"
+                    passwordRules=""
+                    onSubmitEditing={submit}
+                    style={styles.input}
+                  />
+                  <Pressable onPress={() => setShow((s) => !s)} hitSlop={10} style={styles.eye}>
+                    <EyeIcon off={show} />
+                  </Pressable>
+                </View>
 
-            {err ? <Txt style={styles.error}>{err}</Txt> : null}
+                {err ? <Txt style={styles.error}>{err}</Txt> : null}
 
-            <Pressable
-              onPress={submit}
-              style={({ pressed }) => [styles.ctaWrap, (!canSubmit || busy) && styles.ctaDim, pressed && styles.ctaPressed]}
-            >
-              <LinearGradient colors={['#d9603a', '#c5492a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cta}>
-                <View style={styles.ctaLeft}><Sprout size={22} color="#f3e7cf" /></View>
-                <Txt style={styles.ctaLabel}>{busy ? 'One moment…' : isUp ? 'Create account' : 'Sign in'}</Txt>
-                <View style={styles.ctaRight}><ArrowIcon /></View>
-              </LinearGradient>
-            </Pressable>
+                <Pressable
+                  onPress={submit}
+                  style={({ pressed }) => [styles.ctaWrap, (!canSubmit || busy) && styles.ctaDim, pressed && styles.ctaPressed]}
+                >
+                  <LinearGradient colors={['#d9603a', '#c5492a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cta}>
+                    <View style={styles.ctaLeft}><Sprout size={22} color="#f3e7cf" /></View>
+                    <Txt style={styles.ctaLabel}>{busy ? 'One moment…' : isUp ? 'Create account' : 'Sign in'}</Txt>
+                    <View style={styles.ctaRight}><ArrowIcon /></View>
+                  </LinearGradient>
+                </Pressable>
 
-            <View style={styles.heartRow}>
-              <View style={styles.heartRule} />
-              <Heart />
-              <View style={styles.heartRule} />
-            </View>
+                <View style={styles.heartRow}>
+                  <View style={styles.heartRule} />
+                  <Heart />
+                  <View style={styles.heartRule} />
+                </View>
 
-            <View style={styles.switchRow}>
-              <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
-              <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
-                <Txt style={styles.switchLink}>{isUp ? 'Sign in' : 'Create one'}</Txt>
-              </Pressable>
-            </View>
+                <View style={styles.switchRow}>
+                  <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
+                  <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
+                    <Txt style={styles.switchLink}>{isUp ? 'Sign in' : 'Create one'}</Txt>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <>
+                <Txt style={styles.codeTitle}>Check your email</Txt>
+                <Txt style={styles.codeHint}>
+                  We sent a 6-digit code to{'\n'}
+                  <Txt style={styles.codeEmail}>{email.trim().toLowerCase()}</Txt>
+                </Txt>
+
+                <TextInput
+                  value={code}
+                  onChangeText={(t) => { setErr(null); setResent(false); setCode(t.replace(/[^0-9]/g, '').slice(0, 6)); }}
+                  placeholder="••••••"
+                  placeholderTextColor={colors.muted}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  returnKeyType="go"
+                  onSubmitEditing={verify}
+                  style={styles.codeInput}
+                />
+
+                {err ? <Txt style={styles.error}>{err}</Txt> : resent ? <Txt style={styles.codeOk}>New code sent ✓</Txt> : null}
+
+                <Pressable
+                  onPress={verify}
+                  style={({ pressed }) => [styles.ctaWrap, (code.trim().length < 6 || busy) && styles.ctaDim, pressed && styles.ctaPressed]}
+                >
+                  <LinearGradient colors={['#d9603a', '#c5492a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cta}>
+                    <View style={styles.ctaLeft}><Sprout size={22} color="#f3e7cf" /></View>
+                    <Txt style={styles.ctaLabel}>{busy ? 'Checking…' : 'Verify'}</Txt>
+                    <View style={styles.ctaRight}><ArrowIcon /></View>
+                  </LinearGradient>
+                </Pressable>
+
+                <Pressable onPress={resend} style={styles.linkBtn} hitSlop={8}>
+                  <Txt style={styles.linkTxt}>Resend code</Txt>
+                </Pressable>
+                <Pressable onPress={() => { setStep('form'); setCode(''); setErr(null); setResent(false); }} style={styles.linkBtn} hitSlop={8}>
+                  <Txt style={styles.linkTxt}>Use a different email</Txt>
+                </Pressable>
+              </>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -312,4 +393,16 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12 },
   switchText: { fontFamily: fonts.sans, fontSize: 15, color: colors.body },
   switchLink: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.clay },
+
+  codeTitle: { fontFamily: fonts.serifSemibold, fontSize: 22, color: colors.ink, textAlign: 'center' },
+  codeHint: { fontFamily: fonts.sans, fontSize: 14.5, color: colors.body, textAlign: 'center', lineHeight: 21, marginTop: 6, marginBottom: 14 },
+  codeEmail: { fontFamily: fonts.sansBold, color: colors.ink },
+  codeInput: {
+    height: 60, borderRadius: 16, borderWidth: 1.5, borderColor: colors.rule, backgroundColor: colors.sheet,
+    fontFamily: fonts.mono, fontSize: 30, letterSpacing: 12, textAlign: 'center', color: colors.ink,
+    paddingLeft: 12, marginBottom: 6,
+  },
+  codeOk: { fontFamily: fonts.sansSemibold, fontSize: 13.5, color: '#3b8a4a', textAlign: 'center', marginBottom: 6 },
+  linkBtn: { alignSelf: 'center', paddingVertical: 12 },
+  linkTxt: { fontFamily: fonts.sansSemibold, fontSize: 14.5, color: colors.clay },
 });
