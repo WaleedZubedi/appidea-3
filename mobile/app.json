@@ -13,8 +13,12 @@
       "supportsTablet": true,
       "icon": "./assets/expo.icon",
       "associatedDomains": [
+        "applinks:bixi.world",
         "applinks:bixi.world"
-      ]
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "world.bixi.app",
@@ -63,6 +67,13 @@
     "experiments": {
       "typedRoutes": false,
       "reactCompiler": false
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fee04748-6dad-49aa-9fe1-00ae33d2a9a1"
+      }
+    },
+    "owner": "wzubedi"
   }
 }
