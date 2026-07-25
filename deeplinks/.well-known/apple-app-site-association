@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "YOUR_TEAM_ID.pet.bixi.app",
+        "appID": "74DB45GHW2.world.bixi.app",
         "paths": ["/join/*"]
       }
     ]
