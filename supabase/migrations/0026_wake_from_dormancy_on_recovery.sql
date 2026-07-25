@@ -1,0 +1,15 @@
+-- ============================================================================
+-- 0026: recompute_pair clears bixi_state.dormant once meters recover.
+-- APPLIED LIVE (mvyktmxkhwigrrftsbpn) as `wake_from_dormancy_on_recovery_0026`.
+--
+-- Before: dormant was only ever SET (in recompute_pair) and cleared only by the
+-- (unreachable) revive RPC, so a Bixi that entered dormancy stayed flagged
+-- forever — permanently suppressing the "both here" bonus even after the keeper
+-- fed/watered him back. Now recompute_pair (settle on app-open + 15-min cron)
+-- clears dormant when feed >= revive_vital AND water >= revive_vital.
+--
+-- Full function body is re-defined in the live migration of the same name; see
+-- Supabase migration history. Kept here as a pointer so the repo records it.
+-- ============================================================================
+-- (body identical to the live definition — recompute_pair with the dormant-clear
+--  block inserted right after `perform _recompute_wellbeing(p_pair)`.)

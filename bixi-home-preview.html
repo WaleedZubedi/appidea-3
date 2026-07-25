@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bixi — Home preview</title>
+<style>
+  :root{
+    --bg:#181009; --cream:#f5efe3; --dim:rgba(245,239,227,0.55);
+    --accent:#f0895f; --leaf:#7fc07a; --feed:#e0a94a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-font-smoothing:antialiased;}
+  html,body{height:100%;}
+  body{
+    background:#0c0906; color:var(--cream);
+    font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+    display:flex; min-height:100%;
+  }
+  /* ---------- sidebar ---------- */
+  .side{
+    width:330px; flex:none; height:100vh; overflow-y:auto; padding:20px;
+    background:#140e08; border-right:1px solid rgba(245,239,227,0.08);
+  }
+  .side h1{font-size:17px; font-weight:800; letter-spacing:-.2px;}
+  .side .muted{color:var(--dim); font-size:12.5px; line-height:1.5; margin-top:4px;}
+  .group{margin-top:20px;}
+  .group>label{display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--dim); margin-bottom:8px; font-weight:700;}
+  .drop{
+    border:1.5px dashed rgba(240,137,95,0.5); border-radius:14px; padding:18px 14px; text-align:center;
+    background:rgba(240,137,95,0.06); cursor:pointer; transition:background .15s,border-color .15s;
+  }
+  .drop:hover,.drop.hot{background:rgba(240,137,95,0.14); border-color:var(--accent);}
+  .drop b{color:var(--accent);}
+  .drop small{display:block; color:var(--dim); margin-top:5px; font-size:11.5px;}
+  input[type=file]{display:none;}
+  .row{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+  .chip{
+    padding:7px 11px; border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
+    background:rgba(245,239,227,0.06); border:1px solid rgba(245,239,227,0.16); color:var(--cream);
+  }
+  .chip.on{background:rgba(240,137,95,0.18); border-color:var(--accent); color:var(--accent);}
+  select{
+    width:100%; padding:9px 10px; border-radius:10px; font-size:13px; margin-top:4px;
+    background:rgba(245,239,227,0.06); border:1px solid rgba(245,239,227,0.16); color:var(--cream);
+  }
+  .qbtns{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:4px;}
+  .qbtns button{
+    padding:8px 6px; border-radius:9px; font-size:11.5px; font-weight:600; cursor:pointer; text-align:left;
+    background:rgba(245,239,227,0.05); border:1px solid rgba(245,239,227,0.12); color:var(--cream);
+  }
+  .qbtns button:hover{background:rgba(245,239,227,0.12);}
+  .note{font-size:11px; color:var(--dim); margin-top:8px; line-height:1.5;}
+
+  /* ---------- stage ---------- */
+  .stage{flex:1; display:flex; align-items:center; justify-content:center; padding:30px; overflow:auto;}
+  .phone{
+    --w:390; --h:844; --safeTop:47; --safeBottom:34;
+    position:relative; width:calc(var(--w)*1px); height:calc(var(--h)*1px);
+    border-radius:44px; overflow:hidden; background:#000;
+    box-shadow:0 30px 80px rgba(0,0,0,.6), 0 0 0 10px #1b140d, 0 0 0 11px #2a2016;
+    flex:none;
+  }
+  .bg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; background:#181009;}
+  .bg.empty{display:flex; align-items:center; justify-content:center; color:rgba(245,239,227,.4); font-size:13px; text-align:center; padding:40px;}
+
+  /* header */
+  .header{position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between;
+    align-items:flex-start; padding:0 22px; padding-top:calc((var(--safeTop) + 4)*1px);}
+  .hleft{flex:1; min-width:0; margin-right:12px;}
+  .greeting{font-size:15px;}
+  .nameRow{display:flex; align-items:center; gap:8px; margin-top:1px;}
+  .name{font-family:Georgia,"Times New Roman",serif; font-weight:600; font-size:24px; letter-spacing:-.3px;}
+  .chev{width:26px; height:26px; border-radius:13px; display:flex; align-items:center; justify-content:center;
+    background:rgba(12,8,4,.4); border:1px solid rgba(245,239,227,.18); font-size:13px; color:var(--cream);}
+  .moodCard{display:inline-flex; align-items:center; gap:8px; margin-top:10px; padding:6px 8px 6px 7px;
+    border-radius:16px; background:rgba(12,8,4,.42); border:1px solid rgba(245,239,227,.16); align-self:flex-start;}
+  .ring{position:relative; display:flex; align-items:center; justify-content:center;}
+  .ring .val{position:absolute; font-family:ui-monospace,Menlo,monospace; font-size:10px; color:var(--cream);}
+  .moodText .t{font-size:11px; color:rgba(245,239,227,.85); letter-spacing:.2px; font-weight:600;}
+  .moodText .s{font-size:12.5px; font-weight:800; letter-spacing:.2px; margin-top:1px;}
+  .help{width:20px; height:20px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-left:2px;
+    background:rgba(240,137,95,.16); border:1px solid rgba(240,137,95,.42); color:var(--accent); font-weight:800; font-size:12px;}
+  .miss{display:flex; align-items:center; gap:6px; margin-top:8px;}
+  .miss .h{font-size:13px;} .miss .txt{font-size:13px; color:rgba(245,239,227,.72); font-weight:600;}
+  .miss .nm{font-weight:800; color:#ff9d86;}
+
+  .hright{display:flex; flex-direction:column; align-items:flex-end; margin-top:6px;}
+  .iconRow{display:flex; align-items:center; gap:9px;}
+  .cbtn{min-width:42px; height:42px; padding:0 6px; border-radius:21px; display:flex; align-items:center; justify-content:center; gap:3px;
+    background:rgba(12,8,4,.42); border:1px solid rgba(245,239,227,.18); position:relative; font-size:16px;}
+  .cbtn .num{font-weight:800; font-size:13px; color:#f0895f;}
+  .invite{width:42px; height:42px; border-radius:21px; display:flex; align-items:center; justify-content:center;
+    background:var(--accent); border:1px solid #ffb488; color:#181009; font-size:22px; font-weight:700;
+    box-shadow:0 2px 9px rgba(240,137,95,.6);}
+  .reddot{position:absolute; top:9px; right:10px; width:8px; height:8px; border-radius:4px; background:#e0673f;}
+  .notedot{position:absolute; top:7px; right:8px; width:9px; height:9px; border-radius:5px; background:var(--accent); border:1.5px solid var(--bg);}
+  .tagchip{display:inline-flex; align-items:center; gap:4px; margin-top:7px; padding:5px 8px 5px 11px; border-radius:999px;
+    background:rgba(240,137,95,.13); border:1px solid rgba(240,137,95,.34); color:var(--accent); font-size:11px; font-weight:600;}
+  .presence{display:flex; align-items:center; gap:4px; margin-top:6px;}
+  .presence .pd{width:7px; height:7px; border-radius:4px; background:var(--leaf);}
+  .presence .pn{font-size:11px; font-weight:600; color:var(--leaf);}
+
+  /* rails */
+  .bubbleWrap{position:absolute; top:25%; left:0; right:0; display:flex; flex-direction:column; align-items:center; pointer-events:none; z-index:5;}
+  .bubble{max-width:72%; padding:11px 16px; border-radius:18px; background:rgba(245,239,227,.97); border:1px solid rgba(0,0,0,.06); box-shadow:0 6px 14px rgba(0,0,0,.3);}
+  .bubbleTxt{font-size:14.5px; font-weight:600; color:#2a2016; text-align:center; line-height:20px;}
+  .bubbleTail{width:14px; height:14px; margin-top:-6px; border-radius:3px; transform:rotate(45deg); background:rgba(245,239,227,.97);}
+  .rail{position:absolute; top:40%; display:flex; flex-direction:column; gap:12px;}
+  .rail.left{left:4px;} .rail.right{right:4px;}
+  .actCol{width:62px; display:flex; flex-direction:column; align-items:center;}
+  .ringWrap{width:50px; height:50px; position:relative; display:flex; align-items:center; justify-content:center;}
+  .actBtn{width:44px; height:44px; border-radius:22px; display:flex; align-items:center; justify-content:center;
+    background:rgba(20,14,8,.5); border:1.5px solid; font-size:22px;}
+  .badge{position:absolute; left:0; right:0; bottom:-4px; display:flex; justify-content:center;}
+  .badge span{padding:1px 5px; border-radius:8px; border:1px solid; background:rgba(16,11,6,.96); font-size:9.5px; font-weight:800; letter-spacing:.2px;}
+  .actLabel{font-size:11px; font-weight:600; text-align:center; margin-top:7px; text-shadow:0 1px 4px rgba(0,0,0,.6);}
+
+  /* bottom */
+  .bottom{position:absolute; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:8px;
+    bottom:calc((var(--safeBottom) + 90)*1px);}
+  .tagline{font-size:13px; color:var(--dim); text-shadow:0 1px 4px rgba(0,0,0,.5);}
+  .ritual{display:flex; flex-direction:column; align-items:center;}
+  .ritualWrap{width:80px; height:80px; position:relative; display:flex; align-items:center; justify-content:center;}
+  .ritualBtn{width:68px; height:68px; border-radius:34px; display:flex; align-items:center; justify-content:center;
+    background:rgba(20,14,8,.85); border:1.5px solid var(--accent); font-size:30px; box-shadow:0 0 16px rgba(240,137,95,.6);}
+  .ritualLabel{font-weight:800; font-size:14px; margin-top:8px; text-shadow:0 1px 4px rgba(0,0,0,.6);}
+  .ritualSub{font-size:11px; color:rgba(245,239,227,.6); margin-top:2px;}
+  .invitePill{margin-top:6px; padding:0 22px; min-height:46px; border-radius:23px; display:flex; align-items:center; justify-content:center;
+    border:1.5px solid rgba(240,137,95,.5); background:rgba(240,137,95,.14); color:var(--accent); font-weight:600; font-size:14.5px;}
+  .footer{display:flex; align-items:center; gap:5px; margin-top:10px; font-family:ui-monospace,Menlo,monospace;
+    font-size:11px; color:rgba(245,239,227,.5); letter-spacing:.4px; text-shadow:0 1px 4px rgba(0,0,0,.5);}
+  svg{display:block;}
+</style>
+</head>
+<body>
+  <div class="side">
+    <h1>Bixi · Home preview 🌱</h1>
+    <p class="muted">Drop a Bixi <b>image or video</b> in to see it behind the real UI at true phone size. Buttons, icons and spacing are pulled straight from the app.</p>
+
+    <div class="group">
+      <label>Background (image / video)</label>
+      <div id="drop" class="drop">
+        <b>Click or drop a file</b>
+        <small>.mp4 / .png / .jpg — loads locally, nothing uploads</small>
+      </div>
+      <input id="file" type="file" accept="video/*,image/*" />
+      <div class="row">
+        <span class="chip" data-fit="cover" id="fitCover">Fit: cover</span>
+        <span class="chip" data-fit="contain" id="fitContain">contain</span>
+        <span class="chip" id="clearBg">Clear</span>
+      </div>
+      <div class="row">
+        <span class="chip" data-pos="center">Center</span>
+        <span class="chip" data-pos="top">Top</span>
+        <span class="chip" data-pos="bottom">Bottom</span>
+      </div>
+    </div>
+
+    <div class="group">
+      <label>Quick-load bundled clips</label>
+      <div class="qbtns" id="quick"></div>
+      <p class="note">These load from <code>mobile/assets/bixi/…</code> — works if you opened this file from inside the repo. If a clip stays black, your browser blocked local file access; use the picker above instead.</p>
+    </div>
+
+    <div class="group">
+      <label>Action reactions (over idle)</label>
+      <div class="qbtns" id="reactBtns"></div>
+      <p class="note">Load <b>Bixi · idle (video)</b> first, then tap a reaction. It plays once, then the idle restarts from frame 0 — same as the app, so you can check there's no cut.</p>
+    </div>
+
+    <div class="group">
+      <label>Phone size</label>
+      <select id="device">
+        <option value="375,667,20,0">iPhone SE — 375 × 667</option>
+        <option value="390,844,47,34" selected>iPhone 14 — 390 × 844</option>
+        <option value="393,852,59,34">iPhone 15 Pro — 393 × 852</option>
+        <option value="430,932,59,34">iPhone 15 Pro Max — 430 × 932</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <label>Mood state</label>
+      <select id="mood">
+        <option value="thriving">Thriving (82%)</option>
+        <option value="content" selected>Content (55%)</option>
+        <option value="drifting">Drifting (32%)</option>
+        <option value="wilting">Wilting (14%)</option>
+        <option value="sad">Missing you (40%)</option>
+        <option value="dormant">Dormant (3%)</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <label>State toggles</label>
+      <div class="row">
+        <span class="chip" id="tPaired">Paired</span>
+        <span class="chip on" id="tRitual">Ritual due</span>
+        <span class="chip" id="tMiss">Show “misses”</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="phone" id="phone">
+      <video class="bg" id="bgVideo" autoplay loop muted playsinline style="display:none"></video>
+      <video class="bg" id="bgReact" muted playsinline style="display:none"></video>
+      <img class="bg" id="bgImg" alt="" style="display:none" />
+      <div class="bg empty" id="bgEmpty">No Bixi loaded.<br>Drop an image or video on the left →</div>
+
+      <!-- header -->
+      <div class="header">
+        <div class="hleft">
+          <div class="greeting">Good evening 👋</div>
+          <div class="nameRow">
+            <div class="name">Saud</div>
+            <div class="chev">⌄</div>
+          </div>
+          <div class="moodCard">
+            <div class="ring" id="moodRing"></div>
+            <div class="moodText">
+              <div class="t">Bixi's mood</div>
+              <div class="s" id="moodState">Content</div>
+            </div>
+            <div class="help">?</div>
+          </div>
+          <div class="miss" id="missRow" style="display:none">
+            <span class="h">💔</span><span class="txt">Bixi misses <span class="nm" id="missWho">you</span></span>
+          </div>
+        </div>
+
+        <div class="hright">
+          <div class="iconRow" id="iconRow"></div>
+          <div class="tagchip" id="tagchip">Invite your person →</div>
+          <div class="presence" id="presence" style="display:none"><span class="pd"></span><span class="pn">Saud &amp; Waleed</span></div>
+        </div>
+      </div>
+
+      <!-- rails -->
+      <div class="bubbleWrap" id="bubbleWrap" style="display:none"><div class="bubble"><div class="bubbleTxt" id="bubbleTxt"></div></div><div class="bubbleTail"></div></div>
+
+      <div class="rail left" id="railLeft"></div>
+      <div class="rail right" id="railRight"></div>
+
+      <!-- bottom -->
+      <div class="bottom">
+        <div class="tagline" id="tagline" style="display:none">Bixi is fading. Feed and water him.</div>
+        <div class="ritual" id="ritual">
+          <div class="ritualWrap" id="ritualRing"></div>
+          <div class="ritualLabel">Today's ritual</div>
+          <div class="ritualSub">streak resets in 8h</div>
+        </div>
+        <div class="invitePill" id="invitePill" style="display:none">＋&nbsp;&nbsp;Invite your person</div>
+        <div class="footer">Day 001 · 🌱 Sprout · 6d to Bud <span style="opacity:.7">›</span></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const ACCENT='#f0895f', CREAM='#f5efe3';
+  // action rails — value = the metric %; bond actions all share one number (matches the app)
+  const BOND=45, WATER=66, FEED=76;
+  const ACTIONS=[
+    {label:'Water',  emoji:'💧', tint:'#63a9d6', side:'left',  v:WATER},
+    {label:'Feed',   emoji:'🍽️', tint:'#e0a94a', side:'left',  v:FEED},
+    {label:'Read',   emoji:'📖', tint:'#c9a2e0', side:'left',  v:BOND},
+    {label:'Scroll', emoji:'📱', tint:'#7fa8d0', side:'left',  v:BOND},
+    {label:'Pet',    emoji:'🫶', tint:'#e090b5', side:'right', v:BOND},
+    {label:'Shower', emoji:'🚿', tint:'#5cc0b4', side:'right', v:BOND},
+    {label:'Stretch',emoji:'🧘', tint:'#8fcf9a', side:'right', v:BOND},
+    {label:'Sun',    emoji:'☀️', tint:'#f0c94a', side:'right', v:BOND},
+  ];
+  const MOODS={
+    thriving:{label:'Thriving', pct:82, color:'#7fc07a'},
+    content:{label:'Content',   pct:55, color:'#7fc07a'},
+    drifting:{label:'Drifting', pct:32, color:'#e0a94a'},
+    wilting:{label:'Wilting',   pct:14, color:'#e0673f'},
+    sad:{label:'Missing you',   pct:40, color:'#e0a94a'},
+    dormant:{label:'Dormant',   pct:3,  color:'#a83b2a'},
+  };
+
+  // ---- ring helper (SVG) ----
+  function ring(size, stroke, pct, color, opts){
+    opts=opts||{};
+    const r=(size-stroke)/2, c=size/2, circ=2*Math.PI*r;
+    const off=circ*(1-pct/100);
+    const track=opts.track||'rgba(245,239,227,0.14)';
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${c}" cy="${c}" r="${r}" stroke="${track}" stroke-width="${stroke}" fill="none"/>
+      <circle cx="${c}" cy="${c}" r="${r}" stroke="${color}" stroke-width="${stroke}" fill="none"
+        stroke-dasharray="${circ}" stroke-dashoffset="${off}" stroke-linecap="round"
+        transform="rotate(-90 ${c} ${c})"/></svg>`;
+  }
+
+  // ---- build rails ----
+  function buildRails(){
+    ['left','right'].forEach(side=>{
+      const el=document.getElementById(side==='left'?'railLeft':'railRight');
+      el.innerHTML='';
+      ACTIONS.filter(a=>a.side===side).forEach(a=>{
+        const pct=Math.round(a.v);
+        const col=document.createElement('div'); col.className='actCol'; col.dataset.action=a.label.toLowerCase();
+        col.innerHTML=`
+          <div class="ringWrap">
+            <div style="position:absolute;inset:0">${ring(50,3,pct,a.tint)}</div>
+            <div class="actBtn" style="border-color:${a.tint}66;box-shadow:0 0 12px ${a.tint}88">${a.emoji}</div>
+            <div class="badge"><span style="border-color:${a.tint}aa;color:${a.tint}">${pct}%</span></div>
+          </div>
+          <div class="actLabel">${a.label}</div>`;
+        el.appendChild(col);
+      });
+    });
+  }
+
+  // ---- mood ring + ritual ring ----
+  function buildMood(){
+    const m=MOODS[document.getElementById('mood').value];
+    const mr=document.getElementById('moodRing');
+    mr.style.width='36px'; mr.style.height='36px';
+    mr.innerHTML=ring(36,3,m.pct,m.color)+`<div class="val">${m.pct.toFixed(1)}</div>`;
+    const missOn=document.getElementById('tMiss').classList.contains('on');
+    document.getElementById('moodState').textContent= missOn ? 'Missing you' : m.label;
+    document.getElementById('moodState').style.color= missOn ? '#e0a94a' : m.color;
+    // dormant tagline
+    document.getElementById('tagline').style.display = m===MOODS.dormant ? 'block':'none';
+  }
+  function buildRitual(){
+    const rr=document.getElementById('ritualRing');
+    rr.innerHTML=`<div style="position:absolute;inset:0">${ring(80,4,100,ACCENT)}</div><div class="ritualBtn">✨</div>`;
+  }
+
+  // ---- header icons (depends on paired) ----
+  function buildIcons(){
+    const paired=document.getElementById('tPaired').classList.contains('on');
+    const row=document.getElementById('iconRow');
+    let html='';
+    if(!paired) html+=`<div class="invite">＋</div>`;
+    html+=`<div class="cbtn">🔥<span class="num">3</span></div>`;
+    html+=`<div class="cbtn">🔔<span class="reddot"></span></div>`;
+    if(paired) html+=`<div class="cbtn">💬<span class="notedot"></span></div>`;
+    row.innerHTML=html;
+    document.getElementById('tagchip').style.display = paired ? 'none':'inline-flex';
+    document.getElementById('presence').style.display = paired ? 'flex':'none';
+  }
+
+  // ---- bottom CTA (ritual vs invite) ----
+  function buildBottom(){
+    const ritualDue=document.getElementById('tRitual').classList.contains('on');
+    const paired=document.getElementById('tPaired').classList.contains('on');
+    document.getElementById('ritual').style.display = ritualDue ? 'flex':'none';
+    document.getElementById('invitePill').style.display = (!ritualDue && !paired) ? 'flex':'none';
+  }
+
+  // ---- miss row ----
+  function buildMiss(){
+    document.getElementById('missRow').style.display =
+      document.getElementById('tMiss').classList.contains('on') ? 'flex':'none';
+  }
+
+  function renderAll(){ buildRails(); buildMood(); buildRitual(); buildIcons(); buildBottom(); buildMiss(); }
+
+  // ---------- background loading ----------
+  const vid=document.getElementById('bgVideo'), img=document.getElementById('bgImg'), empty=document.getElementById('bgEmpty');
+  function showVideo(src){ empty.style.display='none'; img.style.display='none'; vid.style.display='block'; vid.src=src; vid.play().catch(()=>{}); }
+  function showImage(src){ empty.style.display='none'; vid.style.display='none'; vid.pause(); img.style.display='block'; img.src=src; }
+  function clearBg(){ vid.style.display='none'; img.style.display='none'; vid.removeAttribute('src'); img.removeAttribute('src'); empty.style.display='flex'; }
+  function loadFile(f){
+    if(!f) return;
+    const url=URL.createObjectURL(f);
+    if(f.type.startsWith('video')||/\.mp4$/i.test(f.name)) showVideo(url); else showImage(url);
+  }
+  const fileInput=document.getElementById('file'), drop=document.getElementById('drop');
+  drop.addEventListener('click',()=>fileInput.click());
+  fileInput.addEventListener('change',e=>loadFile(e.target.files[0]));
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('hot');}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('hot');}));
+  drop.addEventListener('drop',e=>loadFile(e.dataTransfer.files[0]));
+  document.getElementById('phone').addEventListener('dragover',e=>e.preventDefault());
+  document.getElementById('phone').addEventListener('drop',e=>{e.preventDefault();loadFile(e.dataTransfer.files[0]);});
+  document.getElementById('clearBg').addEventListener('click',clearBg);
+
+  // fit / position chips
+  function setFit(fit){ vid.style.objectFit=fit; img.style.objectFit=fit;
+    document.getElementById('fitCover').classList.toggle('on',fit==='cover');
+    document.getElementById('fitContain').classList.toggle('on',fit==='contain'); }
+  document.getElementById('fitCover').addEventListener('click',()=>setFit('cover'));
+  document.getElementById('fitContain').addEventListener('click',()=>setFit('contain'));
+  document.querySelectorAll('[data-pos]').forEach(c=>c.addEventListener('click',()=>{
+    document.querySelectorAll('[data-pos]').forEach(x=>x.classList.remove('on')); c.classList.add('on');
+    vid.style.objectPosition=c.dataset.pos; img.style.objectPosition=c.dataset.pos;
+  }));
+  setFit('cover');
+
+  // quick-load bundled clips
+  const CLIPS=[
+    ['Bixi · idle (video)','idle_happy.mp4'],['Bixi · idle (still)','idle_happy.png'],['Bixi · sad (video)','sad_idle.mp4'],['Bixi · dormant','dormant_idle.mp4'],
+    ['Hatch · egg','hatch0.jpg'],['Hatch · crack 1','hatch1.jpg'],
+    ['Hatch · crack 2','hatch2.jpg'],['Hatch · final','hatchedFinal.jpg'],
+  ];
+  const q=document.getElementById('quick');
+  CLIPS.forEach(([label,file])=>{
+    const b=document.createElement('button'); b.textContent=label;
+    b.addEventListener('click',()=>{
+      const src='mobile/assets/bixi/'+file;
+      if(/\.mp4$/i.test(file)) showVideo(src); else showImage(src);
+    });
+    q.appendChild(b);
+  });
+
+  // action reactions — play once over the idle, then restart the idle from frame 0.
+  // some actions have variant clips (Feed) — one is picked at random.
+  const bgReact=document.getElementById('bgReact');
+  const REACT=[['💧 Water',['water.mp4']],['🫶 Pet',['pet.mp4']],['🍽️ Feed (random)',['feed.mp4','feed2.mp4']],['📖 Read',['read.mp4']],['🚿 Shower',['shower.mp4']],['🧘 Stretch',['stretch.mp4']],['📱 Scroll',['scroll.mp4']],['☀️ Sun',['sun.mp4']],['✨ Ritual (random)',['ritual1.mp4','ritual2.mp4','ritual3.mp4','ritual4.mp4','ritual5.mp4','ritual6.mp4']],['👫 Both here',['both_here.mp4']]];
+  const rb=document.getElementById('reactBtns');
+  const LINES={happy:{water:['ahh, refreshing!','you keep me green.','just what i needed.'],feed:['yum! more please.','tastes like sunshine.','nom nom 🌱'],pet:['hehe, that tickles!','i love head pats.','again? again!'],read:['read me another one!','ooh, what happens next?','your voice is my favorite.'],scroll:['ooh, look at this!','one more, one more.','hehe, funny.'],shower:['squeaky clean!','bubbles everywhere 🫧','i sparkle now.'],stretch:['big stretch! feels great.','reaching for the sky 🌱','i feel taller already.'],sun:['photosynthesis time!','soaking it all in.','recharge complete ☀️'],ritual:['you came back! best part of my day.','yay, our little ritual 🌱','i knew you’d come.']},sad:{water:['okay… if you think it helps.','i keep wilting.','everything feels heavy.'],feed:['not really hungry… but thanks.','maybe just a little.','i’ll try to eat.'],pet:['…that actually feels nice.','stay a little longer?','just… be here with me.'],read:['the words won’t stick today.','read slowly, please.','your voice helps.'],scroll:['nothing feels interesting.','just numb scrolling.','it’s all a blur.'],shower:['fine… maybe it’ll help.','i’m moving slow today.','just get it over with.'],sun:['the light feels so far away.','everything looks grey.','maybe tomorrow’s brighter.'],ritual:['you… still came. thank you.','i didn’t think you would today.','you didn’t forget me.']}};
+  function showBubble(t){var w=document.getElementById('bubbleWrap');document.getElementById('bubbleTxt').textContent=t;w.style.display='flex';clearTimeout(showBubble._t);showBubble._t=setTimeout(function(){w.style.display='none';},3200);}
+  REACT.forEach(([label,files])=>{
+    const b=document.createElement('button'); b.textContent=label;
+    b.addEventListener('click',()=>{
+      if(vid.style.display!=='block') showVideo('mobile/assets/bixi/idle_happy.mp4');
+      const file=files[Math.floor(Math.random()*files.length)];
+      vid.pause(); try{vid.currentTime=0;}catch(e){}
+      bgReact.src='mobile/assets/bixi/'+file;
+      bgReact.style.display='block'; bgReact.currentTime=0; bgReact.play().catch(()=>{});
+      bgReact.onended=()=>{ bgReact.style.display='none'; try{vid.currentTime=0;}catch(e){} vid.play().catch(()=>{}); };
+      // mood-matched dialog (mirrors the app)
+      var mv=document.getElementById('mood').value, moodKey=(mv==='content'||mv==='thriving')?'happy':'sad';
+      var ak=file.replace('.mp4','').replace('2','');
+      if(/^ritual/.test(ak)) ak='ritual';
+      var arr=LINES[moodKey][ak];
+      if(arr) showBubble(arr[Math.floor(Math.random()*arr.length)]);
+    });
+    rb.appendChild(b);
+  });
+
+  // device / state controls
+  document.getElementById('device').addEventListener('change',e=>{
+    const [w,h,st,sb]=e.target.value.split(',').map(Number);
+    const p=document.getElementById('phone').style;
+    p.setProperty('--w',w); p.setProperty('--h',h); p.setProperty('--safeTop',st); p.setProperty('--safeBottom',sb);
+  });
+  function dimLocked(){var dorm=document.getElementById('mood').value==='dormant';document.querySelectorAll('.actCol').forEach(function(c){var a=c.dataset.action;c.style.opacity=(dorm&&a!=='water'&&a!=='feed')?'0.4':'1';});}
+  document.getElementById('mood').addEventListener('change',()=>{buildMood();dimLocked();});
+  ['tPaired','tRitual','tMiss'].forEach(id=>document.getElementById(id).addEventListener('click',e=>{
+    e.currentTarget.classList.toggle('on'); renderAll();
+  }));
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
