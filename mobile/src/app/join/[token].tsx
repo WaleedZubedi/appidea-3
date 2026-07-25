@@ -1,5 +1,5 @@
 /**
- * Deep-link target: bixi://join/<token> or https://bixi.pet/join/<token>.
+ * Deep-link target: bixi://join/<token> or https://bixi.world/join/<token>.
  * If signed in (online) → claim immediately. Otherwise send to the join screen with the
  * code prefilled (and, once auth is added, claim after sign-in).
  */

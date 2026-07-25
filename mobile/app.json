@@ -9,15 +9,15 @@
     "userInterfaceStyle": "light",
     "backgroundColor": "#f6f2ea",
     "ios": {
-      "bundleIdentifier": "pet.bixi.app",
+      "bundleIdentifier": "world.bixi.app",
       "supportsTablet": true,
       "icon": "./assets/expo.icon",
       "associatedDomains": [
-        "applinks:bixi.pet"
+        "applinks:bixi.world"
       ]
     },
     "android": {
-      "package": "pet.bixi.app",
+      "package": "world.bixi.app",
       "adaptiveIcon": {
         "backgroundColor": "#f6f2ea",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -32,7 +32,7 @@
           "data": [
             {
               "scheme": "https",
-              "host": "bixi.pet",
+              "host": "bixi.world",
               "pathPrefix": "/join"
             }
           ],
