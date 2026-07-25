@@ -25,6 +25,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors } from '@/theme';
 import { DevReset } from '@/ui/DevReset';
+import { ErrorBoundary } from '@/ui/ErrorBoundary';
 import { useBixi } from '@/game/store';
 import { actHydrate } from '@/game/actions';
 import { IS_ONLINE } from '@/lib/config';
@@ -115,16 +116,18 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      {posthog ? (
-        <PostHogProvider
-          client={posthog}
-          autocapture={{ captureTouches: true, captureScreens: false }}
-        >
-          {inner}
-        </PostHogProvider>
-      ) : (
-        inner
-      )}
+      <ErrorBoundary>
+        {posthog ? (
+          <PostHogProvider
+            client={posthog}
+            autocapture={{ captureTouches: true, captureScreens: false }}
+          >
+            {inner}
+          </PostHogProvider>
+        ) : (
+          inner
+        )}
+      </ErrorBoundary>
     </GestureHandlerRootView>
   );
 }
