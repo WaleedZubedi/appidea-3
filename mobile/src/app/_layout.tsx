@@ -14,7 +14,8 @@ import {
   IBMPlexMono_500Medium,
 } from '@expo-google-fonts/ibm-plex-mono';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
+import { PostHogProvider } from 'posthog-react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
@@ -28,6 +29,17 @@ import { useBixi } from '@/game/store';
 import { actHydrate } from '@/game/actions';
 import { IS_ONLINE } from '@/lib/config';
 import { useAuth } from '@/lib/session';
+import { identifyUser, posthog, resetAnalytics, trackScreen } from '@/lib/analytics';
+
+/** fires a PostHog screen event on every route change + ties events to the
+ * signed-in person (and forgets them on sign-out). */
+function Tracker() {
+  const pathname = usePathname();
+  const userId = useAuth((s) => s.userId);
+  useEffect(() => { if (pathname) trackScreen(pathname); }, [pathname]);
+  useEffect(() => { if (userId) identifyUser(userId); else resetAnalytics(); }, [userId]);
+  return null;
+}
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -46,7 +58,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!IS_ONLINE) return;
     if (authReady && userId) {
-      actHydrate().finally(() => setSynced(true));
+      actHydrate().catch(() => {}).finally(() => setSynced(true));
     } else if (authReady && !userId) {
       setSynced(true);
     }
@@ -57,7 +69,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!IS_ONLINE) return;
     const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'active') void actHydrate();
+      if (s === 'active') void actHydrate().catch(() => {});
     });
     return () => sub.remove();
   }, []);
@@ -82,23 +94,37 @@ export default function RootLayout() {
 
   if (!ready) return null;
 
+  const inner = (
+    <SafeAreaProvider>
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.paper },
+          animation: 'fade',
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+      <Tracker />
+      {__DEV__ && <DevReset />}
+    </SafeAreaProvider>
+  );
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <StatusBar style="dark" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: colors.paper },
-            animation: 'fade',
-          }}
+      {posthog ? (
+        <PostHogProvider
+          client={posthog}
+          autocapture={{ captureTouches: true, captureScreens: false }}
         >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="onboarding" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
-        {__DEV__ && <DevReset />}
-      </SafeAreaProvider>
+          {inner}
+        </PostHogProvider>
+      ) : (
+        inner
+      )}
     </GestureHandlerRootView>
   );
 }

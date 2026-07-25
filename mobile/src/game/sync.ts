@@ -60,6 +60,7 @@ function applyBundle(b: api.PairBundle, uid: string | null) {
     growthStage: b.state.growth_stage as GrowthStage,
     streak: b.state.streak,
     bestStreak: b.state.best_streak,
+    lastStreakDayAt: toMs(b.state.last_streak_day_at) ?? 0, // cycle boundary → per-parent check-in UI
     totalCareDays: b.state.total_care_days,
     everReached100Streak: b.state.ever_reached_100,
     dormant: b.state.dormant,
@@ -100,10 +101,17 @@ export async function hydrate(): Promise<string | null> {
 /** settle server-side decay/dormancy ONCE (app open / foreground), then hydrate. */
 export async function settle(): Promise<void> {
   if (!IS_ONLINE) return;
-  const pairId = await api.getMyPairId();
-  if (!pairId) return;
-  await api.recomputePair(pairId).catch(() => {});
-  await hydrate();
+  let pairId: string | null;
+  try {
+    pairId = await api.getMyPairId();
+  } catch {
+    return; // transient read failure — keep current state, retry next open
+  }
+  if (pairId) await api.recomputePair(pairId).catch(() => {});
+  // ALWAYS reconcile: hydrate rewrites the store's pairId to the truth (or clears
+  // it). This heals a stale pairId left over from a join/leave — the source of
+  // the `not_a_member` errors when an RPC fired against a pair we'd left.
+  await hydrate().catch(() => {});
 }
 
 export async function onlineHatch(

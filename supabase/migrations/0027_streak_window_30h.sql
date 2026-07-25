@@ -1,0 +1,15 @@
+-- ============================================================================
+-- 0027: streak now survives 30h (was 24h) since the last daily ritual.
+-- APPLIED LIVE (mvyktmxkhwigrrftsbpn) as `streak_window_30h`.
+--
+-- Only the two STREAK windows change; the 24h feed/water/pet "full vs half
+-- refill" gates and the 24h bond-decay gate are deliberately left untouched.
+--   • apply_care:      v_all_current  now `< interval '30 hours'`  (was 24h)
+--   • recompute_pair:  v_daily_lapsed now `> interval '30 hours'`  (was 24h)
+-- The client mirrors this: streakHoursLeft counts down to the 30h mark and the
+-- streak badge glows in the final stretch (24h→30h danger window).
+--
+-- Full function bodies are re-defined in the live migration of the same name
+-- (both apply_care and recompute_pair). Kept here as a pointer so the repo
+-- records the change; see Supabase migration history for the exact bodies.
+-- ============================================================================

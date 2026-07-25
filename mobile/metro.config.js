@@ -8,4 +8,15 @@ const config = getDefaultConfig(__dirname);
 // resolution makes Metro use the CommonJS builds (no import.meta).
 config.resolver.unstable_enablePackageExports = false;
 
+// …but posthog-react-native imports `@posthog/core/surveys`, a package-`exports`
+// subpath that Metro can't map while exports are disabled. Redirect that one
+// specifier to its real built file so the default resolver handles it.
+const defaultResolveRequest = config.resolver.resolveRequest;
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === '@posthog/core/surveys') {
+    moduleName = '@posthog/core/dist/surveys/index.js';
+  }
+  return (defaultResolveRequest ?? context.resolveRequest)(context, moduleName, platform);
+};
+
 module.exports = config;

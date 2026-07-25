@@ -166,11 +166,11 @@ export function driftedKeepers(state: BixiState, now: number): Keeper[] {
 // Mood status is a straight band of the mood meter (0–100). Dormant is simply
 // the lowest band — when the meter craters below 5 — so status always tracks
 // the number. The one non-meter case kept is "sad" (paired, a keeper absent).
-export function deriveMoodState(state: BixiState, now: number): MoodState {
-  const m = state.mood; // the mood meter (0.30·feed + 0.30·water + 0.40·avg bond)
+export function deriveMoodState(state: BixiState, _now: number): MoodState {
+  // Mood follows the METERS only. A keeper being away no longer forces "sad" —
+  // absence is conveyed by the miss banner + per-action dialog, not his mood.
+  const m = state.mood; // 0.30·feed + 0.30·water + 0.40·avg bond
   if (m < 5) return 'dormant';
-  const mode = modeOf(state.keepers);
-  if (mode === 'paired' && driftedKeepers(state, now).length === 1) return 'sad';
   if (m < 20) return 'wilting';
   if (m < 40) return 'drifting';
   if (m >= 65) return 'thriving';
@@ -253,9 +253,9 @@ export function simulateElapsed(
     patch.revivePending = mode === 'paired' ? state.keepers.map((k) => k.id) : [];
   }
 
-  // --- streak break (unforgiving): any keeper's rolling 24h DAILY clock lapsed → 0 ---
+  // --- streak break: any keeper who hasn't acted (any action) in 30h → resets to 0 ---
   const anyStreakLapsed = state.keepers.some(
-    (k) => hoursSince(k.lastDailyAt ?? state.createdAt, now) > STREAK_WINDOW_HOURS
+    (k) => hoursSince(k.lastSeenAt ?? state.createdAt, now) > 30
   );
   if (state.streak > 0 && anyStreakLapsed) {
     patch.streak = 0;

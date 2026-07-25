@@ -1,0 +1,16 @@
+-- ============================================================================
+-- 0029: paired streak requires BOTH keepers to have acted SINCE the last streak
+-- tick — one parent can no longer carry it. APPLIED LIVE (mvyktmxkhwigrrftsbpn)
+-- as `streak_requires_both_this_cycle`.
+--
+-- apply_care's v_all_current changes from "both acted within 30h" to:
+--   bool_and(last_seen_at is not null
+--            and last_seen_at > coalesce(st.last_streak_day_at, to_timestamp(0)))
+-- Combined with the existing >=20h new-cycle gate, the streak advances at most
+-- once per cycle and only when EACH keeper has checked in during that cycle.
+-- Solo is unchanged (advances on its own action).
+--
+-- The client mirrors this with a two-dot "check-in" in the bottom overlay: each
+-- keeper's dot fills (✓) once lastSeenAt > lastStreakDayAt. last_streak_day_at is
+-- now mapped into the store bundle to drive it. Full body: live migration.
+-- ============================================================================

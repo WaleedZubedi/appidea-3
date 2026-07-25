@@ -20,6 +20,7 @@ import { colors, fonts, radius } from '@/theme';
 import { actHydrate } from '@/game/actions';
 import { useBixi } from '@/game/store';
 import { useAuth } from '@/lib/session';
+import { identifyUser, track } from '@/lib/analytics';
 import { Sprout } from '@/ui/SpecimenSeal';
 import { Txt } from '@/ui/primitives';
 
@@ -27,7 +28,7 @@ const HERO = require('../../../assets/images/auth-hero.jpg');
 const CREAM = '#f5efe3';
 const ACCENT = '#f0895f';
 const LEAF = '#a9d182';
-const HERO_H = Math.round(Dimensions.get('window').height * 0.56);
+const HERO_H = Math.round(Dimensions.get('window').height * 0.4);
 const ICON = '#5f7a54'; // muted green for the input chips
 
 /* ── little SVG icons ── */
@@ -93,6 +94,9 @@ export default function Auth() {
   const canSubmit = email.trim().length >= 4 && password.length >= 6;
 
   const afterAuth = async () => {
+    const uid = useAuth.getState().userId;
+    if (uid) identifyUser(uid, { email: email.trim().toLowerCase() });
+    track(isUp ? 'signed_up' : 'signed_in');
     await actHydrate();
     const pid = useBixi.getState().pairId;
     router.replace(pid ? '/(tabs)' : '/onboarding/name');
@@ -112,15 +116,15 @@ export default function Auth() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? undefined : 'height'}>
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          bounces={false}
+          automaticallyAdjustKeyboardInsets
         >
           {/* ── hero ── */}
-          <ImageBackground source={HERO} style={styles.hero} contentFit="cover" contentPosition={{ top: -90 }} priority="high" cachePolicy="memory-disk" transition={220}>
+          <ImageBackground source={HERO} style={styles.hero} contentFit="contain" contentPosition="top" priority="high" cachePolicy="memory-disk" transition={220}>
             <LinearGradient
               colors={['rgba(14,10,6,0.66)', 'rgba(14,10,6,0.2)', 'rgba(14,10,6,0)', 'rgba(14,10,6,0)']}
               locations={[0, 0.24, 0.5, 1]}
@@ -230,7 +234,7 @@ export default function Auth() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.paper },
 
-  hero: { width: '100%', height: HERO_H, backgroundColor: '#0e0a06' },
+  hero: { width: '100%', height: HERO_H, backgroundColor: '#26190c' },
   heroContent: { paddingHorizontal: 26, paddingTop: 8 },
 
   pill: {
@@ -252,19 +256,19 @@ const styles = StyleSheet.create({
   kickerText: { fontFamily: fonts.mono, fontSize: 12, letterSpacing: 2.5, textTransform: 'uppercase', color: ACCENT },
   kickerRule: { width: 34, height: 1, backgroundColor: 'rgba(240,137,95,0.6)' },
 
-  title: { fontFamily: fonts.serifSemibold, fontSize: 52, lineHeight: 56, color: CREAM, letterSpacing: -0.8, marginTop: 8 },
-  subtitle: { fontFamily: fonts.sans, fontSize: 17, lineHeight: 24, color: 'rgba(245,239,227,0.9)', marginTop: 14, maxWidth: '82%' },
+  title: { fontFamily: fonts.serifSemibold, fontSize: 40, lineHeight: 44, color: CREAM, letterSpacing: -0.6, marginTop: 6 },
+  subtitle: { fontFamily: fonts.sans, fontSize: 15, lineHeight: 21, color: 'rgba(245,239,227,0.9)', marginTop: 10, maxWidth: '82%' },
 
   sheet: {
     flex: 1,
-    marginTop: -26,
+    marginTop: -22,
     backgroundColor: colors.paper,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 16,
   },
-  sparkles: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 22 },
+  sparkles: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 12 },
 
   field: {
     flexDirection: 'row',
@@ -272,22 +276,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sheet,
     borderWidth: 1.5,
     borderColor: colors.rule,
-    borderRadius: 18,
+    borderRadius: 16,
     paddingLeft: 10,
     paddingRight: 14,
-    height: 64,
-    marginBottom: 14,
+    height: 52,
+    marginBottom: 11,
   },
-  chip: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center' },
-  input: { flex: 1, marginLeft: 12, fontFamily: fonts.sans, fontSize: 17, color: colors.ink, height: '100%' },
+  chip: { width: 38, height: 38, borderRadius: 11, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center' },
+  input: { flex: 1, marginLeft: 12, fontFamily: fonts.sans, fontSize: 16, color: colors.ink, height: '100%' },
   eye: { paddingLeft: 8 },
 
   error: { fontFamily: fonts.sans, fontSize: 14, color: colors.brick, textAlign: 'center', marginBottom: 6, marginTop: -2 },
 
   ctaWrap: {
-    marginTop: 8,
-    height: 66,
-    borderRadius: 20,
+    marginTop: 6,
+    height: 54,
+    borderRadius: 18,
     overflow: 'hidden',
     shadowColor: colors.clay,
     shadowOpacity: 0.34,
@@ -300,12 +304,12 @@ const styles = StyleSheet.create({
   cta: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   ctaLeft: { position: 'absolute', left: 22 },
   ctaRight: { position: 'absolute', right: 22 },
-  ctaLabel: { fontFamily: fonts.sansBold, fontSize: 19, color: '#fff', letterSpacing: 0.2 },
+  ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: '#fff', letterSpacing: 0.2 },
 
-  heartRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: 26 },
+  heartRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: 14 },
   heartRule: { width: 70, height: 1, backgroundColor: colors.rule },
 
-  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 18 },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12 },
   switchText: { fontFamily: fonts.sans, fontSize: 15, color: colors.body },
   switchLink: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.clay },
 });

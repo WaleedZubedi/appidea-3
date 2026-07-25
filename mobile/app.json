@@ -11,7 +11,9 @@
     "ios": {
       "supportsTablet": true,
       "icon": "./assets/expo.icon",
-      "associatedDomains": ["applinks:bixi.pet"]
+      "associatedDomains": [
+        "applinks:bixi.pet"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -25,8 +27,17 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": [{ "scheme": "https", "host": "bixi.pet", "pathPrefix": "/join" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "https",
+              "host": "bixi.pet",
+              "pathPrefix": "/join"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -44,7 +55,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": false,

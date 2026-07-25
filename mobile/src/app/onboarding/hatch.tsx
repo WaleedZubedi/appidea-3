@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { fonts } from '@/theme';
 import { actHatch } from '@/game/actions';
+import { track } from '@/lib/analytics';
 import type { Mode, RelationshipKind } from '@/game/types';
 import { successHaptic, tapHaptic } from '@/lib/haptics';
 
@@ -47,6 +48,7 @@ export default function Hatch() {
     const kind = (params.kind ? params.kind : null) as RelationshipKind;
     try {
       await actHatch(mode, params.name ?? '', kind);
+      track('bixi_hatched', { mode });
       setTimeout(() => {
         if (mode === 'paired') router.replace('/onboarding/invite');
         else router.replace('/(tabs)');

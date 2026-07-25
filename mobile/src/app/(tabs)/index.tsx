@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { ActivityIndicator, Alert, Animated, KeyboardAvoidingView, Modal, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
 
 import { fonts } from '@/theme';
 import { HOUR, STAGE_META, deriveMoodState, driftedKeepers, modeOf, nextMilestone, stageForStreak } from '@/game/engine';
@@ -12,11 +12,12 @@ import { useBixi } from '@/game/store';
 import { BixiGuide } from '@/ui/BixiGuide';
 import { BixiHero } from '@/ui/BixiHero';
 import { NotifPanel, type Alert as NotifAlert } from '@/ui/NotifPanel';
-import { StickyNotes } from '@/ui/StickyNotes';
-import { actBothHere, actCare, actClaim, actDaily, actInvite, actRevive } from '@/game/actions';
+import { GlowNote } from '@/ui/GlowNote';
+import { actBothHere, actCare, actClaim, actInvite, actRevive } from '@/game/actions';
 import { subscribe } from '@/game/sync';
-import { fetchNotes, invitePreview, presenceForPair, reactionChannel, subscribeToNotes, type InvitePreview, type Note } from '@/lib/api';
+import { invitePreview, presenceForPair, reactionChannel, type InvitePreview } from '@/lib/api';
 import { IS_ONLINE } from '@/lib/config';
+import { track } from '@/lib/analytics';
 import { useAuth } from '@/lib/session';
 import { successHaptic, tapHaptic } from '@/lib/haptics';
 import type { MoodState } from '@/game/types';
@@ -74,11 +75,14 @@ const BOTH_HERE_LINES = [
   'my whole world, right here.', 'you both showed up. my heart!', 'the three of us. perfect.',
   'i’ve got everyone i love here.',
 ];
-// when he's NOT green, the ritual skips the dance — just a quiet "that helped" bubble
-const RITUAL_RECOVER_LINES = [
-  'i feel better already 🌱', 'okay… that actually helped.', 'a little lighter now. thank you.',
-  'the fog lifted a bit — thanks to you.', 'i needed that. i feel better already.',
-  'better already, just from you showing up.', 'that eased it. really.', 'still yours — and feeling better.',
+// when a keeper hasn't shown up, EVERY action he does makes him mention missing
+// them ({who} → the absent partner's name)
+const MISS_LINES = [
+  'i miss {who}… when are they back?', 'it’s not the same without {who}.',
+  'do you think {who} is okay? i miss them.', 'tell {who} i miss them, okay?',
+  'i keep waiting for {who} to come by.', 'i miss {who} being here with us.',
+  'wish {who} were here for this too.', 'it’s quiet without {who} around.',
+  'i saved a little wave for {who}…', 'come back soon, {who}.',
 ];
 // when he's NOT green, "both here" skips the dance — a warmer, quieter bubble
 const BOTH_HERE_SAD_LINES = [
@@ -148,21 +152,55 @@ function PulseDot({ color = LEAF, size = 7 }: { color?: string; size?: number })
     </View>
   );
 }
-function Flame({ size = 16 }: { size?: number }) {
+const HEART_PATH =
+  'M12 20.3l-1.45-1.32C5.4 14.24 2 11.16 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 3.66-3.4 6.74-8.55 11.49L12 20.3z';
+/** the streak heart — outline always visible; each half fills (coral) when that
+ * keeper has acted this cycle. Full = both acted → the streak ticks. */
+function Heart({ size = 18, left, right, idKey }: { size?: number; left: boolean; right: boolean; idKey: string }) {
+  const cid = `heartclip-${idKey}`;
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M12 2.4c3.7 3.3 5.7 6 5.7 9.7a5.7 5.7 0 0 1-11.4 0c0-2 1-3.7 2.4-5.2.2 1.5 1.2 2.2 2.1 1.8 1-.4 1-2 .1-3.8-.6-1.2.1-2.6 1.1-2.5Z"
-        fill="#f0895f"
-      />
-      <Path
-        d="M12 12.4c1.8 1.6 2.7 3 2.7 4.4a2.7 2.7 0 0 1-5.4 0c0-1.4.9-2.8 2.7-4.4Z"
-        fill="#ffcf7a"
-      />
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Defs>
+        <ClipPath id={cid}><Path d={HEART_PATH} /></ClipPath>
+      </Defs>
+      <Path d={HEART_PATH} fill="rgba(224,122,95,0.14)" stroke={HEART} strokeWidth={1.4} />
+      <G clipPath={`url(#${cid})`}>
+        {left && <Rect x={0} y={0} width={12} height={24} fill={HEART} />}
+        {right && <Rect x={12} y={0} width={12} height={24} fill={HEART} />}
+      </G>
     </Svg>
   );
 }
 
+
+/** streak pill — a heart + the streak number. Tap for the explainer; the heart
+ * pulses when ~5h from breaking. Each half fills per parent's action this cycle. */
+function StreakBadge({
+  streak, atRisk, leftFill, rightFill, onPress,
+}: {
+  streak: number; atRisk: boolean; leftFill: boolean; rightFill: boolean; onPress: () => void;
+}) {
+  const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!atRisk) { a.stopAnimation(); a.setValue(0); return; }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(a, { toValue: 1, duration: 850, useNativeDriver: true }),
+        Animated.timing(a, { toValue: 0, duration: 850, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [atRisk, a]);
+  const opacity = a.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.9] });
+  return (
+    <Pressable style={styles.circleBtn} onPress={onPress} hitSlop={6}>
+      {atRisk && <Animated.View style={[styles.streakGlow, { opacity }]} pointerEvents="none" />}
+      <Heart size={17} left={leftFill} right={rightFill} idKey="badge" />
+      <Text style={styles.streakNum}>{streak}</Text>
+    </Pressable>
+  );
+}
 
 /** small circular mood gauge with the % (one decimal) inside; bumps on `anim`. */
 function MoodRing({ pct, color, size = 36, anim }: { pct: number; color: string; size?: number; anim?: Animated.Value }) {
@@ -199,27 +237,12 @@ function MissBanner({ bixiName, who }: { bixiName: string; who: string }) {
 /** homepage hint that drops in when the other keeper left an unread note. */
 /** slick invite affordance — accent "+" button with a soft breathing halo. */
 function InvitePlus({ onPress }: { onPress: () => void }) {
-  const a = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(a, { toValue: 1, duration: 1700, useNativeDriver: true }),
-        Animated.timing(a, { toValue: 0, duration: 1700, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [a]);
-  const scale = a.interpolate({ inputRange: [0, 1], outputRange: [1, 1.55] });
-  const opacity = a.interpolate({ inputRange: [0, 1], outputRange: [0.45, 0] });
+  // small + slick — a quiet accent chip, no loud pulsing halo
   return (
-    <Pressable onPress={onPress} hitSlop={6} style={styles.inviteWrap}>
-      <Animated.View style={[styles.inviteHalo, { transform: [{ scale }], opacity }]} />
-      <View style={styles.inviteBtn}>
-        <Svg width={17} height={17} viewBox="0 0 24 24">
-          <Path d="M12 5v14M5 12h14" stroke={BG} strokeWidth={2.8} strokeLinecap="round" />
-        </Svg>
-      </View>
+    <Pressable onPress={onPress} hitSlop={12} style={styles.inviteBtn}>
+      <Svg width={13} height={13} viewBox="0 0 24 24">
+        <Path d="M12 5v14M5 12h14" stroke={ACCENT} strokeWidth={2.6} strokeLinecap="round" />
+      </Svg>
     </Pressable>
   );
 }
@@ -282,9 +305,9 @@ export default function Home() {
   const [joinBusy, setJoinBusy] = useState(false);
   const [joinErr, setJoinErr] = useState<string | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
-  const [notesOpen, setNotesOpen] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [latestNote, setLatestNote] = useState<Note | null>(null);
+  const [streakOpen, setStreakOpen] = useState(false);
   const [reaction, setReaction] = useState<{ key: string; at: number } | null>(null);
   const [dialog, setDialog] = useState<{ text: string; at: number } | null>(null);
   const showDialog = (text: string) => setDialog({ text, at: Date.now() });
@@ -328,13 +351,6 @@ export default function Home() {
     ]).start();
   };
   const selfId = self?.id ?? 'self';
-  const lastDaily = s.usedThisCycle[selfId]?.['__daily__'] ?? null;
-  const dailyDone = lastDaily != null && now - lastDaily < 24 * HOUR;
-  // streak-at-risk: streak alive, ritual not done yet → hours until the 24h window closes
-  const streakHoursLeft =
-    s.streak > 0 && !dailyDone && lastDaily != null
-      ? Math.max(0, Math.ceil((lastDaily + 24 * HOUR - now) / HOUR))
-      : null;
 
   const stage = STAGE_META[stageForStreak(s.streak, paired)];
   const next = nextMilestone(s.streak);
@@ -351,18 +367,32 @@ export default function Home() {
   const drifted = paired ? driftedKeepers(s, now) : [];
   const missActive = drifted.length > 0;
   const missWho = missActive && drifted.some((k) => k.isSelf) ? 'you' : partnerLabel;
-  const unreadNote =
-    !!latestNote && latestNote.author_id !== selfId &&
-    new Date(latestNote.created_at).getTime() > (s.notesReadAt ?? 0);
-
+  const partnerDrifted = drifted.some((k) => !k.isSelf); // the OTHER keeper is away
+  // ── streak heart ──────────────────────────────────────────────────────────
+  // Each keeper must act SINCE the last tick to fill their HALF of the heart; the
+  // streak only ticks up when the heart is FULL (both halves) — the server
+  // enforces the same. The heart stays FULL while the streak is safe, empties to
+  // transparent ~5h before it would break, then gains a half per parent action.
+  const cycleStart = s.lastStreakDayAt ?? 0;
+  const selfContrib = self?.lastSeenAt != null && self.lastSeenAt > cycleStart;
+  const partnerContrib = partner?.lastSeenAt != null && partner.lastSeenAt > cycleStart;
+  const fallbackSeen = s.createdAt ?? now;
+  const staleSeen = paired
+    ? Math.min(self?.lastSeenAt ?? fallbackSeen, partner?.lastSeenAt ?? fallbackSeen)
+    : (self?.lastSeenAt ?? fallbackSeen);
+  const hoursToBreak = (staleSeen + 30 * HOUR - now) / HOUR;
+  const inDanger = s.streak > 0 && hoursToBreak <= 5; // ~5h from breaking → heart opens up
+  const secured = s.streak > 0 && !inDanger; // safe → heart shows full
+  const heartLeft = secured || selfContrib;
+  const heartRight = secured || (paired ? partnerContrib : selfContrib);
   const tagline = isDormant ? `${s.bixiName} is fading. Feed and water him.` : '';
 
   // live status alerts pinned to the top of the notifications panel
   const notifAlerts: NotifAlert[] = [];
   if (isDormant) notifAlerts.push({ icon: '🥀', text: `${s.bixiName} is fading — feed & water him`, tint: '#ff8a7a' });
   else if (missActive) notifAlerts.push({ icon: '💔', text: `${s.bixiName} misses ${missWho}` });
-  if (!dailyDone) notifAlerts.push({ icon: '✨', text: `Today's ritual is waiting` });
-  const hasNotif = !dailyDone || unreadNote || missActive || isDormant;
+  if (inDanger) notifAlerts.push({ icon: '❤️', text: paired ? `Act now — you both need to keep the streak` : `Do any action to keep your streak alive` });
+  const hasNotif = inDanger || missActive || isDormant;
 
   const greeting = (() => {
     const h = new Date(now).getHours();
@@ -402,7 +432,7 @@ export default function Home() {
     let asked = false;
     const ch = presenceForPair(s.pairId, uid, (n) => {
       setPartnerHere(n >= 2);
-      if (n >= 2 && !asked) { asked = true; void actBothHere(); }
+      if (n >= 2 && !asked) { asked = true; void actBothHere().catch(() => {}); }
     });
     return () => { void ch.unsubscribe(); };
   }, [s.pairId, s.keepers.length]);
@@ -416,17 +446,6 @@ export default function Home() {
     return () => { reactSend.current = null; void channel.unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.pairId]);
-
-  // watch the shared notes so the homepage knows about an unread one
-  useEffect(() => {
-    if (!IS_ONLINE || !paired || !s.pairId) { setLatestNote(null); return; }
-    const pid = s.pairId;
-    let alive = true;
-    const load = () => { fetchNotes(pid).then((ns) => { if (alive) setLatestNote(ns[0] ?? null); }).catch(() => {}); };
-    load();
-    const ch = subscribeToNotes(pid, () => load());
-    return () => { alive = false; void ch.unsubscribe(); };
-  }, [s.pairId, paired]);
 
   // in-app "your person joined" the moment the pair blooms
   const prevPaired = useRef(paired);
@@ -456,27 +475,22 @@ export default function Home() {
 
   const care = (kind: PanelKey) => {
     tapHaptic();
+    track('care_action', { kind });
     useBixi.getState().noteAction(kind);
     setReaction({ key: kind, at: Date.now() }); // BixiHero plays the (mood-appropriate) clip — LOCAL only
-    const moodKey = bixiSad ? 'sad' : 'happy';
-    const lines = LINES[moodKey][kind];
-    if (lines) showDialog(nextLine(`${moodKey}:${kind}`, lines));
-    void Promise.resolve(actCare(kind)).then(() => setNow(Date.now()));
-  };
-  const doDaily = () => {
-    tapHaptic();
-    if (bixiSad) {
-      // sad / wilting / drifting / dormant → skip the dance, show a "feel better" bubble
-      showDialog(nextLine('recover:ritual', RITUAL_RECOVER_LINES));
+    if (partnerDrifted) {
+      // a keeper is away → every action, he mentions missing them
+      showDialog(nextLine('miss', MISS_LINES).replace(/\{who\}/g, partnerLabel));
     } else {
-      setReaction({ key: 'ritual', at: Date.now() }); // green → the dance clip — LOCAL only
-      showDialog(nextLine('happy:ritual', LINES.happy.ritual));
+      const moodKey = bixiSad ? 'sad' : 'happy';
+      const lines = LINES[moodKey][kind];
+      if (lines) showDialog(nextLine(`${moodKey}:${kind}`, lines));
     }
-    void Promise.resolve(actDaily()).then(() => setNow(Date.now()));
+    void Promise.resolve(actCare(kind)).then(() => setNow(Date.now())).catch(() => {});
   };
   const doRevive = () => {
     tapHaptic();
-    void Promise.resolve(actRevive()).then(() => setNow(Date.now()));
+    void Promise.resolve(actRevive()).then(() => setNow(Date.now())).catch(() => {});
   };
 
   // your person just showed up → both-parents celebration on BOTH phones
@@ -495,15 +509,10 @@ export default function Home() {
     prevMood.current = s.mood;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.mood]);
-  // tapping Bixi himself: do today's ritual (dormancy now recovers by feeding)
-  const onTapBixi = () => {
-    if (!dailyDone) return doDaily();
-  };
-
   const openNotes = () => {
     tapHaptic();
     useBixi.getState().markNotesRead();
-    setNotesOpen(true);
+    setNoteOpen(true);
   };
 
   const openNotifs = () => {
@@ -511,6 +520,8 @@ export default function Home() {
     useBixi.getState().markNotesRead();
     setNotifOpen(true);
   };
+
+  const openStreak = () => { tapHaptic(); setStreakOpen(true); };
 
   const resetJoin = () => {
     setJoinView('share');
@@ -528,6 +539,7 @@ export default function Home() {
       const code = await actInvite();
       setInviteCode(code);
       setInviteOpen(true);
+      track('invite_created');
     } catch {
       Alert.alert('Couldn’t create an invite', 'Check your connection and try again.');
     }
@@ -567,6 +579,7 @@ export default function Home() {
     setJoinBusy(true);
     try {
       await actClaim(joinCode.trim()); // join_other releases your solo Bixi, then joins theirs
+      track('invite_joined', { source: 'switch' });
       closeInvite();
     } catch (e) {
       setJoinErr(joinErrText(e));
@@ -580,8 +593,6 @@ export default function Home() {
     <View style={styles.root}>
       <StatusBar style="light" />
       <BixiHero stage={s.growthStage} mood={moodState} reaction={reaction} />
-      {/* tap Bixi to do today's ritual (or revive when dormant) — kept clear of the side rails */}
-      <Pressable style={styles.bixiTapZone} onPress={onTapBixi} />
 
       <SafeAreaView edges={['top']} style={styles.header} pointerEvents="box-none">
         <View style={styles.headerLeft}>
@@ -618,20 +629,14 @@ export default function Home() {
         <View style={styles.headerRight}>
           <View style={styles.iconRow}>
             {!paired && <InvitePlus onPress={openInvite} />}
-            <View style={styles.circleBtn}>
-              <Flame size={15} />
-              <Text style={styles.streakNum}>{s.streak}</Text>
-            </View>
+            <StreakBadge
+              streak={s.streak} atRisk={inDanger}
+              leftFill={heartLeft} rightFill={heartRight} onPress={openStreak}
+            />
             <Pressable style={styles.circleBtn} onPress={openNotifs}>
               <Bell />
               {hasNotif && <View style={styles.dot} />}
             </Pressable>
-            {paired && (
-              <Pressable style={styles.circleBtn} onPress={openNotes}>
-                <NoteIcon color={unreadNote ? ACCENT : CREAM} />
-                {unreadNote && <View style={styles.notesBadge} />}
-              </Pressable>
-            )}
           </View>
           {partnerHere && (
             <View style={styles.presenceRow}>
@@ -649,6 +654,16 @@ export default function Home() {
           )}
         </View>
       </SafeAreaView>
+
+      {/* the sticky note, pinned on the right */}
+      {paired && (
+        <View style={[styles.notePin, { top: insets.top + 100 }]} pointerEvents="box-none">
+          <GlowNote
+            pairId={s.pairId} selfId={selfId} partnerName={partnerLabel}
+            open={noteOpen} onOpen={() => setNoteOpen(true)} onClose={() => setNoteOpen(false)}
+          />
+        </View>
+      )}
 
       {/* action rails — split across both sides; tapping any opens ONE centered panel */}
       <View style={[styles.rail, styles.railLeft]} pointerEvents="box-none">
@@ -676,10 +691,8 @@ export default function Home() {
       <View style={[styles.bottom, { bottom: insets.bottom + 90 }]} pointerEvents="box-none">
         {tagline ? <Text style={styles.moodTagline}>{tagline}</Text> : null}
 
-        {/* a single primary action, chosen by state (never more than one) */}
-        {!dailyDone ? (
-          <RitualButton onPress={doDaily} streakHoursLeft={streakHoursLeft} />
-        ) : !paired ? (
+        {/* solo → invite CTA; paired → nothing here (streak lives in the badge) */}
+        {!paired ? (
           <Pressable style={({ pressed }) => [styles.ctaPill, styles.ctaInvite, pressed && { opacity: 0.85 }]} onPress={openInvite}>
             <Text style={styles.invitePillText}>＋  Invite your person</Text>
           </Pressable>
@@ -807,19 +820,47 @@ export default function Home() {
 
       <BixiGuide visible={guideOpen} onClose={() => setGuideOpen(false)} bixiName={s.bixiName} paired={paired} />
 
-      {unreadNote && !notesOpen && (
-        <View style={[styles.noteHintWrap, { top: insets.top + 52 }]} pointerEvents="box-none">
-          <NoteHint who={partnerLabel} onPress={openNotes} />
-        </View>
-      )}
+      <Modal visible={streakOpen} transparent animationType="slide" onRequestClose={() => setStreakOpen(false)}>
+        <Pressable style={styles.modalScrim} onPress={() => setStreakOpen(false)}>
+          <Pressable style={styles.streakSheet} onPress={() => {}}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.streakSheetTitle}>How the streak works</Text>
 
-      <StickyNotes
-        visible={notesOpen}
-        onClose={() => { setNotesOpen(false); useBixi.getState().markNotesRead(); }}
-        pairId={s.pairId}
-        selfId={selfId}
-        partnerName={partnerLabel}
-      />
+            {paired && (
+              <View style={styles.streakStatus}>
+                <Heart size={26} left={heartLeft} right={heartRight} idKey="panel" />
+                <Text style={styles.streakStatusTxt}>
+                  {secured
+                    ? 'streak secured — you’re both safe ❤️'
+                    : selfContrib && partnerContrib
+                    ? 'you’re both in — the streak just grew ❤️'
+                    : selfContrib
+                    ? `waiting on ${partnerLabel} to fill their half`
+                    : partnerContrib
+                    ? `${partnerLabel} is in — your half’s next`
+                    : 'act now — you both need to, before it breaks'}
+                </Text>
+              </View>
+            )}
+
+            <StreakRule icon="❤️" title="Fill the heart together" body="Each of you fills half the heart with any action — feed, water, pet, read. The streak grows the moment it's full." />
+            {paired ? (
+              <StreakRule
+                icon="🤝"
+                title="Both of you count"
+                body={`It only ticks up once you and ${partnerLabel} have EACH done something. One of you can’t carry it — it stays at 0 until you both check in.`}
+              />
+            ) : null}
+            <StreakRule icon="⏳" title="Don’t disappear" body="Go 30 hours with no action and the streak resets to 0." />
+
+            <View style={styles.streakStatsRow}>
+              <View style={styles.streakStat}><Text style={styles.streakStatNum}>{s.streak}</Text><Text style={styles.streakStatLbl}>current</Text></View>
+              <View style={styles.streakStat}><Text style={styles.streakStatNum}>{s.bestStreak}</Text><Text style={styles.streakStatLbl}>best ever</Text></View>
+              <View style={styles.streakStat}><Text style={styles.streakStatNum}>{s.totalCareDays}</Text><Text style={styles.streakStatLbl}>care days</Text></View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <NotifPanel
         visible={notifOpen}
@@ -983,32 +1024,45 @@ function DialogBubble({ dialog, onDone }: { dialog: { text: string; at: number }
   );
 }
 
-/** the daily ritual — an enlarged, centered action-button-style primary CTA. */
-function RitualButton({ onPress, streakHoursLeft }: { onPress: () => void; streakHoursLeft: number | null }) {
-  const RING = 80;
-  const STROKE = 4;
-  const R = (RING - STROKE) / 2;
-  const CIRC = 2 * Math.PI * R;
-  const c = RING / 2;
+/** one rule row inside the "how streaks work" panel. */
+function StreakRule({ icon, title, body }: { icon: string; title: string; body: string }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.ritual, pressed && { transform: [{ scale: 0.96 }] }]}>
-      <View style={styles.ritualWrap}>
-        <Svg width={RING} height={RING} style={StyleSheet.absoluteFill}>
-          <Circle cx={c} cy={c} r={R} stroke="rgba(245,239,227,0.14)" strokeWidth={STROKE} fill="none" />
-          <Circle cx={c} cy={c} r={R} stroke={ACCENT} strokeWidth={STROKE} fill="none"
-            strokeDasharray={CIRC} strokeDashoffset={0} strokeLinecap="round" transform={`rotate(-90 ${c} ${c})`} />
-        </Svg>
-        <View style={styles.ritualBtn}>
-          <Text style={styles.ritualEmoji}>✨</Text>
-        </View>
+    <View style={styles.streakRule}>
+      <Text style={styles.streakRuleIcon}>{icon}</Text>
+      <View style={styles.flex1}>
+        <Text style={styles.streakRuleTitle}>{title}</Text>
+        <Text style={styles.streakRuleBody}>{body}</Text>
       </View>
-      <Text style={styles.ritualLabel}>Today's ritual</Text>
-      {streakHoursLeft != null && <Text style={styles.ritualSub}>streak resets in {streakHoursLeft}h</Text>}
-    </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  twinFlame: { flexDirection: 'row', alignItems: 'center' },
+  streakSheet: {
+    backgroundColor: '#221a12', borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    paddingHorizontal: 26, paddingTop: 14, paddingBottom: 40,
+    borderWidth: 1, borderColor: 'rgba(245,239,227,0.13)',
+  },
+  streakSheetTitle: { fontFamily: fonts.serifSemibold, fontSize: 23, color: CREAM, textAlign: 'center' },
+  streakStatus: {
+    flexDirection: 'row', alignItems: 'center', gap: 12, alignSelf: 'center',
+    marginTop: 16, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 16,
+    backgroundColor: 'rgba(240,137,95,0.1)', borderWidth: 1, borderColor: 'rgba(240,137,95,0.3)',
+  },
+  streakStatusFlames: { flexDirection: 'row', gap: 2 },
+  streakStatusTxt: { fontFamily: fonts.sansSemibold, fontSize: 13.5, color: CREAM, flexShrink: 1 },
+  streakRule: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 18 },
+  streakRuleIcon: { fontSize: 20, width: 26, textAlign: 'center' },
+  streakRuleTitle: { fontFamily: fonts.sansBold, fontSize: 15, color: CREAM },
+  streakRuleBody: { fontFamily: fonts.sans, fontSize: 13.5, color: DIM, lineHeight: 19, marginTop: 2 },
+  streakStatsRow: {
+    flexDirection: 'row', marginTop: 24, paddingTop: 16,
+    borderTopWidth: 1, borderTopColor: 'rgba(245,239,227,0.12)',
+  },
+  streakStat: { flex: 1, alignItems: 'center' },
+  streakStatNum: { fontFamily: fonts.serifSemibold, fontSize: 22, color: CREAM },
+  streakStatLbl: { fontFamily: fonts.sans, fontSize: 11, color: DIM, marginTop: 2 },
   root: { flex: 1, backgroundColor: BG },
 
   bixiTapZone: { position: 'absolute', top: '20%', bottom: '34%', left: 96, right: 96 },
@@ -1041,6 +1095,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(12,8,4,0.4)', borderWidth: 1, borderColor: 'rgba(245,239,227,0.18)',
   },
   headerRight: { alignItems: 'flex-end', marginTop: 6 },
+  notePin: { position: 'absolute', right: 12 },
   iconRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   circleBtn: {
     minWidth: 42, height: 42, paddingHorizontal: 6, borderRadius: 21, flexDirection: 'row', gap: 3,
@@ -1048,15 +1103,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(12,8,4,0.42)', borderWidth: 1, borderColor: 'rgba(245,239,227,0.18)',
   },
   streakNum: { fontFamily: fonts.sansBold, fontSize: 13, color: '#f0895f' },
-  inviteWrap: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
-  inviteHalo: {
-    position: 'absolute', width: 42, height: 42, borderRadius: 21, backgroundColor: ACCENT,
+  streakGlow: {
+    position: 'absolute', top: -4, left: -4, right: -4, bottom: -4, borderRadius: 25,
+    borderWidth: 1.5, borderColor: ACCENT,
+    shadowColor: ACCENT, shadowOpacity: 0.9, shadowRadius: 7, shadowOffset: { width: 0, height: 0 },
   },
   inviteBtn: {
-    width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: ACCENT, borderWidth: 1, borderColor: '#ffb488',
-    shadowColor: ACCENT, shadowOpacity: 0.6, shadowRadius: 9, shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
+    width: 27, height: 27, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(240,137,95,0.14)', borderWidth: 1, borderColor: 'rgba(240,137,95,0.55)',
   },
   inviteTagChip: {
     flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 7,

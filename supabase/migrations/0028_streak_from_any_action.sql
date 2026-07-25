@@ -1,0 +1,16 @@
+-- ============================================================================
+-- 0028: streak now advances from ANY care action (feed/water/pet/read/…), not a
+-- separate daily ritual. APPLIED LIVE (mvyktmxkhwigrrftsbpn) as
+-- `streak_from_any_action`.
+--
+--   • apply_care:      the `if p_is_daily` branch (bond_daily boost + streak) is
+--                      removed. The streak-advance now runs for EVERY inserted
+--                      action, keyed on last_seen_at (updated by every action),
+--                      still gated to once per cycle (last_streak_day_at > 20h)
+--                      and requiring all keepers current within 30h.
+--   • recompute_pair:  streak-death now keys on last_seen_at > 30h (was the
+--                      ritual's last_daily_at).
+--
+-- The daily ritual (and its dialogs) is removed on the client; last_daily_at is
+-- now legacy/unused. Full bodies are in the live migration of the same name.
+-- ============================================================================

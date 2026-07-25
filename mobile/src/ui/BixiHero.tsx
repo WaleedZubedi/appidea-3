@@ -117,13 +117,17 @@ export function BixiHero({
     activeBase.currentTime = 0;
   }, [activeBase, happyBase, sadBase, dormantBase]);
 
-  // swap the reaction set to match the mood band (preloads the mood's clips)
+  // swap the reaction set to match the mood band (preloads the mood's clips).
+  // replaceAsync (NOT replace): a synchronous replace of all 9 reaction players
+  // on the main thread was THE freeze — it fired whenever the daily ritual (or
+  // any care) bumped the mood across the happy/sad line, locking both phones for
+  // seconds. Async loads them off-thread; the idle keeps playing meanwhile.
   const loadedHappy = useRef(true);
   useEffect(() => {
     if (loadedHappy.current === happy) return;
-    const set = happy ? HAPPY : SAD;
-    Object.keys(set).forEach((k) => { try { rp[k].replace(set[k].src); } catch {} });
     loadedHappy.current = happy;
+    const set = happy ? HAPPY : SAD;
+    Object.keys(set).forEach((k) => { void rp[k].replaceAsync(set[k].src).catch(() => {}); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [happy]);
 
