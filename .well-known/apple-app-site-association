@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "74DB45GHW2.world.bixi.app",
+        "paths": ["/join/*"]
+      }
+    ]
+  }
+}
