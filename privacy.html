@@ -1,36 +1,66 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Bixi — Privacy Policy</title>
-<style>
-  :root { --ink:#2a2016; --muted:#6b6153; --accent:#c8502e; --line:#e7e0d2; --bg:#faf6ef; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    line-height:1.65; }
-  .wrap { max-width:720px; margin:0 auto; padding:48px 22px 80px; }
-  h1 { font-size:30px; margin:0 0 4px; letter-spacing:-0.3px; }
-  h2 { font-size:19px; margin:34px 0 8px; }
-  .eyebrow { color:var(--accent); font-weight:700; letter-spacing:1.5px; text-transform:uppercase; font-size:12px; }
-  .updated { color:var(--muted); font-size:14px; margin-top:6px; }
-  p, li { font-size:16px; color:#3d3428; }
-  a { color:var(--accent); }
-  ul { padding-left:20px; }
-  li { margin:4px 0; }
-  .box { background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 18px; margin:16px 0; }
-  footer { margin-top:44px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
-  strong { color:var(--ink); }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Bixi — Privacy Policy</title>
+  <meta name="description" content="How Bixi collects, uses, and protects your data." />
+  <meta name="theme-color" content="#faf7f1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        media="print" onload="this.onload=null;this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500&family=Hanken+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" /></noscript>
+  <style>
+    :root{
+      --paper:#faf7f1;--tint:#f1ebdf;--card:#ffffff;--ink:#1e1913;--body:#4a4335;--mut:#696055;
+      --rule:#e3dbcb;--clay:#c8502e;--clay-press:#a93f22;--pine:#1f7a54;
+      --serif:"Fraunces",Georgia,"Times New Roman",serif;
+      --sans:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;padding:0}
+    body{font-family:var(--sans);color:var(--body);background:var(--paper);
+      -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;line-height:1.62;overflow-x:hidden}
+    .grain{position:fixed;inset:0;z-index:0;pointer-events:none;mix-blend-mode:multiply;opacity:.05;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E")}
+    .wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;
+      padding:calc(env(safe-area-inset-top) + 34px) 24px calc(env(safe-area-inset-bottom) + 64px)}
+    .mast{display:flex;align-items:center;gap:11px;padding-bottom:9px}
+    .word{font-family:var(--serif);font-weight:500;font-size:22px;letter-spacing:-.01em;color:var(--ink);display:flex;align-items:baseline;gap:7px}
+    .word .leaf{color:var(--pine);font-size:16px}
+    .word a{color:inherit;text-decoration:none}
+    .rule{height:1px;background:var(--rule);margin:0 0 4px}
+    .eyebrow{font-family:var(--mono);font-weight:500;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--clay-press);margin:26px 0 0}
+    h1{font-family:var(--serif);font-weight:400;color:var(--ink);font-size:clamp(30px,7vw,40px);line-height:1.05;letter-spacing:-.015em;margin:6px 0 2px}
+    .updated{color:var(--mut);font-family:var(--mono);font-size:11.5px;letter-spacing:.04em}
+    h2{font-family:var(--serif);font-weight:500;font-size:21px;color:var(--ink);letter-spacing:-.01em;margin:34px 0 8px}
+    p,li{font-size:16px;color:var(--body)}
+    a{color:var(--clay-press)}
+    ul{padding-left:20px;margin:8px 0}
+    li{margin:5px 0}
+    strong{color:var(--ink);font-weight:700}
+    .lead{font-size:17px;color:var(--body);margin-top:16px}
+    .box{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:15px 18px;margin:22px 0 0;box-shadow:3px 3px 0 rgba(30,25,19,.06)}
+    footer{margin:40px 0 0;padding-top:18px;border-top:1px solid var(--rule);
+      font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);line-height:2}
+    footer a{color:var(--mut)}
+  </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="eyebrow">Bixi</div>
+    <div class="mast">
+      <div class="word"><span class="leaf" aria-hidden="true">❦</span> <a href="/">Bixi</a></div>
+    </div>
+    <div class="rule"></div>
+
+    <p class="eyebrow">Legal</p>
     <h1>Privacy Policy</h1>
     <div class="updated">Last updated: July 25, 2026</div>
 
-    <p>Bixi ("Bixi", "we", "us") is a mobile app where two people raise a shared virtual pet together. This policy explains what we collect, why, and the choices you have. By using Bixi you agree to this policy.</p>
+    <p class="lead">Bixi ("Bixi", "we", "us") is a mobile app where two people raise a shared virtual pet together. This policy explains what we collect, why, and the choices you have. By using Bixi you agree to this policy.</p>
 
     <h2>Information we collect</h2>
     <ul>
@@ -78,7 +108,11 @@
       Questions or requests? Email <a href="mailto:saudzubedi26@gmail.com">saudzubedi26@gmail.com</a>.
     </div>
 
-    <footer>© 2026 Bixi. All rights reserved. · <a href="/terms.html">Terms of Service</a></footer>
+    <footer>
+      © 2026 Bixi · A specimen you keep alive together<br />
+      <a href="/terms.html">Terms of Service</a> · <a href="/">Home</a>
+    </footer>
   </div>
+  <div class="grain" aria-hidden="true"></div>
 </body>
 </html>

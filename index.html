@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Sprout — a specimen you keep alive together</title>
+  <title>Bixi — a pet you keep alive together</title>
   <meta name="description" content="Specimen N°01: Bixi. One pet, two of you. He blooms when you both show up, droops when one drifts, and won't make it without you both. Launching soon." />
   <meta name="theme-color" content="#faf7f1" />
-  <meta property="og:title" content="Sprout — keep Bixi alive together" />
+  <meta property="og:title" content="Bixi — one pet, two of you" />
   <meta property="og:description" content="One pet, two phones. Bixi is a little living specimen two people keep alive. Launching soon." />
   <meta property="og:type" content="website" />
 
@@ -244,7 +244,7 @@
 
     <!-- masthead -->
     <div class="mast">
-      <div class="word"><span class="leaf" aria-hidden="true">❦</span> Sprout</div>
+      <div class="word"><span class="leaf" aria-hidden="true">❦</span> Bixi</div>
       <div class="status"><span class="sq" aria-hidden="true"></span> Launching soon</div>
     </div>
     <div class="rule"></div>
@@ -279,7 +279,7 @@
         </div>
       </div>
       <div class="figcap">
-        <span>Fig.01 — Bixi <span style="text-transform:none">(Cubus sproutii)</span></span>
+        <span>Fig.01 — Bixi <span style="text-transform:none">(Cubus bixii)</span></span>
         <span>Day 001 · <span class="state s2" id="figState" role="status">Thriving</span></span>
       </div>
     </section>
@@ -343,8 +343,9 @@
     </section>
 
     <footer>
-      Sprout · A specimen you keep alive together<br>
-      Est. MMXXVI · Made for two
+      Bixi · A specimen you keep alive together<br>
+      Est. MMXXVI · Made for two<br>
+      <a href="/privacy.html" style="color:var(--mut)">Privacy Policy</a> · <a href="/terms.html" style="color:var(--mut)">Terms of Service</a>
     </footer>
   </div>
   <div class="grain" aria-hidden="true"></div>
@@ -452,7 +453,7 @@
             method:'POST', headers:{ 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json', 'Prefer':'return=minimal' },
             body: JSON.stringify({ you_email:you, partner_email:them || null })
           }).then(function(r){ if (r.ok || r.status === 409) return showDone(withPartner); throw new Error('HTTP ' + r.status); })
-            .catch(function(err){ console.warn('Sprout signup failed, saved to this device only:', err); submit.disabled = false; setHint("Couldn't reach our log — your spot is saved on this device. Try again in a moment to be sure.", 'err'); });
+            .catch(function(err){ console.warn('Bixi signup failed, saved to this device only:', err); submit.disabled = false; setHint("Couldn't reach our log — your spot is saved on this device. Try again in a moment to be sure.", 'err'); });
         } else { showDone(withPartner); }
       });
       function clearErr(){ email.removeAttribute('aria-invalid'); partner.removeAttribute('aria-invalid'); if (hint.classList.contains('err')) setHint(HINT_DEFAULT); }
