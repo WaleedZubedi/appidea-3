@@ -6,6 +6,7 @@ import { useState } from 'react';
 import {
   Dimensions,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -21,6 +22,7 @@ import { actHydrate } from '@/game/actions';
 import { useBixi } from '@/game/store';
 import { useAuth } from '@/lib/session';
 import { identifyUser, track } from '@/lib/analytics';
+import { PRIVACY_URL, TERMS_URL } from '@/lib/config';
 import { Sprout } from '@/ui/SpecimenSeal';
 import { Txt } from '@/ui/primitives';
 
@@ -263,6 +265,13 @@ export default function Auth() {
                     <Txt style={styles.switchLink}>{isUp ? 'Sign in' : 'Create one'}</Txt>
                   </Pressable>
                 </View>
+
+                <Txt style={styles.legalLine}>
+                  By continuing you agree to our{' '}
+                  <Txt style={styles.legalLink} onPress={() => Linking.openURL(TERMS_URL)}>Terms</Txt>
+                  {' '}and{' '}
+                  <Txt style={styles.legalLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Privacy Policy</Txt>.
+                </Txt>
               </>
             ) : (
               <>
@@ -393,6 +402,8 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12 },
   switchText: { fontFamily: fonts.sans, fontSize: 15, color: colors.body },
   switchLink: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.clay },
+  legalLine: { fontFamily: fonts.sans, fontSize: 12, color: colors.muted, textAlign: 'center', marginTop: 14, lineHeight: 18 },
+  legalLink: { fontFamily: fonts.sansSemibold, color: colors.clay },
 
   codeTitle: { fontFamily: fonts.serifSemibold, fontSize: 22, color: colors.ink, textAlign: 'center' },
   codeHint: { fontFamily: fonts.sans, fontSize: 14.5, color: colors.body, textAlign: 'center', lineHeight: 21, marginTop: 6, marginBottom: 14 },

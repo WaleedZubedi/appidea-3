@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable,
+  ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Modal, Platform, Pressable,
   ScrollView, Share, StyleSheet, Switch, Text, TextInput, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,7 +17,7 @@ import {
   actSetPartnerMute,
   actUndoLeave,
 } from '@/game/actions';
-import { IS_ONLINE } from '@/lib/config';
+import { IS_ONLINE, PRIVACY_URL, TERMS_URL } from '@/lib/config';
 import { setPushToken } from '@/lib/api';
 import { registerForPush } from '@/lib/push';
 import { useAuth } from '@/lib/session';
@@ -269,6 +269,12 @@ export default function You() {
           <Row label="Export my data" value="coming soon" />
           <View style={styles.sep} />
           <Row label={busy ? 'Deleting…' : 'Delete account & data'} danger onPress={busy ? undefined : deleteAccount} />
+        </Section>
+
+        <Section title="Legal">
+          <Row label="Terms of Service" chevron onPress={() => { void Linking.openURL(TERMS_URL); }} />
+          <View style={styles.sep} />
+          <Row label="Privacy Policy" chevron onPress={() => { void Linking.openURL(PRIVACY_URL); }} />
         </Section>
 
         {!IS_ONLINE && (

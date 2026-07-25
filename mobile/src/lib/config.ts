@@ -24,3 +24,11 @@ export const POSTHOG_KEY =
   process.env.EXPO_PUBLIC_POSTHOG_KEY ?? 'phc_Aj4wEtUo5mPuoFPQQoHkYS5Ej5dZ7ST8rvymfqSjHghj';
 export const POSTHOG_HOST = process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com';
 export const ANALYTICS_ON = POSTHOG_KEY.startsWith('phc_');
+
+/**
+ * Legal pages, hosted alongside the marketing site. Update LEGAL_BASE if the
+ * domain changes — Apple review requires these URLs to be live and reachable.
+ */
+export const LEGAL_BASE = 'https://bixi.pet';
+export const TERMS_URL = `${LEGAL_BASE}/terms.html`;
+export const PRIVACY_URL = `${LEGAL_BASE}/privacy.html`;

@@ -9,6 +9,7 @@
     "userInterfaceStyle": "light",
     "backgroundColor": "#f6f2ea",
     "ios": {
+      "bundleIdentifier": "pet.bixi.app",
       "supportsTablet": true,
       "icon": "./assets/expo.icon",
       "associatedDomains": [
@@ -16,6 +17,7 @@
       ]
     },
     "android": {
+      "package": "pet.bixi.app",
       "adaptiveIcon": {
         "backgroundColor": "#f6f2ea",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
