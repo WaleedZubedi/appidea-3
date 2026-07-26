@@ -248,7 +248,7 @@ export default function You() {
 
         <Section title="Notifications">
           <Row
-            label="Remind me if Bixi’s lonely"
+            label="Remind me when Bixi needs me"
             right={<Switch value={notif} onValueChange={toggleNotif} trackColor={{ true: PINE, false: 'rgba(245,239,227,0.15)' }} />}
           />
         </Section>

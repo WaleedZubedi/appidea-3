@@ -500,11 +500,11 @@ export default function Home() {
 
   const askNotifications = () => {
     Alert.alert(
-      `Never lose ${s.bixiName}`,
-      `Want a gentle heads-up when your streak’s about to break or ${s.bixiName} starts to miss you? No spam — only the moments that matter.`,
+      `Get reminded when ${s.bixiName} needs you`,
+      `We’ll only nudge you when ${s.bixiName} needs care or starts to miss you — so you never let him down. Nothing else, ever.`,
       [
         { text: 'Not now', style: 'cancel' },
-        { text: 'Yes, remind me', onPress: () => { void enableNotifications(s.bixiName); } },
+        { text: 'Remind me 🌱', onPress: () => { void enableNotifications(s.bixiName); } },
       ]
     );
   };

@@ -63,7 +63,7 @@ export async function enableNotifications(bixiName: string): Promise<boolean> {
     await Notifications.scheduleNotificationAsync({
       content: {
         title: bixiName || 'Bixi',
-        body: `You’re all set — ${bixiName || 'Bixi'} will let you know if he starts to miss you 🌱`,
+        body: `You’re all set — ${bixiName || 'Bixi'} will nudge you when he needs you or misses you 🌱`,
         sound: 'default',
       },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 3 },

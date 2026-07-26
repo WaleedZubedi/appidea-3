@@ -1,6 +1,6 @@
 import { ImageBackground } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
@@ -18,7 +18,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
 import { colors, fonts } from '@/theme';
-import { actHydrate } from '@/game/actions';
+import { actClaim, actHydrate } from '@/game/actions';
 import { useBixi } from '@/game/store';
 import { useAuth } from '@/lib/session';
 import { identifyUser, track } from '@/lib/analytics';
@@ -85,6 +85,11 @@ export default function Auth() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signInWithPassword, signUpWithPassword } = useAuth();
+  // arriving from an invite deep link → claim it right after the account is made
+  const params = useLocalSearchParams<{ invite?: string; inviter?: string; bixi?: string }>();
+  const invite = params.invite ? String(params.invite) : null;
+  const inviterName = (params.inviter && String(params.inviter)) || 'Your person';
+  const bixiName = (params.bixi && String(params.bixi)) || 'their Bixi';
   const [mode, setMode] = useState<'up' | 'in'>('up');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -108,6 +113,22 @@ export default function Auth() {
     const uid = useAuth.getState().userId;
     if (uid) identifyUser(uid, { email: email.trim().toLowerCase() });
     track(isUp ? 'signed_up' : 'signed_in');
+    // came in from an invite → join that Bixi and go straight home
+    if (invite) {
+      try {
+        await actClaim(invite);
+        router.replace('/(tabs)');
+        return;
+      } catch {
+        /* used/expired — fall through to normal routing */
+      }
+    }
+    if (isUp) {
+      // brand-new account, no invite → no pair yet → straight to naming
+      // (skip the extra hydrate round-trip so sign-up feels fast)
+      router.replace('/onboarding/name');
+      return;
+    }
     await actHydrate();
     const pid = useBixi.getState().pairId;
     router.replace(pid ? '/(tabs)' : '/onboarding/name');
@@ -177,6 +198,13 @@ export default function Auth() {
               <Star size={22} color={ACCENT} />
               <Star size={13} color={ACCENT} />
             </View>
+
+            {invite ? (
+              <View style={styles.inviteBanner}>
+                <Txt style={styles.inviteBannerTitle}>{inviterName} & {bixiName} are waiting for you 🌱</Txt>
+                <Txt style={styles.inviteBannerSub}>Create your account to join and raise {bixiName} together.</Txt>
+              </View>
+            ) : null}
 
             <View style={styles.field}>
               <View style={styles.chip}><MailIcon /></View>
@@ -294,6 +322,16 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   sparkles: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 6 },
+
+  inviteBanner: {
+    backgroundColor: colors.sage,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  inviteBannerTitle: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.ink, textAlign: 'center' },
+  inviteBannerSub: { fontFamily: fonts.sans, fontSize: 13, color: colors.body, textAlign: 'center', marginTop: 3, lineHeight: 18 },
 
   field: {
     flexDirection: 'row',

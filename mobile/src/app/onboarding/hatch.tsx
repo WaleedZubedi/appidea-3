@@ -1,8 +1,8 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { fonts } from '@/theme';
@@ -27,46 +27,51 @@ export default function Hatch() {
 
   const [taps, setTaps] = useState(0);
   const [hatched, setHatched] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const hatchPromise = useRef<Promise<unknown> | null>(null);
   const mode = (params.mode === 'paired' ? 'paired' : 'solo') as Mode;
   const name = params.name?.trim() || 'Bixi';
 
-  const onTap = async () => {
+  const onTap = () => {
     if (hatched) return;
     const n = taps + 1;
     setTaps(n);
     tapHaptic();
     if (n < TAPS_TO_HATCH) return; // still cracking
 
-    // reached the hatch
+    // reached the hatch — create the Bixi in the BACKGROUND while they admire it,
+    // so tapping the button feels instant (no "waking him" wait)
     successHaptic();
     setErr(null);
     setHatched(true);
-    setCreating(true);
     const kind = (params.kind ? params.kind : null) as RelationshipKind;
+    hatchPromise.current = actHatch(mode, params.name ?? '', kind).then(() =>
+      track('bixi_hatched', { mode })
+    );
+  };
+
+  const goHome = async () => {
+    if (busy) return;
+    tapHaptic();
+    setBusy(true);
+    setErr(null);
     try {
-      await actHatch(mode, params.name ?? '', kind);
-      track('bixi_hatched', { mode });
-      setCreating(false);
+      await hatchPromise.current; // almost always already resolved by now
+      if (mode === 'paired') router.replace('/onboarding/invite');
+      else router.replace('/(tabs)');
     } catch (e) {
       const msg = (e as { message?: string })?.message ?? '';
+      setBusy(false);
       setHatched(false);
       setTaps(0);
-      setCreating(false);
+      hatchPromise.current = null;
       setErr(
         msg.includes('already_has_bixi')
           ? 'This account already has a Bixi. Sign in on your other device, or reset from You → Delete account.'
           : 'Hatching failed — check your connection and tap the egg again.'
       );
     }
-  };
-
-  const goHome = () => {
-    if (creating) return;
-    tapHaptic();
-    if (mode === 'paired') router.replace('/onboarding/invite');
-    else router.replace('/(tabs)');
   };
 
   const frameIdx = Math.min(taps, TAPS_TO_HATCH);
@@ -110,13 +115,15 @@ export default function Hatch() {
             </>
           ) : (
             <Pressable
-              style={({ pressed }) => [styles.cta, (creating || pressed) && styles.ctaDim]}
+              style={({ pressed }) => [styles.cta, (busy || pressed) && styles.ctaDim]}
               onPress={goHome}
-              disabled={creating}
+              disabled={busy}
             >
-              <Text style={styles.ctaTxt}>
-                {creating ? 'Waking him…' : `${name} is waiting for you →`}
-              </Text>
+              {busy ? (
+                <ActivityIndicator color="#2a1a10" />
+              ) : (
+                <Text style={styles.ctaTxt}>{name} is waiting for you →</Text>
+              )}
             </Pressable>
           )}
 

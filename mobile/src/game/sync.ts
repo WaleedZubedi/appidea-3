@@ -145,11 +145,17 @@ export async function onlineHatch(
 ): Promise<string> {
   const pairId = await api.createBixi(name, kind && kind.length ? kind : null, paired);
   useBixi.setState({ reaction: { line: REACTION_HATCH, at: Date.now() } });
-  await hydrate();
+  // run the follow-ups in parallel (not sequentially) so hatching feels instant
+  const tasks: Promise<unknown>[] = [hydrate().catch(() => {})];
   if (paired) {
-    const inv = await api.createInvite(pairId);
-    useBixi.setState({ inviteCode: inv.code, inviteToken: inv.token });
+    tasks.push(
+      api
+        .createInvite(pairId)
+        .then((inv) => useBixi.setState({ inviteCode: inv.code, inviteToken: inv.token }))
+        .catch(() => {})
+    );
   }
+  await Promise.all(tasks);
   return pairId;
 }
 
@@ -233,9 +239,10 @@ export async function onlineSetMute(muted: boolean): Promise<void> {
 }
 
 export async function onlineClaim(token: string): Promise<void> {
-  await api.claimInvite(token);
+  await api.claimInvite(token); // throws on a real failure (used/expired/etc.)
   useBixi.setState({ reaction: { line: REACTION_BLOOM, at: Date.now() } });
-  await hydrate();
+  // never let a transient post-claim hydrate hiccup make a SUCCESSFUL join look failed
+  await hydrate().catch(() => {});
 }
 
 export async function onlineLeave() {
