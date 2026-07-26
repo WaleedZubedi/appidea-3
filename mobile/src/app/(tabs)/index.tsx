@@ -17,6 +17,7 @@ import { actBothHere, actCare, actClaim, actInvite, actRevive } from '@/game/act
 import { subscribe } from '@/game/sync';
 import { invitePreview, presenceForPair, reactionChannel, type InvitePreview } from '@/lib/api';
 import { IS_ONLINE, UNIVERSAL_LINK_HOST } from '@/lib/config';
+import { enableNotifications } from '@/lib/push';
 import { track } from '@/lib/analytics';
 import { useAuth } from '@/lib/session';
 import { successHaptic, tapHaptic } from '@/lib/haptics';
@@ -486,7 +487,26 @@ export default function Home() {
       const lines = LINES[moodKey][kind];
       if (lines) showDialog(nextLine(`${moodKey}:${kind}`, lines));
     }
-    void Promise.resolve(actCare(kind)).then(() => setNow(Date.now())).catch(() => {});
+    void Promise.resolve(actCare(kind)).then(() => {
+      setNow(Date.now());
+      // after the very first action, invite them to turn on notifications (once)
+      const st = useBixi.getState();
+      if (!st.notificationsAsked) {
+        st.setNotificationsAsked();
+        setTimeout(askNotifications, 1400); // let the reaction clip play first
+      }
+    }).catch(() => {});
+  };
+
+  const askNotifications = () => {
+    Alert.alert(
+      `Never lose ${s.bixiName}`,
+      `Want a gentle heads-up when your streak’s about to break or ${s.bixiName} starts to miss you? No spam — only the moments that matter.`,
+      [
+        { text: 'Not now', style: 'cancel' },
+        { text: 'Yes, remind me', onPress: () => { void enableNotifications(s.bixiName); } },
+      ]
+    );
   };
   const doRevive = () => {
     tapHaptic();
@@ -752,7 +772,11 @@ export default function Home() {
                   <Text style={styles.inviteTitle}>Invite your person</Text>
                   <Text style={styles.inviteSub}>Send the link — one tap and they join. The code works too.</Text>
                   <View style={styles.codeBox}>
-                    <Text style={styles.codeBig}>{inviteCode || '· · · ·'}</Text>
+                    {inviteCode ? (
+                      <Text style={styles.codeBig}>{inviteCode}</Text>
+                    ) : (
+                      <ActivityIndicator color={ACCENT} />
+                    )}
                   </View>
                   <Pressable
                     style={({ pressed }) => [styles.shareBtn, pressed && { backgroundColor: '#a93f22' }]}

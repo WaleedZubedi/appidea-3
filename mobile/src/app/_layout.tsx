@@ -28,7 +28,7 @@ import { DevReset } from '@/ui/DevReset';
 import { ErrorBoundary } from '@/ui/ErrorBoundary';
 import { useBixi } from '@/game/store';
 import { actHydrate } from '@/game/actions';
-import { IS_ONLINE } from '@/lib/config';
+import { DEV_TOOLS, IS_ONLINE } from '@/lib/config';
 import { useAuth } from '@/lib/session';
 import { identifyUser, posthog, resetAnalytics, trackScreen } from '@/lib/analytics';
 
@@ -110,7 +110,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
       </Stack>
       <Tracker />
-      {__DEV__ && <DevReset />}
+      {DEV_TOOLS && <DevReset />}
     </SafeAreaProvider>
   );
 

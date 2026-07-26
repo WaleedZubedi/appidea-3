@@ -1,4 +1,3 @@
-import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -19,8 +18,7 @@ import {
   actUndoLeave,
 } from '@/game/actions';
 import { IS_ONLINE, PRIVACY_URL, TERMS_URL, UNIVERSAL_LINK_HOST } from '@/lib/config';
-import { setPushToken } from '@/lib/api';
-import { registerForPush } from '@/lib/push';
+import { enableNotifications } from '@/lib/push';
 import { useAuth } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
 
@@ -189,22 +187,7 @@ export default function You() {
     setNotif(v);
     if (!v) return;
     s.setNotificationsAsked();
-    const token = await registerForPush(); // requests permission + returns a push token (or null)
-    if (token && IS_ONLINE) await setPushToken(token);
-    // fire an immediate local nudge so you can actually SEE notifications working
-    try {
-      const { status } = await Notifications.getPermissionsAsync();
-      if (status === 'granted') {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: s.bixiName || 'Bixi',
-            body: `You’re all set — ${s.bixiName || 'Bixi'} will let you know if he starts to miss you 🌱`,
-            sound: 'default',
-          },
-          trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 3 },
-        });
-      }
-    } catch {}
+    await enableNotifications(s.bixiName);
   };
 
   const resetApp = () => {
@@ -273,10 +256,19 @@ export default function You() {
         <Section title="Account">
           <Row
             label="Sign out"
-            onPress={async () => {
-              await useAuth.getState().signOut();
-              s.reset();
-              router.replace('/onboarding/intro');
+            onPress={() => {
+              Alert.alert('Sign out?', 'You can sign back in anytime — your Bixi is safe.', [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Sign out',
+                  style: 'destructive',
+                  onPress: async () => {
+                    await useAuth.getState().signOut();
+                    s.reset();
+                    router.replace('/onboarding/intro');
+                  },
+                },
+              ]);
             }}
             chevron
           />

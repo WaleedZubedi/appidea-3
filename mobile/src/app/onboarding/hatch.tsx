@@ -11,15 +11,13 @@ import { track } from '@/lib/analytics';
 import type { Mode, RelationshipKind } from '@/game/types';
 import { successHaptic, tapHaptic } from '@/lib/haptics';
 
-// tap progression: intact → crack → bigger crack → hatched
+// tap progression: closed → a few cracks → hatched
 const FRAMES = [
-  require('../../../assets/bixi/hatch0.jpg'),
-  require('../../../assets/bixi/hatch1.jpg'),
-  require('../../../assets/bixi/hatch2.jpg'),
-  require('../../../assets/bixi/hatchedFinal.jpg'),
+  require('../../../assets/bixi/hatch0.jpg'),       // closed
+  require('../../../assets/bixi/hatch1.jpg'),       // a few cracks
+  require('../../../assets/bixi/hatchedFinal.jpg'), // hatched
 ];
-const TAPS_TO_HATCH = 3;
-const AFTER_HATCH_MS = 1600; // linger on the hatched frame before leaving
+const TAPS_TO_HATCH = 2; // closed → (tap) cracked → (tap) hatched
 const CREAM = '#f5efe3';
 const ACCENT = '#f0895f';
 
@@ -29,34 +27,33 @@ export default function Hatch() {
 
   const [taps, setTaps] = useState(0);
   const [hatched, setHatched] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const mode = (params.mode === 'paired' ? 'paired' : 'solo') as Mode;
+  const name = params.name?.trim() || 'Bixi';
 
   const onTap = async () => {
     if (hatched) return;
     const n = taps + 1;
     setTaps(n);
-    if (n < TAPS_TO_HATCH) {
-      tapHaptic();
-      return;
-    }
     tapHaptic();
+    if (n < TAPS_TO_HATCH) return; // still cracking
+
+    // reached the hatch
     successHaptic();
     setErr(null);
     setHatched(true);
-
+    setCreating(true);
     const kind = (params.kind ? params.kind : null) as RelationshipKind;
     try {
       await actHatch(mode, params.name ?? '', kind);
       track('bixi_hatched', { mode });
-      setTimeout(() => {
-        if (mode === 'paired') router.replace('/onboarding/invite');
-        else router.replace('/(tabs)');
-      }, AFTER_HATCH_MS);
+      setCreating(false);
     } catch (e) {
       const msg = (e as { message?: string })?.message ?? '';
       setHatched(false);
       setTaps(0);
+      setCreating(false);
       setErr(
         msg.includes('already_has_bixi')
           ? 'This account already has a Bixi. Sign in on your other device, or reset from You → Delete account.'
@@ -65,14 +62,20 @@ export default function Hatch() {
     }
   };
 
-  const name = params.name?.trim() || 'Bixi';
+  const goHome = () => {
+    if (creating) return;
+    tapHaptic();
+    if (mode === 'paired') router.replace('/onboarding/invite');
+    else router.replace('/(tabs)');
+  };
+
   const frameIdx = Math.min(taps, TAPS_TO_HATCH);
 
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      {/* all frames are mounted + preloaded so the hatched frame is already
-          decoded when we reach it — no black screen, no last-second pop */}
+      {/* all frames mounted + preloaded so the hatched frame is already decoded
+          when we reach it — no black screen, no last-second pop */}
       {FRAMES.map((src, i) => (
         <Image
           key={i}
@@ -81,26 +84,43 @@ export default function Hatch() {
           contentFit="cover"
           priority="high"
           cachePolicy="memory-disk"
-          transition={150}
+          transition={180}
         />
       ))}
+      {/* tap the egg to crack it — disabled once hatched so the button takes over */}
       <Pressable style={StyleSheet.absoluteFill} onPress={onTap} disabled={hatched} />
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.overlay} pointerEvents="box-none">
-        <View style={styles.bottom} pointerEvents="none">
-          <Text style={styles.eyebrow}>{hatched ? 'DAY 001' : 'TAP TO WAKE HIM'}</Text>
-          <Text style={styles.title}>{hatched ? `Say hello to ${name}.` : 'Something’s stirring…'}</Text>
+        <View style={styles.bottom} pointerEvents="box-none">
+          <Text style={styles.eyebrow} pointerEvents="none">
+            {hatched ? 'DAY 001' : 'TAP TO WAKE HIM'}
+          </Text>
+          <Text style={styles.title} pointerEvents="none">
+            {hatched ? `Say hello to ${name}.` : 'Something’s stirring…'}
+          </Text>
+
           {!hatched ? (
             <>
-              <Text style={styles.sub}>Give the egg a few taps to coax him out.</Text>
-              <View style={styles.dots}>
+              <Text style={styles.sub} pointerEvents="none">Give the egg a few taps to coax him out.</Text>
+              <View style={styles.dots} pointerEvents="none">
                 {Array.from({ length: TAPS_TO_HATCH }).map((_, i) => (
                   <View key={i} style={[styles.dot, i < taps && styles.dotOn]} />
                 ))}
               </View>
             </>
-          ) : null}
-          {err ? <Text style={styles.err}>{err}</Text> : null}
+          ) : (
+            <Pressable
+              style={({ pressed }) => [styles.cta, (creating || pressed) && styles.ctaDim]}
+              onPress={goHome}
+              disabled={creating}
+            >
+              <Text style={styles.ctaTxt}>
+                {creating ? 'Waking him…' : `${name} is waiting for you →`}
+              </Text>
+            </Pressable>
+          )}
+
+          {err ? <Text style={styles.err} pointerEvents="none">{err}</Text> : null}
         </View>
       </SafeAreaView>
     </View>
@@ -120,5 +140,19 @@ const styles = StyleSheet.create({
   dots: { flexDirection: 'row', gap: 9, marginTop: 12 },
   dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: 'rgba(245,239,227,0.35)' },
   dotOn: { backgroundColor: ACCENT },
+  cta: {
+    marginTop: 16,
+    backgroundColor: ACCENT,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
+  },
+  ctaDim: { opacity: 0.7 },
+  ctaTxt: { fontFamily: fonts.sansBold, fontSize: 16, color: '#2a1a10', letterSpacing: 0.2 },
   err: { fontFamily: fonts.sans, fontSize: 14, color: '#ff8a7a', textAlign: 'center', marginTop: 8, ...shadow },
 });

@@ -73,6 +73,30 @@ function applyBundle(b: api.PairBundle, uid: string | null) {
 }
 
 /**
+ * Apply the authoritative `bixi_state` an action RPC already returns — so the
+ * actor's meters/mood/streak update on the SAME round-trip, instead of waiting
+ * for a second `hydrate()` (that lag was why phone-1 updated after the partner).
+ */
+function applyServerState(st: api.ServerBixiState) {
+  useBixi.setState({
+    mood: Number(st.mood),
+    feed: Number(st.feed),
+    water: Number(st.water),
+    vitalsUpdatedAt: toMs(st.vitals_updated_at) ?? Date.now(),
+    growthStage: st.growth_stage as GrowthStage,
+    streak: st.streak,
+    bestStreak: st.best_streak,
+    lastStreakDayAt: toMs(st.last_streak_day_at) ?? 0,
+    totalCareDays: st.total_care_days,
+    everReached100Streak: st.ever_reached_100,
+    dormant: st.dormant,
+    revivePending: st.revive_pending,
+    hasCompanion: st.has_companion,
+    unlockedSecrets: st.unlocked_secrets,
+  });
+}
+
+/**
  * Pull the full authoritative state for my pair (or clear if I have none yet).
  * PURE READ — never writes, so a realtime-triggered hydrate can't re-trigger
  * realtime (that infinite loop was the source of the lag). Decay is settled
@@ -133,9 +157,16 @@ export async function onlineCare(key: string) {
   const pid = useBixi.getState().pairId;
   if (!pid) return;
   const def = interactionByKey(key);
-  useBixi.setState({ reaction: { video: def?.video, line: def?.line, at: Date.now() } });
-  await api.applyCare(pid, key, false, newActionId());
-  await hydrate();
+  const now = Date.now();
+  // instant local feedback: play the reaction AND light the actor's own streak
+  // contribution right away, so phone-1 never lags behind the co-parent.
+  useBixi.setState((s) => ({
+    reaction: { video: def?.video, line: def?.line, at: now },
+    keepers: s.keepers.map((k) => (k.isSelf ? { ...k, lastSeenAt: now } : k)),
+  }));
+  const st = await api.applyCare(pid, key, false, newActionId());
+  applyServerState(st); // authoritative meters/mood/streak on the same round-trip
+  void hydrate();       // reconcile member details (bond, partner last_seen) in the background
 }
 
 export async function onlineDaily() {
@@ -150,7 +181,8 @@ export async function onlineRevive() {
   if (!pid) return;
   const st = await api.revive(pid);
   if (!st.dormant) useBixi.setState({ reaction: { video: 'revive', line: REACTION_REVIVE, at: Date.now() } });
-  await hydrate();
+  applyServerState(st);
+  void hydrate();
 }
 
 export async function onlineInvite(): Promise<string> {

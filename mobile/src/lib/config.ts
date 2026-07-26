@@ -16,6 +16,13 @@ export const UNIVERSAL_LINK_HOST = 'bixi.world';
 export const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID ?? '';
 
 /**
+ * Show the floating dev tools (admin panel / reset). On in local dev and in any
+ * build where EXPO_PUBLIC_DEV_TOOLS=1 (set for the preview profile in eas.json).
+ * MUST be off for the production/App Store build.
+ */
+export const DEV_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
+
+/**
  * PostHog analytics. The key is a PUBLIC, write-only project key — safe to ship
  * in the app binary (same class as the Supabase anon key). Override via env if
  * you ever rotate it. When it doesn't look like a `phc_` key, analytics no-ops.

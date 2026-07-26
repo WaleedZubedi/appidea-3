@@ -30,7 +30,7 @@ const HERO = require('../../../assets/images/auth-hero.jpg');
 const CREAM = '#f5efe3';
 const ACCENT = '#f0895f';
 const LEAF = '#a9d182';
-const HERO_H = Math.round(Dimensions.get('window').height * 0.4);
+const HERO_H = Math.round(Dimensions.get('window').height * 0.32);
 const ICON = '#5f7a54'; // muted green for the input chips
 
 /* ── little SVG icons ── */
@@ -291,9 +291,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingTop: 10,
   },
-  sparkles: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 12 },
+  sparkles: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 6 },
 
   field: {
     flexDirection: 'row',
@@ -301,22 +301,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sheet,
     borderWidth: 1.5,
     borderColor: colors.rule,
-    borderRadius: 16,
+    borderRadius: 14,
     paddingLeft: 10,
     paddingRight: 14,
-    height: 52,
-    marginBottom: 11,
+    height: 46,
+    marginBottom: 8,
   },
-  chip: { width: 38, height: 38, borderRadius: 11, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center' },
+  chip: { width: 34, height: 34, borderRadius: 10, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center' },
   input: { flex: 1, marginLeft: 12, fontFamily: fonts.sans, fontSize: 16, color: colors.ink, height: '100%' },
   eye: { paddingLeft: 8 },
 
   error: { fontFamily: fonts.sans, fontSize: 14, color: colors.brick, textAlign: 'center', marginBottom: 6, marginTop: -2 },
 
   ctaWrap: {
-    marginTop: 6,
-    height: 54,
-    borderRadius: 18,
+    marginTop: 2,
+    height: 50,
+    borderRadius: 16,
     overflow: 'hidden',
     shadowColor: colors.clay,
     shadowOpacity: 0.34,
@@ -331,12 +331,12 @@ const styles = StyleSheet.create({
   ctaRight: { position: 'absolute', right: 22 },
   ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: '#fff', letterSpacing: 0.2 },
 
-  heartRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: 14 },
+  heartRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: 8 },
   heartRule: { width: 70, height: 1, backgroundColor: colors.rule },
 
-  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12 },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
   switchText: { fontFamily: fonts.sans, fontSize: 15, color: colors.body },
   switchLink: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.clay },
-  legalLine: { fontFamily: fonts.sans, fontSize: 12, color: colors.muted, textAlign: 'center', marginTop: 14, lineHeight: 18 },
+  legalLine: { fontFamily: fonts.sans, fontSize: 12, color: colors.muted, textAlign: 'center', marginTop: 8, lineHeight: 18 },
   legalLink: { fontFamily: fonts.sansSemibold, color: colors.clay },
 });

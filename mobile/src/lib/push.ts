@@ -7,7 +7,8 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
-import { EAS_PROJECT_ID } from './config';
+import { setPushToken } from './api';
+import { EAS_PROJECT_ID, IS_ONLINE } from './config';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -43,5 +44,32 @@ export async function registerForPush(): Promise<string | null> {
     return token.data;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Request permission, save the push token, and fire an immediate local nudge so
+ * the user actually SEES notifications working. Returns true if permission was
+ * granted. Used by the You-screen toggle and the after-first-action prompt.
+ */
+export async function enableNotifications(bixiName: string): Promise<boolean> {
+  const token = await registerForPush();
+  if (token && IS_ONLINE) {
+    try { await setPushToken(token); } catch {}
+  }
+  try {
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status !== 'granted') return false;
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: bixiName || 'Bixi',
+        body: `You’re all set — ${bixiName || 'Bixi'} will let you know if he starts to miss you 🌱`,
+        sound: 'default',
+      },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 3 },
+    });
+    return true;
+  } catch {
+    return false;
   }
 }
