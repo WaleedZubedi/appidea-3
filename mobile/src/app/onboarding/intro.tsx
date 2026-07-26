@@ -9,14 +9,13 @@ import Svg, { Path } from 'react-native-svg';
 import { fonts } from '@/theme';
 import { IS_ONLINE } from '@/lib/config';
 
-const HERO = require('../../../assets/images/home-hero.jpg');
 const CREAM = '#f5efe3';
 const ACCENT = '#f0895f';
 
 const SLIDES = [
-  { title: 'Meet Bixi', body: 'A tiny creature who lives in your pocket — and quietly needs you.' },
-  { title: 'Raise him\ntogether', body: 'On your own, or with your person. He blooms brightest with two.' },
-  { title: 'Show up,\nhe thrives', body: 'Feed him, water him, love him. Just a moment a day.' },
+  { img: require('../../../assets/images/onboard1.jpg'), title: 'One pet,\ntwo of you', body: 'Bixi blooms when you both show up — and won’t make it without you both.' },
+  { img: require('../../../assets/images/onboard2.jpg'), title: 'Show up,\nhe thrives', body: 'Feed him, water him, love him. Just a moment a day.' },
+  { img: require('../../../assets/images/onboard3.jpg'), title: 'Cared for,\nalways', body: 'Even on the quiet days, he’s tucked in and waiting for you.' },
 ];
 
 export default function Intro() {
@@ -28,7 +27,7 @@ export default function Intro() {
   const next = () => (last ? done() : setI(i + 1));
 
   return (
-    <ImageBackground source={HERO} style={styles.root} contentFit="cover" contentPosition="top">
+    <ImageBackground source={slide.img} style={styles.root} contentFit="cover" contentPosition="center" transition={250}>
       <LinearGradient
         colors={['rgba(16,11,6,0.35)', 'rgba(16,11,6,0)', 'rgba(14,9,5,0.55)', 'rgba(11,7,4,0.97)']}
         locations={[0, 0.3, 0.62, 1]}
