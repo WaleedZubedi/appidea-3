@@ -17,12 +17,13 @@ import { fonts } from '@/theme';
 import { Sprout } from '@/ui/SpecimenSeal';
 import { Txt } from '@/ui/primitives';
 
-const CLAY_TOP = '#cf5836';
-const CLAY_BOT = '#b0421f';
+/* ── same tokens as the Home screen ── */
+const BG = '#181009';
 const CREAM = '#f5efe3';
-const DIM = 'rgba(245,239,227,0.78)';
-const FAINT = 'rgba(245,239,227,0.55)';
-const CLAY_INK = '#9c3a1e';
+const DIM = 'rgba(245,239,227,0.55)';
+const FAINT = 'rgba(245,239,227,0.38)';
+const ACCENT = '#f0895f';
+const LEAF = '#7fc07a';
 
 export default function Name() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function Name() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <LinearGradient colors={[CLAY_TOP, CLAY_BOT]} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#231609', BG, '#100b06']} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? undefined : 'height'}>
         <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
@@ -51,9 +52,7 @@ export default function Name() {
             automaticallyAdjustKeyboardInsets
           >
             <View style={styles.col}>
-              <View style={styles.mark}>
-                <Sprout size={28} color={CREAM} />
-              </View>
+              <View style={styles.mark}><Sprout size={26} color={LEAF} /></View>
 
               <Txt style={styles.eyebrow}>NAME YOUR SPECIMEN</Txt>
               <Txt style={styles.h1}>What will you{'\n'}call <Txt style={styles.h1em}>him?</Txt></Txt>
@@ -73,15 +72,17 @@ export default function Name() {
                   maxLength={18}
                   returnKeyType="done"
                   keyboardAppearance="dark"
-                  selectionColor={CREAM}
+                  selectionColor={ACCENT}
                   onSubmitEditing={go}
                 />
                 <View style={styles.underline} />
                 <Txt style={styles.hint}>You can change this anytime later in the You tab. ✎</Txt>
               </View>
 
-              <Pressable onPress={go} style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}>
-                <Txt style={styles.ctaLabel}>Meet {pretty}</Txt>
+              <Pressable onPress={go} style={({ pressed }) => [styles.ctaWrap, pressed && styles.ctaPressed]}>
+                <LinearGradient colors={['#f2925f', '#d9603a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cta}>
+                  <Txt style={styles.ctaLabel}>Meet {pretty}</Txt>
+                </LinearGradient>
               </Pressable>
 
               <Pressable onPress={() => router.push('/onboarding/join')} hitSlop={8} style={styles.joinLink}>
@@ -96,36 +97,36 @@ export default function Name() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: CLAY_BOT },
+  root: { flex: 1, backgroundColor: BG },
   flex: { flex: 1 },
   scroll: { flexGrow: 1, paddingHorizontal: 26, paddingTop: 8, justifyContent: 'center' },
   col: { width: '100%', maxWidth: 400, alignSelf: 'center', alignItems: 'center' },
 
   mark: {
-    width: 60, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 20,
-    backgroundColor: 'rgba(255,255,255,0.14)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)',
+    width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    backgroundColor: 'rgba(127,192,122,0.12)', borderWidth: 1, borderColor: 'rgba(127,192,122,0.3)',
   },
-  eyebrow: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 2, color: 'rgba(245,239,227,0.85)', marginBottom: 12, textAlign: 'center' },
+  eyebrow: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 2.5, color: ACCENT, marginBottom: 12, textAlign: 'center' },
   h1: { fontFamily: fonts.serifSemibold, fontSize: 38, lineHeight: 42, color: CREAM, letterSpacing: -0.5, textAlign: 'center' },
-  h1em: { fontFamily: fonts.serifRegular, fontStyle: 'italic', color: CREAM },
-  sub: { fontFamily: fonts.sans, fontSize: 15.5, lineHeight: 22, color: DIM, marginTop: 12, textAlign: 'center', maxWidth: '90%' },
+  h1em: { fontFamily: fonts.serifRegular, fontStyle: 'italic', color: ACCENT },
+  sub: { fontFamily: fonts.sans, fontSize: 15, lineHeight: 22, color: DIM, marginTop: 12, textAlign: 'center', maxWidth: '90%' },
   subStrong: { fontFamily: fonts.sansBold, color: CREAM },
 
-  nameWrap: { alignSelf: 'stretch', marginTop: 40, alignItems: 'center' },
+  nameWrap: { alignSelf: 'stretch', marginTop: 38, alignItems: 'center' },
   input: {
     fontFamily: fonts.serifSemibold, fontSize: 34, color: CREAM, textAlign: 'center',
     paddingVertical: 8, minWidth: 220,
   },
-  underline: { height: 2, alignSelf: 'stretch', backgroundColor: 'rgba(255,255,255,0.45)', marginHorizontal: 30 },
+  underline: { height: 2, alignSelf: 'stretch', backgroundColor: 'rgba(240,137,95,0.5)', marginHorizontal: 30 },
   hint: { fontFamily: fonts.sans, fontSize: 12.5, color: FAINT, marginTop: 14, textAlign: 'center' },
 
-  cta: {
-    alignSelf: 'stretch', marginTop: 44, height: 56, borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center', backgroundColor: CREAM,
-    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 6,
+  ctaWrap: {
+    alignSelf: 'stretch', marginTop: 40, height: 54, borderRadius: 16, overflow: 'hidden',
+    shadowColor: ACCENT, shadowOpacity: 0.4, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8,
   },
   ctaPressed: { transform: [{ scale: 0.99 }] },
-  ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: CLAY_INK, letterSpacing: 0.2 },
+  cta: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: '#fff', letterSpacing: 0.2 },
 
   joinLink: { alignSelf: 'center', paddingVertical: 18 },
   joinTxt: { fontFamily: fonts.sansSemibold, fontSize: 14.5, color: DIM },
