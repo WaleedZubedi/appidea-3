@@ -15,7 +15,7 @@ interface AuthState {
   userId: string | null;
   online: boolean;
   init: () => Promise<void>;
-  signUpWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
+  signUpWithPassword: (email: string, password: string, name?: string) => Promise<{ error?: string }>;
   signInWithPassword: (email: string, password: string) => Promise<string | null>;
   signInWithProvider: (provider: 'apple' | 'google') => Promise<string | null>;
   signOut: () => Promise<void>;
@@ -47,9 +47,16 @@ export const useAuth = create<AuthState>((set) => ({
     set({ ready: true });
   },
 
-  signUpWithPassword: async (email, password) => {
+  signUpWithPassword: async (email, password, name) => {
     if (!supabase) return { error: 'offline' };
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // `name` flows to profiles.display_name via the handle_new_user trigger
+    // (coalesce(raw_user_meta_data->>'name', email prefix)) → shows in-app.
+    const trimmed = name?.trim();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: trimmed ? { data: { name: trimmed } } : undefined,
+    });
     if (error) return { error: error.message };
     if (data.session) return {}; // signed in immediately (email confirmation off)
     // No session means "Confirm email" is still enabled on the project. With no

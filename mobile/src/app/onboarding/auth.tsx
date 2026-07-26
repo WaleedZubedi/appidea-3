@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -21,20 +22,28 @@ import { useBixi } from '@/game/store';
 import { useAuth } from '@/lib/session';
 import { identifyUser, track } from '@/lib/analytics';
 import { PRIVACY_URL, TERMS_URL } from '@/lib/config';
-import { Sprout } from '@/ui/SpecimenSeal';
 import { Txt } from '@/ui/primitives';
 
-/* ── on the clay (primary) background ── */
-const CLAY_TOP = '#cf5836';
-const CLAY_BOT = '#b0421f';
-const CREAM = '#f5efe3';
-const DIM = 'rgba(245,239,227,0.78)';
-const FAINT = 'rgba(245,239,227,0.55)';
-const CLAY_INK = '#9c3a1e'; // text on the cream button
-const SURFACE = 'rgba(255,255,255,0.13)';
-const SURFACE_LINE = 'rgba(255,255,255,0.30)';
-const ICON = 'rgba(245,239,227,0.85)';
+const BG = require('../../../assets/images/signup-bg.jpg');
 
+/* ── palette tuned to the artwork ── */
+const CREAM = '#f4ead2';
+const DIM = 'rgba(244,234,210,0.82)';
+const FAINT = 'rgba(244,234,210,0.5)';
+const LEAF = '#b7dd86';
+const GREEN_INK = '#33471f'; // text on the cream button
+const SURFACE = 'rgba(10,16,7,0.55)';
+const SURFACE_LINE = 'rgba(233,214,150,0.34)';
+const ICON = 'rgba(244,234,210,0.8)';
+
+function UserIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24">
+      <Circle cx={12} cy={8} r={3.6} stroke={ICON} strokeWidth={1.8} fill="none" />
+      <Path d="M5 20 C5 15.6 8.1 13.5 12 13.5 C15.9 13.5 19 15.6 19 20" stroke={ICON} strokeWidth={1.8} strokeLinecap="round" fill="none" />
+    </Svg>
+  );
+}
 function MailIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24">
@@ -70,6 +79,7 @@ export default function Auth() {
   const inviterName = (params.inviter && String(params.inviter)) || 'Your person';
   const bixiName = (params.bixi && String(params.bixi)) || 'their Bixi';
   const [mode, setMode] = useState<'up' | 'in'>('up');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
@@ -77,7 +87,8 @@ export default function Auth() {
   const [err, setErr] = useState<string | null>(null);
 
   const isUp = mode === 'up';
-  const canSubmit = email.trim().length >= 4 && password.length >= 6;
+  const canSubmit =
+    email.trim().length >= 4 && password.length >= 6 && (!isUp || username.trim().length >= 1);
 
   const friendlyAuthError = (m: string): string => {
     const s = m.toLowerCase();
@@ -116,7 +127,7 @@ export default function Auth() {
     setBusy(true);
     const em = email.trim().toLowerCase();
     if (isUp) {
-      const res = await signUpWithPassword(em, password);
+      const res = await signUpWithPassword(em, password, username.trim());
       setBusy(false);
       if (res.error) return setErr(friendlyAuthError(res.error));
       await afterAuth();
@@ -131,164 +142,158 @@ export default function Auth() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <LinearGradient colors={[CLAY_TOP, CLAY_BOT]} style={StyleSheet.absoluteFill} />
+      <Image source={BG} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" priority="high" />
+      {/* soft bottom scrim so the fields stay legible over the artwork */}
+      <LinearGradient
+        colors={['transparent', 'rgba(8,14,6,0.35)', 'rgba(8,14,6,0.72)']}
+        locations={[0.4, 0.66, 1]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? undefined : 'height'}>
-        <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
-          <ScrollView
-            contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 16 }]}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            automaticallyAdjustKeyboardInsets
-          >
-            <View style={styles.col}>
-              <View style={styles.mark}>
-                <Sprout size={28} color={CREAM} />
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <SafeAreaView edges={['bottom']} style={[styles.form, { paddingBottom: insets.bottom + 14 }]}>
+            {invite ? (
+              <View style={styles.inviteBanner}>
+                <Txt style={styles.inviteBannerTitle}>{inviterName} & {bixiName} are waiting for you 🌱</Txt>
+                <Txt style={styles.inviteBannerSub}>Create your account to join and raise {bixiName} together.</Txt>
               </View>
+            ) : null}
 
-              <Txt style={styles.eyebrow}>SPECIMEN Nº 01 · RAISED BY TWO</Txt>
-
-              {isUp ? (
-                <Txt style={styles.h1}>Keep Bixi alive,{'\n'}<Txt style={styles.h1em}>together.</Txt></Txt>
-              ) : (
-                <Txt style={styles.h1}>Welcome{'\n'}<Txt style={styles.h1em}>back.</Txt></Txt>
-              )}
-
-              <Txt style={styles.sub}>
-                {isUp
-                  ? 'One little creature. Two people. He blooms when you both show up.'
-                  : 'See how your Bixi has been getting on while you were away.'}
-              </Txt>
-
-              {invite ? (
-                <View style={styles.inviteBanner}>
-                  <Txt style={styles.inviteBannerTitle}>{inviterName} & {bixiName} are waiting for you 🌱</Txt>
-                  <Txt style={styles.inviteBannerSub}>Create your account to join and raise {bixiName} together.</Txt>
-                </View>
-              ) : null}
-
+            {isUp ? (
               <View style={styles.field}>
-                <MailIcon />
+                <UserIcon />
                 <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="you@email.com"
+                  value={username}
+                  onChangeText={setUsername}
+                  placeholder="your name"
                   placeholderTextColor={FAINT}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
+                  autoCapitalize="words"
                   autoCorrect={false}
+                  maxLength={24}
                   textContentType="none"
                   autoComplete="off"
                   importantForAutofill="no"
                   keyboardAppearance="dark"
-                  selectionColor={CREAM}
+                  selectionColor={LEAF}
                   style={styles.input}
                 />
               </View>
+            ) : null}
 
-              <View style={styles.field}>
-                <LockIcon />
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="password (min 6 characters)"
-                  placeholderTextColor={FAINT}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  secureTextEntry={!show}
-                  textContentType="none"
-                  autoComplete="off"
-                  importantForAutofill="no"
-                  passwordRules=""
-                  keyboardAppearance="dark"
-                  selectionColor={CREAM}
-                  onSubmitEditing={submit}
-                  style={styles.input}
-                />
-                <Pressable onPress={() => setShow((v) => !v)} hitSlop={10}>
-                  <EyeIcon off={show} />
-                </Pressable>
-              </View>
-
-              {err ? <Txt style={styles.error}>{err}</Txt> : null}
-
-              <Pressable
-                onPress={submit}
-                style={({ pressed }) => [styles.cta, (!canSubmit || busy) && styles.ctaDim, pressed && styles.ctaPressed]}
-              >
-                <Txt style={styles.ctaLabel}>{busy ? 'One moment…' : isUp ? 'Create our account' : 'Sign in'}</Txt>
-              </Pressable>
-
-              <Txt style={styles.tagline}>It takes two. 🌱</Txt>
-
-              <View style={styles.switchRow}>
-                <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
-                <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
-                  <Txt style={styles.switchLink}>{isUp ? 'Sign in' : 'Create one'}</Txt>
-                </Pressable>
-              </View>
-
-              <Txt style={styles.legalLine}>
-                By continuing you agree to our{' '}
-                <Txt style={styles.legalLink} onPress={() => Linking.openURL(TERMS_URL)}>Terms</Txt>
-                {' '}and{' '}
-                <Txt style={styles.legalLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Privacy Policy</Txt>.
-              </Txt>
+            <View style={styles.field}>
+              <MailIcon />
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@email.com"
+                placeholderTextColor={FAINT}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoCorrect={false}
+                textContentType="none"
+                autoComplete="off"
+                importantForAutofill="no"
+                keyboardAppearance="dark"
+                selectionColor={LEAF}
+                style={styles.input}
+              />
             </View>
-          </ScrollView>
-        </SafeAreaView>
+
+            <View style={styles.field}>
+              <LockIcon />
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="password (min 6 characters)"
+                placeholderTextColor={FAINT}
+                autoCapitalize="none"
+                autoCorrect={false}
+                secureTextEntry={!show}
+                textContentType="none"
+                autoComplete="off"
+                importantForAutofill="no"
+                passwordRules=""
+                keyboardAppearance="dark"
+                selectionColor={LEAF}
+                onSubmitEditing={submit}
+                style={styles.input}
+              />
+              <Pressable onPress={() => setShow((v) => !v)} hitSlop={10}>
+                <EyeIcon off={show} />
+              </Pressable>
+            </View>
+
+            {err ? <Txt style={styles.error}>{err}</Txt> : null}
+
+            <Pressable
+              onPress={submit}
+              style={({ pressed }) => [styles.cta, (!canSubmit || busy) && styles.ctaDim, pressed && styles.ctaPressed]}
+            >
+              <Txt style={styles.ctaLabel}>{busy ? 'One moment…' : isUp ? 'Create our account' : 'Sign in'}</Txt>
+            </Pressable>
+
+            <View style={styles.switchRow}>
+              <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
+              <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
+                <Txt style={styles.switchLink}>{isUp ? 'Sign in' : 'Create one'}</Txt>
+              </Pressable>
+            </View>
+
+            <Txt style={styles.legalLine}>
+              By continuing you agree to our{' '}
+              <Txt style={styles.legalLink} onPress={() => Linking.openURL(TERMS_URL)}>Terms</Txt>
+              {' '}and{' '}
+              <Txt style={styles.legalLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Privacy Policy</Txt>.
+            </Txt>
+          </SafeAreaView>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: CLAY_BOT },
+  root: { flex: 1, backgroundColor: '#26311a' },
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, paddingHorizontal: 26, paddingTop: 8, justifyContent: 'center' },
-  col: { width: '100%', maxWidth: 400, alignSelf: 'center', alignItems: 'center' },
-
-  mark: {
-    width: 60, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 20,
-    backgroundColor: 'rgba(255,255,255,0.14)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)',
-  },
-  eyebrow: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 2, color: 'rgba(245,239,227,0.85)', marginBottom: 12, textAlign: 'center' },
-  h1: { fontFamily: fonts.serifSemibold, fontSize: 38, lineHeight: 42, color: CREAM, letterSpacing: -0.5, textAlign: 'center' },
-  h1em: { fontFamily: fonts.serifRegular, fontStyle: 'italic', color: CREAM },
-  sub: { fontFamily: fonts.sans, fontSize: 15.5, lineHeight: 22, color: DIM, marginTop: 12, textAlign: 'center', maxWidth: '90%' },
+  // push the form into the lower (empty) part of the artwork; it rises with the keyboard
+  scroll: { flexGrow: 1, justifyContent: 'flex-end' },
+  form: { paddingHorizontal: 26 },
 
   inviteBanner: {
-    alignSelf: 'stretch', backgroundColor: 'rgba(255,255,255,0.14)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)',
-    borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, marginTop: 20,
+    backgroundColor: 'rgba(10,16,7,0.6)', borderWidth: 1, borderColor: SURFACE_LINE,
+    borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, marginBottom: 14,
   },
   inviteBannerTitle: { fontFamily: fonts.sansBold, fontSize: 15, color: CREAM, textAlign: 'center' },
   inviteBannerSub: { fontFamily: fonts.sans, fontSize: 13, color: DIM, textAlign: 'center', marginTop: 3, lineHeight: 18 },
 
   field: {
-    alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: SURFACE, borderWidth: 1, borderColor: SURFACE_LINE,
-    borderRadius: 14, paddingHorizontal: 16, height: 54, marginTop: 12,
+    borderRadius: 14, paddingHorizontal: 16, height: 50, marginBottom: 10,
   },
   input: { flex: 1, fontFamily: fonts.sans, fontSize: 16, color: CREAM, height: '100%' },
 
-  error: { fontFamily: fonts.sans, fontSize: 14, color: '#ffe1d6', textAlign: 'center', marginTop: 14 },
+  error: { fontFamily: fonts.sans, fontSize: 13.5, color: '#ffc7b6', textAlign: 'center', marginBottom: 8, marginTop: -2 },
 
   cta: {
-    alignSelf: 'stretch', marginTop: 22, height: 56, borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center', backgroundColor: CREAM,
-    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 6,
+    marginTop: 6, height: 54, borderRadius: 16, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: CREAM,
+    shadowColor: '#000', shadowOpacity: 0.28, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6,
   },
   ctaDim: { opacity: 0.55 },
   ctaPressed: { transform: [{ scale: 0.99 }] },
-  ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: CLAY_INK, letterSpacing: 0.2 },
+  ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: GREEN_INK, letterSpacing: 0.2 },
 
-  tagline: { fontFamily: fonts.serifRegular, fontStyle: 'italic', fontSize: 15, color: FAINT, textAlign: 'center', marginTop: 16 },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 14 },
+  switchText: { fontFamily: fonts.sans, fontSize: 14.5, color: DIM },
+  switchLink: { fontFamily: fonts.sansBold, fontSize: 14.5, color: LEAF },
 
-  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 18 },
-  switchText: { fontFamily: fonts.sans, fontSize: 15, color: DIM },
-  switchLink: { fontFamily: fonts.sansBold, fontSize: 15, color: CREAM },
-
-  legalLine: { fontFamily: fonts.sans, fontSize: 12, color: FAINT, textAlign: 'center', marginTop: 18, lineHeight: 18 },
+  legalLine: { fontFamily: fonts.sans, fontSize: 11.5, color: FAINT, textAlign: 'center', marginTop: 12, lineHeight: 17 },
   legalLink: { fontFamily: fonts.sansSemibold, color: CREAM },
 });
