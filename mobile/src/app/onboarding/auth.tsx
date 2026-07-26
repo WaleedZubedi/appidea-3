@@ -2,16 +2,19 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dimensions,
+  Keyboard,
   KeyboardAvoidingView,
+  LayoutAnimation,
   Linking,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
+  UIManager,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -88,6 +91,20 @@ export default function Auth() {
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [kbOpen, setKbOpen] = useState(false);
+
+  // collapse the hero when the keyboard is up so the fields + button get the
+  // whole screen (no more keyboard covering them)
+  useEffect(() => {
+    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const s = Keyboard.addListener(showEvt, () => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setKbOpen(true); });
+    const h = Keyboard.addListener(hideEvt, () => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setKbOpen(false); });
+    return () => { s.remove(); h.remove(); };
+  }, []);
 
   const isUp = mode === 'up';
   const canSubmit =
@@ -145,16 +162,15 @@ export default function Auth() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? undefined : 'height'}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
-          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 20 }]}
+          contentContainerStyle={[styles.scroll, { paddingTop: kbOpen ? insets.top + 8 : 0, paddingBottom: insets.bottom + 20 }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          automaticallyAdjustKeyboardInsets
           bounces={false}
         >
-          {/* ── hero: Bixi singing, with a soft curved bottom into the page ── */}
-          <View style={[styles.hero, { height: HERO_H }]}>
+          {/* ── hero: Bixi singing (collapses when the keyboard opens) ── */}
+          <View style={[styles.hero, { height: kbOpen ? 0 : HERO_H }]}>
             <Image source={HERO} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition="center" cachePolicy="memory-disk" priority="high" />
             <LinearGradient colors={['rgba(24,16,9,0.35)', 'rgba(24,16,9,0)', 'rgba(24,16,9,0.1)']} locations={[0, 0.4, 1]} style={StyleSheet.absoluteFill} pointerEvents="none" />
             <Svg width="100%" height={54} viewBox="0 0 100 16" preserveAspectRatio="none" style={styles.curve}>
@@ -283,7 +299,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { flexGrow: 1 },
 
-  hero: { width: '100%', backgroundColor: '#20140b' },
+  hero: { width: '100%', backgroundColor: '#20140b', overflow: 'hidden' },
   curve: { position: 'absolute', left: 0, right: 0, bottom: -1 },
 
   body: { paddingHorizontal: 26, marginTop: -6, alignItems: 'center' },
