@@ -1,8 +1,10 @@
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
+  Dimensions,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -12,7 +14,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
 import { fonts } from '@/theme';
@@ -21,8 +23,10 @@ import { useBixi } from '@/game/store';
 import { useAuth } from '@/lib/session';
 import { identifyUser, track } from '@/lib/analytics';
 import { PRIVACY_URL, TERMS_URL } from '@/lib/config';
-import { Sprout } from '@/ui/SpecimenSeal';
 import { Txt } from '@/ui/primitives';
+
+const HERO = require('../../../assets/growth/song.jpg');
+const HERO_H = Math.round(Dimensions.get('window').height * 0.4);
 
 /* ── same tokens as the Home screen ── */
 const BG = '#181009';
@@ -141,65 +145,50 @@ export default function Auth() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <LinearGradient colors={['#231609', BG, '#100b06']} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
-
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? undefined : 'height'}>
-        <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
-          <ScrollView
-            contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 16 }]}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            automaticallyAdjustKeyboardInsets
-          >
-            <View style={styles.col}>
-              <View style={styles.mark}><Sprout size={26} color={LEAF} /></View>
+        <ScrollView
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 20 }]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          automaticallyAdjustKeyboardInsets
+          bounces={false}
+        >
+          {/* ── hero: Bixi singing, with a soft curved bottom into the page ── */}
+          <View style={[styles.hero, { height: HERO_H }]}>
+            <Image source={HERO} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition="center" cachePolicy="memory-disk" priority="high" />
+            <LinearGradient colors={['rgba(24,16,9,0.35)', 'rgba(24,16,9,0)', 'rgba(24,16,9,0.1)']} locations={[0, 0.4, 1]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+            <Svg width="100%" height={54} viewBox="0 0 100 16" preserveAspectRatio="none" style={styles.curve}>
+              <Path d="M0,0 Q50,20 100,0 L100,16 L0,16 Z" fill={BG} />
+            </Svg>
+          </View>
 
-              <Txt style={styles.eyebrow}>{isUp ? 'WELCOME TO' : 'WELCOME BACK TO'}</Txt>
-              <Txt style={styles.brand}>Bixi</Txt>
-              <Txt style={styles.sub}>
-                {isUp
-                  ? 'A tiny companion for the moments you share. Grow together, stay connected.'
-                  : 'See how your Bixi has been getting on while you were away.'}
-              </Txt>
+          <View style={styles.body}>
+            <Txt style={styles.eyebrow}>{isUp ? 'WELCOME TO' : 'WELCOME BACK TO'}</Txt>
+            <Txt style={styles.brand}>Bixi</Txt>
+            <Txt style={styles.sub}>
+              {isUp
+                ? 'A tiny companion for the moments you share.'
+                : 'See how your Bixi’s been getting on while you were away.'}
+            </Txt>
 
-              {invite ? (
-                <View style={styles.inviteBanner}>
-                  <Txt style={styles.inviteBannerTitle}>{inviterName} & {bixiName} are waiting for you 🌱</Txt>
-                  <Txt style={styles.inviteBannerSub}>Create your account to join and raise {bixiName} together.</Txt>
-                </View>
-              ) : null}
+            {invite ? (
+              <View style={styles.inviteBanner}>
+                <Txt style={styles.inviteBannerTitle}>{inviterName} & {bixiName} are waiting for you 🌱</Txt>
+                <Txt style={styles.inviteBannerSub}>Create your account to join and raise {bixiName} together.</Txt>
+              </View>
+            ) : null}
 
-              {isUp ? (
-                <View style={styles.field}>
-                  <UserIcon />
-                  <TextInput
-                    value={username}
-                    onChangeText={setUsername}
-                    placeholder="your name"
-                    placeholderTextColor={FAINT}
-                    autoCapitalize="words"
-                    autoCorrect={false}
-                    maxLength={24}
-                    textContentType="none"
-                    autoComplete="off"
-                    importantForAutofill="no"
-                    keyboardAppearance="dark"
-                    selectionColor={ACCENT}
-                    style={styles.input}
-                  />
-                </View>
-              ) : null}
-
+            {isUp ? (
               <View style={styles.field}>
-                <MailIcon />
+                <UserIcon />
                 <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="you@email.com"
+                  value={username}
+                  onChangeText={setUsername}
+                  placeholder="your name"
                   placeholderTextColor={FAINT}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
+                  autoCapitalize="words"
                   autoCorrect={false}
+                  maxLength={24}
                   textContentType="none"
                   autoComplete="off"
                   importantForAutofill="no"
@@ -208,58 +197,82 @@ export default function Auth() {
                   style={styles.input}
                 />
               </View>
+            ) : null}
 
-              <View style={styles.field}>
-                <LockIcon />
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="password (min 6 characters)"
-                  placeholderTextColor={FAINT}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  secureTextEntry={!show}
-                  textContentType="none"
-                  autoComplete="off"
-                  importantForAutofill="no"
-                  passwordRules=""
-                  keyboardAppearance="dark"
-                  selectionColor={ACCENT}
-                  onSubmitEditing={submit}
-                  style={styles.input}
-                />
-                <Pressable onPress={() => setShow((v) => !v)} hitSlop={10}>
-                  <EyeIcon off={show} />
-                </Pressable>
-              </View>
-
-              {err ? <Txt style={styles.error}>{err}</Txt> : null}
-
-              <Pressable
-                onPress={submit}
-                style={({ pressed }) => [styles.ctaWrap, (!canSubmit || busy) && styles.ctaDim, pressed && styles.ctaPressed]}
-              >
-                <LinearGradient colors={['#f2925f', '#d9603a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cta}>
-                  <Txt style={styles.ctaLabel}>{busy ? 'One moment…' : isUp ? 'Create our account' : 'Sign in'}</Txt>
-                </LinearGradient>
-              </Pressable>
-
-              <View style={styles.switchRow}>
-                <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
-                <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
-                  <Txt style={styles.switchLink}>{isUp ? 'Sign in' : 'Create one'}</Txt>
-                </Pressable>
-              </View>
-
-              <Txt style={styles.legalLine}>
-                By continuing you agree to our{' '}
-                <Txt style={styles.legalLink} onPress={() => Linking.openURL(TERMS_URL)}>Terms</Txt>
-                {' '}and{' '}
-                <Txt style={styles.legalLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Privacy Policy</Txt>.
-              </Txt>
+            <View style={styles.field}>
+              <MailIcon />
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@email.com"
+                placeholderTextColor={FAINT}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoCorrect={false}
+                textContentType="none"
+                autoComplete="off"
+                importantForAutofill="no"
+                keyboardAppearance="dark"
+                selectionColor={ACCENT}
+                style={styles.input}
+              />
             </View>
-          </ScrollView>
-        </SafeAreaView>
+
+            <View style={styles.field}>
+              <LockIcon />
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="password (min 6 characters)"
+                placeholderTextColor={FAINT}
+                autoCapitalize="none"
+                autoCorrect={false}
+                secureTextEntry={!show}
+                textContentType="none"
+                autoComplete="off"
+                importantForAutofill="no"
+                passwordRules=""
+                keyboardAppearance="dark"
+                selectionColor={ACCENT}
+                onSubmitEditing={submit}
+                style={styles.input}
+              />
+              <Pressable onPress={() => setShow((v) => !v)} hitSlop={10}>
+                <EyeIcon off={show} />
+              </Pressable>
+            </View>
+
+            {err ? <Txt style={styles.error}>{err}</Txt> : null}
+
+            <Pressable
+              onPress={submit}
+              style={({ pressed }) => [styles.ctaWrap, (!canSubmit || busy) && styles.ctaDim, pressed && styles.ctaPressed]}
+            >
+              <LinearGradient colors={['#f5a06d', '#e0703f', '#d05730']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cta}>
+                <Txt style={styles.ctaLabel}>{busy ? 'One moment…' : isUp ? 'Create our account' : 'Sign in'}</Txt>
+                <View style={styles.ctaArrow}>
+                  <Svg width={20} height={20} viewBox="0 0 24 24">
+                    <Path d="M4 12 H18 M12 6 L18 12 L12 18" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                  </Svg>
+                </View>
+              </LinearGradient>
+            </Pressable>
+
+            <View style={styles.switchRow}>
+              <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
+              <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
+                <Txt style={styles.switchLink}>{isUp ? 'Sign in' : 'Create one'}</Txt>
+              </Pressable>
+            </View>
+
+            <Txt style={styles.legalLine}>
+              By continuing you agree to our{' '}
+              <Txt style={styles.legalLink} onPress={() => Linking.openURL(TERMS_URL)}>Terms</Txt>
+              {' '}and{' '}
+              <Txt style={styles.legalLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Privacy Policy</Txt>.
+            </Txt>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -268,21 +281,20 @@ export default function Auth() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, paddingHorizontal: 26, paddingTop: 8, justifyContent: 'center' },
-  col: { width: '100%', maxWidth: 400, alignSelf: 'center', alignItems: 'center' },
+  scroll: { flexGrow: 1 },
 
-  mark: {
-    width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 16,
-    backgroundColor: 'rgba(127,192,122,0.12)', borderWidth: 1, borderColor: 'rgba(127,192,122,0.3)',
-  },
+  hero: { width: '100%', backgroundColor: '#20140b' },
+  curve: { position: 'absolute', left: 0, right: 0, bottom: -1 },
+
+  body: { paddingHorizontal: 26, marginTop: -6, alignItems: 'center' },
   eyebrow: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 2.5, color: ACCENT, marginBottom: 2 },
-  brand: { fontFamily: fonts.serifSemibold, fontSize: 46, lineHeight: 50, color: CREAM, letterSpacing: -0.5 },
-  sub: { fontFamily: fonts.sans, fontSize: 15, lineHeight: 22, color: DIM, marginTop: 10, textAlign: 'center', maxWidth: '92%' },
+  brand: { fontFamily: fonts.serifSemibold, fontSize: 42, lineHeight: 46, color: CREAM, letterSpacing: -0.5 },
+  sub: { fontFamily: fonts.sans, fontSize: 14.5, lineHeight: 21, color: DIM, marginTop: 8, textAlign: 'center', maxWidth: '92%' },
 
   inviteBanner: {
     alignSelf: 'stretch', backgroundColor: 'rgba(240,137,95,0.12)',
     borderWidth: 1, borderColor: 'rgba(240,137,95,0.4)',
-    borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, marginTop: 20,
+    borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, marginTop: 16,
   },
   inviteBannerTitle: { fontFamily: fonts.sansBold, fontSize: 15, color: CREAM, textAlign: 'center' },
   inviteBannerSub: { fontFamily: fonts.sans, fontSize: 13, color: DIM, textAlign: 'center', marginTop: 3, lineHeight: 18 },
@@ -297,18 +309,19 @@ const styles = StyleSheet.create({
   error: { fontFamily: fonts.sans, fontSize: 13.5, color: '#ffb3a0', textAlign: 'center', marginTop: 12 },
 
   ctaWrap: {
-    alignSelf: 'stretch', marginTop: 20, height: 54, borderRadius: 16, overflow: 'hidden',
-    shadowColor: ACCENT, shadowOpacity: 0.4, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8,
+    alignSelf: 'stretch', marginTop: 18, height: 56, borderRadius: 18, overflow: 'hidden',
+    shadowColor: ACCENT, shadowOpacity: 0.45, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 9,
   },
   ctaDim: { opacity: 0.5 },
   ctaPressed: { transform: [{ scale: 0.99 }] },
-  cta: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: '#fff', letterSpacing: 0.2 },
+  cta: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: '#fff', letterSpacing: 0.3 },
+  ctaArrow: { position: 'absolute', right: 22 },
 
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 16 },
   switchText: { fontFamily: fonts.sans, fontSize: 14.5, color: DIM },
   switchLink: { fontFamily: fonts.sansBold, fontSize: 14.5, color: ACCENT },
 
-  legalLine: { fontFamily: fonts.sans, fontSize: 11.5, color: FAINT, textAlign: 'center', marginTop: 16, lineHeight: 17 },
+  legalLine: { fontFamily: fonts.sans, fontSize: 11.5, color: FAINT, textAlign: 'center', marginTop: 14, lineHeight: 17 },
   legalLink: { fontFamily: fonts.sansSemibold, color: CREAM },
 });
