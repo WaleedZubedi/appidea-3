@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Join a Bixi</title>
+  <meta name="description" content="You've been invited to raise a Bixi together." />
+  <meta name="theme-color" content="#faf7f1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        media="print" onload="this.onload=null;this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500&family=Hanken+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" /></noscript>
+  <style>
+    :root{
+      --paper:#faf7f1;--card:#ffffff;--ink:#1e1913;--body:#4a4335;--mut:#696055;
+      --rule:#e3dbcb;--clay:#c8502e;--clay-press:#a93f22;--pine:#1f7a54;
+      --serif:"Fraunces",Georgia,"Times New Roman",serif;
+      --sans:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;padding:0}
+    body{font-family:var(--sans);color:var(--body);background:var(--paper);min-height:100dvh;
+      display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    .grain{position:fixed;inset:0;z-index:0;pointer-events:none;mix-blend-mode:multiply;opacity:.05;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E")}
+    .wrap{position:relative;z-index:1;max-width:420px;width:100%;text-align:center;
+      padding:calc(env(safe-area-inset-top) + 28px) 26px calc(env(safe-area-inset-bottom) + 40px)}
+    .mast{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:30px}
+    .word{font-family:var(--serif);font-weight:500;font-size:22px;color:var(--ink);display:flex;align-items:baseline;gap:7px}
+    .word .leaf{color:var(--pine);font-size:16px}
+    .word a{color:inherit;text-decoration:none}
+    .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--clay-press)}
+    h1{font-family:var(--serif);font-weight:400;color:var(--ink);font-size:clamp(26px,7vw,32px);line-height:1.1;letter-spacing:-.015em;margin:8px 0 10px}
+    h1 .em{font-style:italic}
+    p{font-size:15.5px;line-height:1.55;color:var(--body);margin:0 auto 22px;max-width:34ch}
+    .codebox{background:var(--card);border:1px dashed var(--rule);border-radius:14px;padding:16px 18px;margin:0 auto 22px;max-width:280px}
+    .codelab{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);display:block;margin-bottom:6px}
+    .code{font-family:var(--mono);font-weight:500;font-size:30px;letter-spacing:.28em;color:var(--ink)}
+    .cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;max-width:300px;
+      border:0;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:14px;letter-spacing:.04em;
+      color:var(--paper);background:var(--clay-press);border-radius:11px;padding:15px 22px;text-decoration:none;
+      box-shadow:4px 4px 0 var(--ink)}
+    .cta:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+    .foot{margin-top:20px;font-size:13px;color:var(--mut);line-height:1.5}
+    .foot a{color:var(--clay-press)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="mast"><div class="word"><span class="leaf" aria-hidden="true">❦</span> <a href="/">Bixi</a></div></div>
+
+    <p class="eyebrow">You’ve been invited</p>
+    <h1>Come raise a <span class="em">Bixi</span> together.</h1>
+    <p>Someone wants to co-parent their little Bixi with you. Open the app and use this code to join them.</p>
+
+    <div class="codebox">
+      <span class="codelab">Your invite code</span>
+      <span class="code" id="code">····</span>
+    </div>
+
+    <a class="cta" id="openApp" href="#">Open in the Bixi app →</a>
+
+    <div class="foot" id="foot">
+      Don’t have Bixi yet? It’s launching soon —
+      <a href="/">join the waitlist</a> and you’ll get it on launch day.
+    </div>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <script>
+    (function () {
+      // pull the invite code from /join/<code> (or ?code=)
+      var parts = location.pathname.split('/').filter(Boolean);
+      var code = (parts[parts.length - 1] || '').toUpperCase();
+      if (!code || code.toLowerCase() === 'join') {
+        var q = new URLSearchParams(location.search);
+        code = (q.get('code') || '').toUpperCase();
+      }
+      if (code) {
+        document.getElementById('code').textContent = code;
+        // if the app is installed, this scheme hands off straight to the join screen
+        document.getElementById('openApp').setAttribute('href', 'bixi://join/' + code);
+      } else {
+        document.getElementById('code').textContent = '—';
+      }
+    })();
+  </script>
+</body>
+</html>
