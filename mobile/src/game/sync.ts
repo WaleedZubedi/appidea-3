@@ -144,18 +144,17 @@ export async function onlineHatch(
   kind: string | null
 ): Promise<string> {
   const pairId = await api.createBixi(name, kind && kind.length ? kind : null, paired);
-  useBixi.setState({ reaction: { line: REACTION_HATCH, at: Date.now() } });
-  // run the follow-ups in parallel (not sequentially) so hatching feels instant
-  const tasks: Promise<unknown>[] = [hydrate().catch(() => {})];
+  // set the pair id immediately so leaving the hatch screen is instant (was
+  // waiting on hydrate + createInvite → the long load after the final frame)
+  useBixi.setState({ pairId, onboarded: true, reaction: { line: REACTION_HATCH, at: Date.now() } });
+  // full state + the invite code load in the background — don't block navigation
+  void hydrate().catch(() => {});
   if (paired) {
-    tasks.push(
-      api
-        .createInvite(pairId)
-        .then((inv) => useBixi.setState({ inviteCode: inv.code, inviteToken: inv.token }))
-        .catch(() => {})
-    );
+    void api
+      .createInvite(pairId)
+      .then((inv) => useBixi.setState({ inviteCode: inv.code, inviteToken: inv.token }))
+      .catch(() => {});
   }
-  await Promise.all(tasks);
   return pairId;
 }
 
@@ -164,11 +163,17 @@ export async function onlineCare(key: string) {
   if (!pid) return;
   const def = interactionByKey(key);
   const now = Date.now();
-  // instant local feedback: play the reaction AND light the actor's own streak
-  // contribution right away, so phone-1 never lags behind the co-parent.
+  const clamp = (v: number) => Math.max(0, Math.min(100, v));
+  // instant, optimistic feedback so phone-1 never lags behind the co-parent:
+  // play the reaction, light our own streak contribution, and nudge the
+  // meters/mood up right away. applyServerState() reconciles to exact values.
   useBixi.setState((s) => ({
     reaction: { video: def?.video, line: def?.line, at: now },
     keepers: s.keepers.map((k) => (k.isSelf ? { ...k, lastSeenAt: now } : k)),
+    feed: key === 'feed' ? clamp(s.feed + 10) : s.feed,
+    water: key === 'water' ? clamp(s.water + 10) : s.water,
+    mood: clamp(s.mood + 4),
+    vitalsUpdatedAt: now,
   }));
   const st = await api.applyCare(pid, key, false, newActionId());
   applyServerState(st); // authoritative meters/mood/streak on the same round-trip
@@ -253,8 +258,11 @@ export async function onlineClaim(token: string): Promise<void> {
     await api.claimInvite(token);
   }
   useBixi.setState({ reaction: { line: REACTION_BLOOM, at: Date.now() } });
-  // never let a transient post-claim hydrate hiccup make a SUCCESSFUL join look failed
+  // never let a transient post-claim hydrate hiccup make a SUCCESSFUL join look
+  // failed — and make sure we land on a FULLY populated pair before navigating
+  // home (a half-loaded state was crashing the home screen right after joining).
   await hydrate().catch(() => {});
+  if (!useBixi.getState().pairId) await hydrate().catch(() => {});
 }
 
 export async function onlineLeave() {

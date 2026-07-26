@@ -19,6 +19,8 @@ type State = { error: Error | null };
 
 export class ErrorBoundary extends React.Component<Props, State> {
   state: State = { error: null };
+  private autoRetries = 0;
+  private timer: ReturnType<typeof setTimeout> | null = null;
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
@@ -26,9 +28,23 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error) {
     try { track('app_error', { message: String(error?.message ?? error) }); } catch {}
+    // Transient render crashes (e.g. a half-loaded state right after joining a
+    // pair) self-heal: auto-retry once shortly after. If it crashes again, we
+    // leave the manual "Try again" fallback up.
+    if (this.autoRetries < 1) {
+      this.autoRetries += 1;
+      this.timer = setTimeout(() => this.setState({ error: null }), 600);
+    }
   }
 
-  reset = () => this.setState({ error: null });
+  componentWillUnmount() {
+    if (this.timer) clearTimeout(this.timer);
+  }
+
+  reset = () => {
+    this.autoRetries = 0;
+    this.setState({ error: null });
+  };
 
   render() {
     if (!this.state.error) return this.props.children;
