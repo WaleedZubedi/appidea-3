@@ -69,7 +69,7 @@ export default function Hatch() {
       setErr(
         msg.includes('already_has_bixi')
           ? 'This account already has a Bixi. Sign in on your other device, or reset from You → Delete account.'
-          : 'Hatching failed — check your connection and tap the egg again.'
+          : 'Something went wrong — check your connection and give him another tap.'
       );
     }
   };
@@ -101,12 +101,12 @@ export default function Hatch() {
             {hatched ? 'DAY 001' : 'TAP TO WAKE HIM'}
           </Text>
           <Text style={styles.title} pointerEvents="none">
-            {hatched ? `Say hello to ${name}.` : 'Something’s stirring…'}
+            {hatched ? `Say hello to ${name}.` : 'Someone’s fast asleep…'}
           </Text>
 
           {!hatched ? (
             <>
-              <Text style={styles.sub} pointerEvents="none">Give the egg a few taps to coax him out.</Text>
+              <Text style={styles.sub} pointerEvents="none">Give him a few gentle taps to wake him up.</Text>
               <View style={styles.dots} pointerEvents="none">
                 {Array.from({ length: TAPS_TO_HATCH }).map((_, i) => (
                   <View key={i} style={[styles.dot, i < taps && styles.dotOn]} />
