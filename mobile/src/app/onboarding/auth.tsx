@@ -24,19 +24,17 @@ import { PRIVACY_URL, TERMS_URL } from '@/lib/config';
 import { Sprout } from '@/ui/SpecimenSeal';
 import { Txt } from '@/ui/primitives';
 
-/* ── dark palette (from our system) ── */
-const BG_TOP = '#1a130b';
-const BG_BOT = '#0f0b07';
+/* ── on the clay (primary) background ── */
+const CLAY_TOP = '#cf5836';
+const CLAY_BOT = '#b0421f';
 const CREAM = '#f5efe3';
-const DIM = 'rgba(245,239,227,0.62)';
-const FAINT = 'rgba(245,239,227,0.40)';
-const ACCENT = '#f0895f'; // clay light
-const LEAF = '#a9d182';
-const SURFACE = 'rgba(245,239,227,0.055)';
-const SURFACE_LINE = 'rgba(245,239,227,0.14)';
-const ICON = 'rgba(245,239,227,0.7)';
+const DIM = 'rgba(245,239,227,0.78)';
+const FAINT = 'rgba(245,239,227,0.55)';
+const CLAY_INK = '#9c3a1e'; // text on the cream button
+const SURFACE = 'rgba(255,255,255,0.13)';
+const SURFACE_LINE = 'rgba(255,255,255,0.30)';
+const ICON = 'rgba(245,239,227,0.85)';
 
-/* ── field icons (tuned for the dark surface) ── */
 function MailIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24">
@@ -62,19 +60,11 @@ function EyeIcon({ off }: { off?: boolean }) {
     </Svg>
   );
 }
-function ArrowIcon() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 24 24">
-      <Path d="M4 12 H19 M13 6 L19 12 L13 18" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
 
 export default function Auth() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signInWithPassword, signUpWithPassword } = useAuth();
-  // arriving from an invite deep link → claim it right after the account is made
   const params = useLocalSearchParams<{ invite?: string; inviter?: string; bixi?: string }>();
   const invite = params.invite ? String(params.invite) : null;
   const inviterName = (params.inviter && String(params.inviter)) || 'Your person';
@@ -112,7 +102,7 @@ export default function Auth() {
       }
     }
     if (isUp) {
-      router.replace('/onboarding/name'); // new account, no pair yet → name your Bixi
+      router.replace('/onboarding/name');
       return;
     }
     await actHydrate();
@@ -141,10 +131,7 @@ export default function Auth() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <LinearGradient colors={[BG_TOP, BG_BOT]} style={StyleSheet.absoluteFill} />
-      {/* soft accent glows — depth without a photo */}
-      <View style={[styles.glow, styles.glowClay]} pointerEvents="none" />
-      <View style={[styles.glow, styles.glowLeaf]} pointerEvents="none" />
+      <LinearGradient colors={[CLAY_TOP, CLAY_BOT]} style={StyleSheet.absoluteFill} />
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? undefined : 'height'}>
         <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
@@ -154,41 +141,32 @@ export default function Auth() {
             showsVerticalScrollIndicator={false}
             automaticallyAdjustKeyboardInsets
           >
-            {/* ── hero (typographic, no image) ── */}
-            <View style={styles.mark}>
-              <View style={styles.markRing}>
-                <Sprout size={26} color={LEAF} />
+            <View style={styles.col}>
+              <View style={styles.mark}>
+                <Sprout size={28} color={CREAM} />
               </View>
-            </View>
 
-            <Txt style={styles.eyebrow}>SPECIMEN Nº 01 · RAISED BY TWO</Txt>
+              <Txt style={styles.eyebrow}>SPECIMEN Nº 01 · RAISED BY TWO</Txt>
 
-            {isUp ? (
-              <Txt style={styles.h1}>
-                Keep <Txt style={styles.h1accent}>Bixi</Txt> alive,{'\n'}
-                <Txt style={styles.h1em}>together.</Txt>
+              {isUp ? (
+                <Txt style={styles.h1}>Keep Bixi alive,{'\n'}<Txt style={styles.h1em}>together.</Txt></Txt>
+              ) : (
+                <Txt style={styles.h1}>Welcome{'\n'}<Txt style={styles.h1em}>back.</Txt></Txt>
+              )}
+
+              <Txt style={styles.sub}>
+                {isUp
+                  ? 'One little creature. Two people. He blooms when you both show up.'
+                  : 'See how your Bixi has been getting on while you were away.'}
               </Txt>
-            ) : (
-              <Txt style={styles.h1}>
-                Welcome{'\n'}<Txt style={styles.h1em}>back.</Txt>
-              </Txt>
-            )}
 
-            <Txt style={styles.sub}>
-              {isUp
-                ? 'One little creature. Two people. He blooms when you both show up — and won’t make it without you both.'
-                : 'See how your Bixi has been getting on while you were away.'}
-            </Txt>
+              {invite ? (
+                <View style={styles.inviteBanner}>
+                  <Txt style={styles.inviteBannerTitle}>{inviterName} & {bixiName} are waiting for you 🌱</Txt>
+                  <Txt style={styles.inviteBannerSub}>Create your account to join and raise {bixiName} together.</Txt>
+                </View>
+              ) : null}
 
-            {invite ? (
-              <View style={styles.inviteBanner}>
-                <Txt style={styles.inviteBannerTitle}>{inviterName} & {bixiName} are waiting for you 🌱</Txt>
-                <Txt style={styles.inviteBannerSub}>Create your account to join and raise {bixiName} together.</Txt>
-              </View>
-            ) : null}
-
-            {/* ── fields ── */}
-            <View style={styles.form}>
               <View style={styles.field}>
                 <MailIcon />
                 <TextInput
@@ -203,7 +181,7 @@ export default function Auth() {
                   autoComplete="off"
                   importantForAutofill="no"
                   keyboardAppearance="dark"
-                  selectionColor={ACCENT}
+                  selectionColor={CREAM}
                   style={styles.input}
                 />
               </View>
@@ -223,7 +201,7 @@ export default function Auth() {
                   importantForAutofill="no"
                   passwordRules=""
                   keyboardAppearance="dark"
-                  selectionColor={ACCENT}
+                  selectionColor={CREAM}
                   onSubmitEditing={submit}
                   style={styles.input}
                 />
@@ -231,35 +209,32 @@ export default function Auth() {
                   <EyeIcon off={show} />
                 </Pressable>
               </View>
-            </View>
 
-            {err ? <Txt style={styles.error}>{err}</Txt> : null}
+              {err ? <Txt style={styles.error}>{err}</Txt> : null}
 
-            <Pressable
-              onPress={submit}
-              style={({ pressed }) => [styles.ctaWrap, (!canSubmit || busy) && styles.ctaDim, pressed && styles.ctaPressed]}
-            >
-              <LinearGradient colors={['#e0703f', '#c5492a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cta}>
+              <Pressable
+                onPress={submit}
+                style={({ pressed }) => [styles.cta, (!canSubmit || busy) && styles.ctaDim, pressed && styles.ctaPressed]}
+              >
                 <Txt style={styles.ctaLabel}>{busy ? 'One moment…' : isUp ? 'Create our account' : 'Sign in'}</Txt>
-                <View style={styles.ctaArrow}><ArrowIcon /></View>
-              </LinearGradient>
-            </Pressable>
-
-            <Txt style={styles.tagline}>It takes two. 🌱</Txt>
-
-            <View style={styles.switchRow}>
-              <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
-              <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
-                <Txt style={styles.switchLink}>{isUp ? 'Sign in' : 'Create one'}</Txt>
               </Pressable>
-            </View>
 
-            <Txt style={styles.legalLine}>
-              By continuing you agree to our{' '}
-              <Txt style={styles.legalLink} onPress={() => Linking.openURL(TERMS_URL)}>Terms</Txt>
-              {' '}and{' '}
-              <Txt style={styles.legalLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Privacy Policy</Txt>.
-            </Txt>
+              <Txt style={styles.tagline}>It takes two. 🌱</Txt>
+
+              <View style={styles.switchRow}>
+                <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
+                <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
+                  <Txt style={styles.switchLink}>{isUp ? 'Sign in' : 'Create one'}</Txt>
+                </Pressable>
+              </View>
+
+              <Txt style={styles.legalLine}>
+                By continuing you agree to our{' '}
+                <Txt style={styles.legalLink} onPress={() => Linking.openURL(TERMS_URL)}>Terms</Txt>
+                {' '}and{' '}
+                <Txt style={styles.legalLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Privacy Policy</Txt>.
+              </Txt>
+            </View>
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -268,60 +243,52 @@ export default function Auth() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG_BOT },
+  root: { flex: 1, backgroundColor: CLAY_BOT },
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 8, justifyContent: 'center' },
+  scroll: { flexGrow: 1, paddingHorizontal: 26, paddingTop: 8, justifyContent: 'center' },
+  col: { width: '100%', maxWidth: 400, alignSelf: 'center', alignItems: 'center' },
 
-  glow: { position: 'absolute', width: 340, height: 340, borderRadius: 170, opacity: 0.16 },
-  glowClay: { backgroundColor: ACCENT, top: -120, right: -110 },
-  glowLeaf: { backgroundColor: LEAF, bottom: -150, left: -120, opacity: 0.1 },
-
-  mark: { alignItems: 'flex-start', marginBottom: 18 },
-  markRing: {
-    width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(169,209,130,0.12)', borderWidth: 1, borderColor: 'rgba(169,209,130,0.3)',
+  mark: {
+    width: 60, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 20,
+    backgroundColor: 'rgba(255,255,255,0.14)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)',
   },
-
-  eyebrow: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 2, color: ACCENT, marginBottom: 12 },
-  h1: { fontFamily: fonts.serifSemibold, fontSize: 40, lineHeight: 44, color: CREAM, letterSpacing: -0.6 },
-  h1accent: { color: ACCENT, fontFamily: fonts.serifSemibold },
+  eyebrow: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 2, color: 'rgba(245,239,227,0.85)', marginBottom: 12, textAlign: 'center' },
+  h1: { fontFamily: fonts.serifSemibold, fontSize: 38, lineHeight: 42, color: CREAM, letterSpacing: -0.5, textAlign: 'center' },
   h1em: { fontFamily: fonts.serifRegular, fontStyle: 'italic', color: CREAM },
-  sub: { fontFamily: fonts.sans, fontSize: 15.5, lineHeight: 23, color: DIM, marginTop: 14, maxWidth: '94%' },
+  sub: { fontFamily: fonts.sans, fontSize: 15.5, lineHeight: 22, color: DIM, marginTop: 12, textAlign: 'center', maxWidth: '90%' },
 
   inviteBanner: {
-    backgroundColor: 'rgba(169,209,130,0.12)',
-    borderWidth: 1, borderColor: 'rgba(169,209,130,0.3)',
+    alignSelf: 'stretch', backgroundColor: 'rgba(255,255,255,0.14)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)',
     borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, marginTop: 20,
   },
   inviteBannerTitle: { fontFamily: fonts.sansBold, fontSize: 15, color: CREAM, textAlign: 'center' },
   inviteBannerSub: { fontFamily: fonts.sans, fontSize: 13, color: DIM, textAlign: 'center', marginTop: 3, lineHeight: 18 },
 
-  form: { marginTop: 26, gap: 12 },
   field: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
+    alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: SURFACE, borderWidth: 1, borderColor: SURFACE_LINE,
-    borderRadius: 14, paddingHorizontal: 16, height: 54,
+    borderRadius: 14, paddingHorizontal: 16, height: 54, marginTop: 12,
   },
   input: { flex: 1, fontFamily: fonts.sans, fontSize: 16, color: CREAM, height: '100%' },
 
-  error: { fontFamily: fonts.sans, fontSize: 14, color: '#ff9a8a', textAlign: 'center', marginTop: 14 },
+  error: { fontFamily: fonts.sans, fontSize: 14, color: '#ffe1d6', textAlign: 'center', marginTop: 14 },
 
-  ctaWrap: {
-    marginTop: 22, height: 56, borderRadius: 18, overflow: 'hidden',
-    shadowColor: ACCENT, shadowOpacity: 0.4, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8,
+  cta: {
+    alignSelf: 'stretch', marginTop: 22, height: 56, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center', backgroundColor: CREAM,
+    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 6,
   },
-  ctaDim: { opacity: 0.5 },
+  ctaDim: { opacity: 0.55 },
   ctaPressed: { transform: [{ scale: 0.99 }] },
-  cta: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: '#fff', letterSpacing: 0.2 },
-  ctaArrow: { position: 'absolute', right: 22 },
+  ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: CLAY_INK, letterSpacing: 0.2 },
 
   tagline: { fontFamily: fonts.serifRegular, fontStyle: 'italic', fontSize: 15, color: FAINT, textAlign: 'center', marginTop: 16 },
 
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 18 },
   switchText: { fontFamily: fonts.sans, fontSize: 15, color: DIM },
-  switchLink: { fontFamily: fonts.sansBold, fontSize: 15, color: ACCENT },
+  switchLink: { fontFamily: fonts.sansBold, fontSize: 15, color: CREAM },
 
   legalLine: { fontFamily: fonts.sans, fontSize: 12, color: FAINT, textAlign: 'center', marginTop: 18, lineHeight: 18 },
-  legalLink: { fontFamily: fonts.sansSemibold, color: ACCENT },
+  legalLink: { fontFamily: fonts.sansSemibold, color: CREAM },
 });

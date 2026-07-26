@@ -163,17 +163,12 @@ export async function onlineCare(key: string) {
   if (!pid) return;
   const def = interactionByKey(key);
   const now = Date.now();
-  const clamp = (v: number) => Math.max(0, Math.min(100, v));
-  // instant, optimistic feedback so phone-1 never lags behind the co-parent:
-  // play the reaction, light our own streak contribution, and nudge the
-  // meters/mood up right away. applyServerState() reconciles to exact values.
+  // instant feedback that can't overshoot: play the reaction and light our own
+  // streak contribution. The meters/mood come from the authoritative apply_care
+  // response below (no optimistic number bump → no spike-then-drop).
   useBixi.setState((s) => ({
     reaction: { video: def?.video, line: def?.line, at: now },
     keepers: s.keepers.map((k) => (k.isSelf ? { ...k, lastSeenAt: now } : k)),
-    feed: key === 'feed' ? clamp(s.feed + 10) : s.feed,
-    water: key === 'water' ? clamp(s.water + 10) : s.water,
-    mood: clamp(s.mood + 4),
-    vitalsUpdatedAt: now,
   }));
   const st = await api.applyCare(pid, key, false, newActionId());
   applyServerState(st); // authoritative meters/mood/streak on the same round-trip
