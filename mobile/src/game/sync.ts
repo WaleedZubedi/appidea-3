@@ -238,8 +238,20 @@ export async function onlineSetMute(muted: boolean): Promise<void> {
   await hydrate();
 }
 
+// permanent reasons a claim can't succeed — everything else is treated as transient
+const CLAIM_TERMINAL = /invalid_invite|invite_used|invite_expired|cannot_join_own_bixi|already_has_bixi|leave_partner_first|pair_full/i;
+
 export async function onlineClaim(token: string): Promise<void> {
-  await api.claimInvite(token); // throws on a real failure (used/expired/etc.)
+  try {
+    await api.claimInvite(token);
+  } catch (e) {
+    const m = (e as { message?: string })?.message ?? '';
+    if (CLAIM_TERMINAL.test(m)) throw e; // real, permanent reason → surface it
+    // transient (auth session not propagated yet right after sign-up, or a network
+    // blip) → wait a beat and retry once, so the joiner doesn't see a false error
+    await new Promise((r) => setTimeout(r, 700));
+    await api.claimInvite(token);
+  }
   useBixi.setState({ reaction: { line: REACTION_BLOOM, at: Date.now() } });
   // never let a transient post-claim hydrate hiccup make a SUCCESSFUL join look failed
   await hydrate().catch(() => {});

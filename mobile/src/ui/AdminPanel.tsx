@@ -9,6 +9,7 @@
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
+  Alert,
   Modal,
   PanResponder,
   Pressable,
@@ -21,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fonts } from '@/theme';
 import { IS_ONLINE } from '@/lib/config';
+import { registerForPush } from '@/lib/push';
 import { useBixi } from '@/game/store';
 import { useDev } from '@/game/devStore';
 import { onlineDevSetState } from '@/game/sync';
@@ -224,6 +226,40 @@ export function AdminPanel({ visible, onClose }: { visible: boolean; onClose: ()
   };
   const setStage = (stage: GrowthStage) => useBixi.setState({ growthStage: stage });
 
+  // send a REAL push to this device now (bypasses the 20-24h cron window) so you
+  // can verify notifications land on a closed phone. Lock the phone after tapping.
+  const [pushBusy, setPushBusy] = useState(false);
+  const sendTestPush = async () => {
+    if (pushBusy) return;
+    setPushBusy(true);
+    try {
+      const token = await registerForPush();
+      if (!token) {
+        Alert.alert('No push token', 'Turn on notifications first (You → “Remind me when Bixi needs me”), and use a real device — not the simulator.');
+        return;
+      }
+      const res = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          to: token,
+          sound: 'default',
+          title: s.bixiName || 'Bixi',
+          body: `${s.bixiName || 'Bixi'} misses you — come see him 🌱`,
+          data: { type: 'test' },
+        }),
+      });
+      Alert.alert(
+        res.ok ? 'Test push sent ✓' : 'Push failed',
+        res.ok ? 'Lock your phone — it should arrive within a few seconds.' : `Expo returned HTTP ${res.status}.`
+      );
+    } catch (e) {
+      Alert.alert('Push failed', String((e as Error)?.message ?? e));
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
   const toggleDormant = () => {
     const st = useBixi.getState();
     if (st.dormant) {
@@ -401,6 +437,14 @@ export function AdminPanel({ visible, onClose }: { visible: boolean; onClose: ()
                 <Text style={styles.hint}>Mode: <Text style={styles.rowVal}>{paired ? `paired with ${partner?.name}` : 'solo'}</Text>. Online pairing is real — use invite codes, not the simulator.</Text>
               </Section>
             )}
+
+            {/* ── NOTIFICATIONS ── */}
+            <Section title="NOTIFICATIONS">
+              <Text style={styles.hint}>Sends a real push to THIS device right now (skips the 20–24h cron window). Tap, then lock your phone to see it land.</Text>
+              <View style={styles.chipWrap}>
+                <Chip label={pushBusy ? 'Sending…' : '🔔 Send test push now'} tone="good" onPress={sendTestPush} />
+              </View>
+            </Section>
 
             {/* ── DANGER ── */}
             <Section title="DANGER ZONE">

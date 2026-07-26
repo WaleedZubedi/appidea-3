@@ -66,20 +66,6 @@ function ArrowIcon() {
     </Svg>
   );
 }
-function Star({ size, color }: { size: number; color: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path d="M12 1.5 C12.6 8.4 15.6 11.4 22.5 12 C15.6 12.6 12.6 15.6 12 22.5 C11.4 15.6 8.4 12.6 1.5 12 C8.4 11.4 11.4 8.4 12 1.5 Z" fill={color} />
-    </Svg>
-  );
-}
-function Heart() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 24 24">
-      <Path d="M12 20.5 C12 20.5 3.5 14.5 3.5 8.9 C3.5 6.1 5.6 4 8.2 4 C9.9 4 11.3 5 12 6.3 C12.7 5 14.1 4 15.8 4 C18.4 4 20.5 6.1 20.5 8.9 C20.5 14.5 12 20.5 12 20.5 Z" stroke={LEAF} strokeWidth={1.8} fill="none" />
-    </Svg>
-  );
-}
 
 export default function Auth() {
   const router = useRouter();
@@ -193,12 +179,6 @@ export default function Auth() {
 
           {/* ── paper sheet ── */}
           <View style={[styles.sheet, { paddingBottom: insets.bottom + 24 }]}>
-            <View style={styles.sparkles}>
-              <Star size={13} color={LEAF} />
-              <Star size={22} color={ACCENT} />
-              <Star size={13} color={ACCENT} />
-            </View>
-
             {invite ? (
               <View style={styles.inviteBanner}>
                 <Txt style={styles.inviteBannerTitle}>{inviterName} & {bixiName} are waiting for you 🌱</Txt>
@@ -258,12 +238,6 @@ export default function Auth() {
               </LinearGradient>
             </Pressable>
 
-            <View style={styles.heartRow}>
-              <View style={styles.heartRule} />
-              <Heart />
-              <View style={styles.heartRule} />
-            </View>
-
             <View style={styles.switchRow}>
               <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
               <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
@@ -321,8 +295,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 10,
   },
-  sparkles: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 6 },
-
   inviteBanner: {
     backgroundColor: colors.sage,
     borderRadius: 14,
@@ -369,10 +341,7 @@ const styles = StyleSheet.create({
   ctaRight: { position: 'absolute', right: 22 },
   ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: '#fff', letterSpacing: 0.2 },
 
-  heartRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: 8 },
-  heartRule: { width: 70, height: 1, backgroundColor: colors.rule },
-
-  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 18 },
   switchText: { fontFamily: fonts.sans, fontSize: 15, color: colors.body },
   switchLink: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.clay },
   legalLine: { fontFamily: fonts.sans, fontSize: 12, color: colors.muted, textAlign: 'center', marginTop: 8, lineHeight: 18 },
