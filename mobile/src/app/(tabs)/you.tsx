@@ -1,3 +1,4 @@
+import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -17,7 +18,7 @@ import {
   actSetPartnerMute,
   actUndoLeave,
 } from '@/game/actions';
-import { IS_ONLINE, PRIVACY_URL, TERMS_URL } from '@/lib/config';
+import { IS_ONLINE, PRIVACY_URL, TERMS_URL, UNIVERSAL_LINK_HOST } from '@/lib/config';
 import { setPushToken } from '@/lib/api';
 import { registerForPush } from '@/lib/push';
 import { useAuth } from '@/lib/session';
@@ -128,7 +129,11 @@ export default function You() {
   const invite = async () => {
     try {
       const code = await actInvite();
-      Share.share({ message: `Come raise ${s.bixiName} with me on Bixi 🌱 — code ${code}` }).catch(() => {});
+      const link = `https://${UNIVERSAL_LINK_HOST}/join/${code}`;
+      Share.share({
+        message: `Come raise ${s.bixiName} with me on Bixi 🌱\n\nTap to join: ${link}\n\nor open Bixi → “Join your person” → enter code ${code}`,
+        url: link,
+      }).catch(() => {});
     } catch {
       Alert.alert('Couldn’t create an invite', 'Check your connection and try again.');
     }
@@ -184,10 +189,22 @@ export default function You() {
     setNotif(v);
     if (!v) return;
     s.setNotificationsAsked();
-    if (IS_ONLINE) {
-      const token = await registerForPush();
-      if (token) await setPushToken(token);
-    }
+    const token = await registerForPush(); // requests permission + returns a push token (or null)
+    if (token && IS_ONLINE) await setPushToken(token);
+    // fire an immediate local nudge so you can actually SEE notifications working
+    try {
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status === 'granted') {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: s.bixiName || 'Bixi',
+            body: `You’re all set — ${s.bixiName || 'Bixi'} will let you know if he starts to miss you 🌱`,
+            sound: 'default',
+          },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 3 },
+        });
+      }
+    } catch {}
   };
 
   const resetApp = () => {

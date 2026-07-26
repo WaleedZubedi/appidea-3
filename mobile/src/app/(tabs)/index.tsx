@@ -16,7 +16,7 @@ import { GlowNote } from '@/ui/GlowNote';
 import { actBothHere, actCare, actClaim, actInvite, actRevive } from '@/game/actions';
 import { subscribe } from '@/game/sync';
 import { invitePreview, presenceForPair, reactionChannel, type InvitePreview } from '@/lib/api';
-import { IS_ONLINE } from '@/lib/config';
+import { IS_ONLINE, UNIVERSAL_LINK_HOST } from '@/lib/config';
 import { track } from '@/lib/analytics';
 import { useAuth } from '@/lib/session';
 import { successHaptic, tapHaptic } from '@/lib/haptics';
@@ -532,17 +532,36 @@ export default function Home() {
   };
   const closeInvite = () => { setInviteOpen(false); resetJoin(); };
 
-  const openInvite = async () => {
-    tapHaptic();
-    resetJoin();
+  // fetch (or reuse) the invite code without blocking the panel from opening
+  const ensureInviteCode = async () => {
+    const cached = useBixi.getState().inviteCode;
+    if (cached) { setInviteCode(cached); return; }
     try {
       const code = await actInvite();
       setInviteCode(code);
-      setInviteOpen(true);
       track('invite_created');
     } catch {
-      Alert.alert('Couldn’t create an invite', 'Check your connection and try again.');
+      setInviteCode(''); // leaves the button in "retry" state
     }
+  };
+
+  const openInvite = () => {
+    tapHaptic();
+    resetJoin();
+    setInviteCode(useBixi.getState().inviteCode ?? ''); // show it instantly if we already have it
+    setInviteOpen(true);       // open the panel NOW — no waiting on the network
+    void ensureInviteCode();   // create/refresh the code in the background
+  };
+
+  // share a real tap-to-join link (the code also works if typed manually)
+  const shareInvite = () => {
+    const code = inviteCode || useBixi.getState().inviteCode;
+    if (!code) { void ensureInviteCode(); return; }
+    const link = `https://${UNIVERSAL_LINK_HOST}/join/${code}`;
+    Share.share({
+      message: `Come raise ${s.bixiName} with me on Bixi 🌱\n\nTap to join: ${link}\n\nor open Bixi → “Join your person” → enter code ${code}`,
+      url: link,
+    }).catch(() => {});
   };
 
   const joinErrText = (e: unknown): string => {
@@ -731,15 +750,15 @@ export default function Home() {
               {joinView === 'share' ? (
                 <>
                   <Text style={styles.inviteTitle}>Invite your person</Text>
-                  <Text style={styles.inviteSub}>Share this code — they enter it under “Join your person.”</Text>
+                  <Text style={styles.inviteSub}>Send the link — one tap and they join. The code works too.</Text>
                   <View style={styles.codeBox}>
-                    <Text style={styles.codeBig}>{inviteCode}</Text>
+                    <Text style={styles.codeBig}>{inviteCode || '· · · ·'}</Text>
                   </View>
                   <Pressable
                     style={({ pressed }) => [styles.shareBtn, pressed && { backgroundColor: '#a93f22' }]}
-                    onPress={() => Share.share({ message: `Come raise ${s.bixiName} with me on Bixi 🌱 — my code is ${inviteCode}` }).catch(() => {})}
+                    onPress={shareInvite}
                   >
-                    <Text style={styles.shareTxt}>Share code</Text>
+                    <Text style={styles.shareTxt}>{inviteCode ? 'Share invite link' : 'Generating…'}</Text>
                   </Pressable>
                   <Text style={styles.inviteFoot}>Valid 7 days · one person, once · they’ll bloom {s.bixiName}</Text>
 
