@@ -1,3 +1,4 @@
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -79,7 +80,9 @@ function EyeIcon({ off }: { off?: boolean }) {
 export default function Auth() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { signInWithPassword, signUpWithPassword } = useAuth();
+  const { signInWithPassword, signUpWithPassword, signInWithProvider, signInWithApple } = useAuth();
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  useEffect(() => { AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {}); }, []);
   const params = useLocalSearchParams<{ invite?: string; inviter?: string; bixi?: string }>();
   const invite = params.invite ? String(params.invite) : null;
   const inviterName = (params.inviter && String(params.inviter)) || 'Your person';
@@ -157,6 +160,39 @@ export default function Auth() {
       if (e) return setErr(friendlyAuthError(e));
       await afterAuth();
     }
+  };
+
+  // OAuth users may be new OR returning → always hydrate to route correctly
+  const afterOAuth = async () => {
+    const uid = useAuth.getState().userId;
+    if (uid) identifyUser(uid);
+    track('signed_in');
+    if (invite) {
+      try { await actClaim(invite); router.replace('/(tabs)'); return; } catch { /* used/expired */ }
+    }
+    await actHydrate();
+    const pid = useBixi.getState().pairId;
+    router.replace(pid ? '/(tabs)' : '/onboarding/name');
+  };
+
+  const handleApple = async () => {
+    if (busy) return;
+    setErr(null);
+    setBusy(true);
+    const e = await signInWithApple();
+    setBusy(false);
+    if (e && e !== 'cancelled') return setErr(friendlyAuthError(e));
+    if (!e) await afterOAuth();
+  };
+
+  const handleGoogle = async () => {
+    if (busy) return;
+    setErr(null);
+    setBusy(true);
+    const e = await signInWithProvider('google');
+    setBusy(false);
+    if (e && e !== 'cancelled') return setErr(friendlyAuthError(e));
+    if (!e) await afterOAuth();
   };
 
   return (
@@ -274,6 +310,33 @@ export default function Auth() {
               </LinearGradient>
             </Pressable>
 
+            {/* ── social sign-in ── */}
+            <View style={styles.orRow}>
+              <View style={styles.orLine} />
+              <Txt style={styles.orTxt}>or</Txt>
+              <View style={styles.orLine} />
+            </View>
+
+            {Platform.OS === 'ios' && appleAvailable ? (
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+                cornerRadius={14}
+                style={styles.appleBtn}
+                onPress={handleApple}
+              />
+            ) : null}
+
+            <Pressable onPress={handleGoogle} disabled={busy} style={({ pressed }) => [styles.googleBtn, pressed && { opacity: 0.9 }]}>
+              <Svg width={18} height={18} viewBox="0 0 48 48">
+                <Path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.5-.4-3.5z" />
+                <Path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+                <Path fill="#4CAF50" d="M24 44c5.5 0 10.5-2.1 14.3-5.6l-6.6-5.6C29.7 34.6 27 35.6 24 35.6c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.6 16.2 44 24 44z" />
+                <Path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.6l6.6 5.6C41.4 36.9 44 31.1 44 24c0-1.3-.1-2.5-.4-3.5z" />
+              </Svg>
+              <Txt style={styles.googleTxt}>Continue with Google</Txt>
+            </Pressable>
+
             <View style={styles.switchRow}>
               <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
               <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
@@ -333,6 +396,16 @@ const styles = StyleSheet.create({
   cta: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   ctaLabel: { fontFamily: fonts.sansBold, fontSize: 17, color: '#fff', letterSpacing: 0.3 },
   ctaArrow: { position: 'absolute', right: 22 },
+
+  orRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 18 },
+  orLine: { flex: 1, height: 1, backgroundColor: SURFACE_LINE },
+  orTxt: { fontFamily: fonts.sans, fontSize: 13, color: FAINT },
+  appleBtn: { alignSelf: 'stretch', height: 50, marginTop: 14 },
+  googleBtn: {
+    alignSelf: 'stretch', height: 50, marginTop: 10, borderRadius: 14, backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+  },
+  googleTxt: { fontFamily: fonts.sansBold, fontSize: 15.5, color: '#1f1f1f' },
 
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 16 },
   switchText: { fontFamily: fonts.sans, fontSize: 14.5, color: DIM },

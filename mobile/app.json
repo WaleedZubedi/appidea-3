@@ -12,8 +12,8 @@
       "bundleIdentifier": "world.bixi.app",
       "supportsTablet": true,
       "icon": "./assets/expo.icon",
+      "usesAppleSignIn": true,
       "associatedDomains": [
-        "applinks:bixi.world",
         "applinks:bixi.world"
       ],
       "infoPlist": {
@@ -54,6 +54,7 @@
     "plugins": [
       "expo-router",
       "expo-video",
+      "expo-apple-authentication",
       [
         "expo-splash-screen",
         {

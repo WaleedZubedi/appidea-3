@@ -3,6 +3,7 @@
  * Apple/Google sign-in via the OAuth browser flow once those providers are enabled
  * in Supabase. Offline mode → no auth.
  */
+import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { create } from 'zustand';
@@ -18,6 +19,7 @@ interface AuthState {
   signUpWithPassword: (email: string, password: string, name?: string) => Promise<{ error?: string }>;
   signInWithPassword: (email: string, password: string) => Promise<string | null>;
   signInWithProvider: (provider: 'apple' | 'google') => Promise<string | null>;
+  signInWithApple: () => Promise<string | null>; // native iOS "Sign in with Apple"
   signOut: () => Promise<void>;
 }
 
@@ -84,6 +86,34 @@ export const useAuth = create<AuthState>((set) => ({
     if (res.type !== 'success' || !res.url) return 'cancelled';
     const { error: exErr } = await supabase.auth.exchangeCodeForSession(res.url);
     return exErr?.message ?? null;
+  },
+
+  signInWithApple: async () => {
+    if (!supabase) return 'offline';
+    try {
+      const cred = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      if (!cred.identityToken) return 'No Apple token returned';
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: cred.identityToken,
+      });
+      if (error) return error.message;
+      // Apple only returns the name on the FIRST authorization — persist it now.
+      const name = `${cred.fullName?.givenName ?? ''} ${cred.fullName?.familyName ?? ''}`.trim();
+      if (name) {
+        try { await supabase.rpc('set_display_name', { p_name: name }); } catch {}
+      }
+      return null;
+    } catch (e) {
+      const err = e as { code?: string; message?: string };
+      if (err?.code === 'ERR_REQUEST_CANCELED') return 'cancelled';
+      return err?.message ?? 'Apple sign-in failed';
+    }
   },
 
   signOut: async () => {
