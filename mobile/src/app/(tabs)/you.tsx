@@ -275,8 +275,6 @@ export default function You() {
         </Section>
 
         <Section title="Privacy & data">
-          <Row label="Export my data" value="coming soon" />
-          <View style={styles.sep} />
           <Row label={busy ? 'Deleting…' : 'Delete account & data'} danger onPress={busy ? undefined : deleteAccount} />
         </Section>
 

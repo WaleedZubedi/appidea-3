@@ -81,7 +81,7 @@ export function GlowNote({
   const reportNote = (note: Note) => {
     Alert.alert(
       'Report this note?',
-      'It will be hidden and flagged for review. You can also unpair to stop receiving notes.',
+      'It will be hidden and flagged for review. You can also mute or leave your co-parent in the You tab.',
       [
         { text: 'Cancel', style: 'cancel' },
         {

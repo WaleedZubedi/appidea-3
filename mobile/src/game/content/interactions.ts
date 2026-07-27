@@ -79,7 +79,9 @@ export const INTERACTIONS: InteractionDef[] = [
 ];
 
 export const CORE_INTERACTIONS = INTERACTIONS.filter((i) => i.isCore);
-export const MORE_INTERACTIONS = INTERACTIONS.filter((i) => !i.isCore);
+// Only surface interactions that actually work. `available:false` ones are
+// hidden until their videos land (no "coming soon" dead buttons for reviewers).
+export const MORE_INTERACTIONS = INTERACTIONS.filter((i) => !i.isCore && i.available);
 
 export function interactionByKey(key: string): InteractionDef | undefined {
   return INTERACTIONS.find((i) => i.key === key);
