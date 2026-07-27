@@ -6,7 +6,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Animated, KeyboardAvoidingView, Modal, Platform, Pressable,
+  ActivityIndicator, Alert, Animated, KeyboardAvoidingView, Modal, Platform, Pressable,
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -53,6 +53,7 @@ export function GlowNote({
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [sendErr, setSendErr] = useState<string | null>(null);
+  const [reported, setReported] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!pairId) { setNotes([]); return; }
@@ -69,11 +70,32 @@ export function GlowNote({
     return () => clearInterval(t);
   }, []);
 
-  // the partner's still-alive note (within the last 6h)
+  // the partner's still-alive note (within the last 6h), unless it's been reported
   const partnerNote = useMemo(
-    () => notes.find((n) => n.author_id !== selfId && now - new Date(n.created_at).getTime() < NOTE_TTL_MS) ?? null,
-    [notes, selfId, now]
+    () => notes.find((n) => n.author_id !== selfId && !reported.has(n.id) && now - new Date(n.created_at).getTime() < NOTE_TTL_MS) ?? null,
+    [notes, selfId, now, reported]
   );
+
+  // Report an objectionable note (Apple UGC 1.2): log it, then hide it. Since a
+  // note is 1:1 between two paired people, reporting also offers to unpair.
+  const reportNote = (note: Note) => {
+    Alert.alert(
+      'Report this note?',
+      'It will be hidden and flagged for review. You can also unpair to stop receiving notes.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Report',
+          style: 'destructive',
+          onPress: () => {
+            track('note_reported', { note_id: note.id });
+            setReported((s) => new Set(s).add(note.id));
+            onClose();
+          },
+        },
+      ]
+    );
+  };
   const unread = !!partnerNote && new Date(partnerNote.created_at).getTime() > (notesReadAt ?? 0);
 
   // my last note → 6h send cooldown
@@ -153,6 +175,9 @@ export function GlowNote({
                 <View style={styles.readCard}>
                   <Text style={styles.readFrom}>{partnerName} · {ago(partnerNote.created_at, now)}</Text>
                   <Text style={styles.readBody}>{partnerNote.body}</Text>
+                  <Pressable onPress={() => reportNote(partnerNote)} hitSlop={8} style={styles.report}>
+                    <Text style={styles.reportTxt}>Report</Text>
+                  </Pressable>
                 </View>
               )}
 
@@ -238,6 +263,8 @@ const styles = StyleSheet.create({
   },
   readFrom: { fontFamily: fonts.sansBold, fontSize: 11, color: ACCENT, marginBottom: 4 },
   readBody: { fontFamily: fonts.sans, fontSize: 15, color: CREAM, lineHeight: 21 },
+  report: { alignSelf: 'flex-end', marginTop: 8, paddingVertical: 2 },
+  reportTxt: { fontFamily: fonts.sansSemibold, fontSize: 11.5, color: DIM, textDecorationLine: 'underline' },
 
   inputWrap: { marginTop: 16 },
   input: {
