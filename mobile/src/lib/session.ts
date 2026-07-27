@@ -108,6 +108,12 @@ export const useAuth = create<AuthState>((set) => ({
       if (name) {
         try { await supabase.rpc('set_display_name', { p_name: name }); } catch {}
       }
+      // Hand the one-time auth code to the server so it can store a refresh token
+      // and revoke it if the user later deletes their account (Guideline 5.1.1(v)).
+      // Best-effort — never block sign-in on it.
+      if (cred.authorizationCode) {
+        try { await supabase.functions.invoke('apple-link', { body: { code: cred.authorizationCode } }); } catch {}
+      }
       return null;
     } catch (e) {
       const err = e as { code?: string; message?: string };

@@ -5,6 +5,8 @@
 // emptied pair). A paired partner keeps the Bixi as a solo unit.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+import { appleRevoke } from '../_shared/apple.ts';
+
 Deno.serve(async (req) => {
   const authHeader = req.headers.get('Authorization') ?? '';
 
@@ -28,6 +30,21 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
+
+  // Revoke the user's Apple token first (Guideline 5.1.1(v)) — best-effort, so a
+  // missing/expired token never blocks the deletion the user asked for. The row
+  // is removed by the on-delete cascade below.
+  try {
+    const { data: row } = await admin
+      .from('apple_tokens')
+      .select('refresh_token')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (row?.refresh_token) await appleRevoke(row.refresh_token);
+  } catch {
+    /* proceed with deletion regardless */
+  }
+
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
