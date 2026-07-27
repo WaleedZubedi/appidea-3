@@ -10,7 +10,7 @@
     "backgroundColor": "#f6f2ea",
     "ios": {
       "bundleIdentifier": "world.bixi.app",
-      "supportsTablet": true,
+      "supportsTablet": false,
       "icon": "./assets/expo.icon",
       "usesAppleSignIn": true,
       "associatedDomains": [
