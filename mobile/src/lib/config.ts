@@ -22,6 +22,10 @@ export const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID ?? '';
  */
 export const DEV_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
 
+/** Show the "Continue with Google" button. Flip to true once the Google
+ * provider + Google Cloud OAuth client are configured. Apple is separate. */
+export const GOOGLE_SIGNIN = false;
+
 /**
  * PostHog analytics. The key is a PUBLIC, write-only project key — safe to ship
  * in the app binary (same class as the Supabase anon key). Override via env if
