@@ -3,585 +3,136 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Bixi — a pet you keep alive together</title>
-  <meta name="description" content="Specimen N°01: Bixi. One pet, two of you. He blooms when you both show up, droops when one drifts, and won't make it without you both. Launching soon." />
-  <meta name="theme-color" content="#faf7f1" />
-  <meta property="og:title" content="Bixi — one pet, two of you" />
-  <meta property="og:description" content="One pet, two phones. Bixi is a little living specimen two people keep alive. Launching soon." />
+  <title>Bixi — a pet you raise together</title>
+  <meta name="description" content="One pet, two phones. Bixi is a little creature you and your person raise together — he blooms when you both show up. Now on the App Store." />
+  <meta name="theme-color" content="#191009" />
+  <meta property="og:title" content="Bixi — a pet you raise together" />
+  <meta property="og:description" content="One pet, two phones. A little creature two people keep alive. Now on the App Store." />
   <meta property="og:type" content="website" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Hanken+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap"
         media="print" onload="this.onload=null;this.media='all'" />
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" /></noscript>
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" /></noscript>
 
   <style>
     :root{
-      --paper:#faf7f1;
-      --tint:#f1ebdf;
-      --card:#ffffff;
-      --ink:#1e1913;
-      --body:#4a4335;
-      --mut:#696055;
-      --rule:#e3dbcb;
-      --clay:#c8502e;
-      --clay-press:#a93f22;
-      --pine:#1f7a54;
-      --amber:#8f6218;
-      --brick:#a83b2a;
-      --sage:#dfede4;
-      --serif:"Fraunces",Georgia,"Times New Roman",serif;
-      --sans:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+      --bg:#191009; --ink:#f6efe3; --body:rgba(246,239,227,.66); --dim:rgba(246,239,227,.42);
+      --line:rgba(246,239,227,.12); --accent:#f0895f; --leaf:#8bc98a;
+      --serif:"Fraunces",Georgia,serif;
+      --sans:"Hanken Grotesk",-apple-system,system-ui,sans-serif;
+      --mono:"IBM Plex Mono",ui-monospace,monospace;
     }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{margin:0;padding:0}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html{scroll-behavior:smooth}
     body{
-      font-family:var(--sans);color:var(--body);background:var(--paper);
+      font-family:var(--sans);color:var(--body);
+      background:radial-gradient(120% 75% at 50% -8%, #231610 0%, #170f08 55%, #0d0704 100%) fixed;
       min-height:100dvh;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
-      overflow-x:hidden;
-    }
-    /* faint warm paper grain — textures the near-white so it reads as stock, not clinical #fff */
-    .grain{
-      position:fixed;inset:0;z-index:0;pointer-events:none;mix-blend-mode:multiply;opacity:.05;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+      display:flex;flex-direction:column;
     }
 
-    .wrap{
-      position:relative;z-index:1;max-width:430px;margin:0 auto;text-align:center;
-      padding:calc(env(safe-area-inset-top) + 18px) 24px calc(env(safe-area-inset-bottom) + 26px);
-    }
+    .top{max-width:960px;width:100%;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+    .word{font-family:var(--serif);font-weight:500;font-size:19px;letter-spacing:-.01em;color:var(--ink);display:flex;align-items:baseline;gap:6px}
+    .word .lf{color:var(--leaf);font-size:13px}
+    .badge{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:6px}
+    .badge .d{width:6px;height:6px;border-radius:50%;background:var(--leaf)}
 
-    .rule{height:1px;background:var(--rule);transform-origin:left;animation:draw .6s cubic-bezier(.2,.6,.2,1) backwards}
-    @keyframes draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+    main{flex:1;display:flex;flex-direction:column;align-items:center;
+      max-width:560px;width:100%;margin:0 auto;padding:6px 24px 26px;text-align:center;gap:18px}
 
-    /* eyebrow / section index */
-    .eyebrow{font-family:var(--mono);font-weight:500;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
-    .eyebrow .n{color:var(--clay-press)}
-
-    /* ---------- masthead ---------- */
-    .mast{display:flex;align-items:center;justify-content:center;gap:11px;padding-bottom:9px}
-    .word{font-family:var(--serif);font-weight:500;font-size:22px;letter-spacing:-.01em;color:var(--ink);display:flex;align-items:baseline;gap:7px}
-    .word .leaf{color:var(--pine);font-size:16px}
-    .status{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
-    .status .sq{width:8px;height:8px;background:var(--clay);animation:breath 2s ease-in-out infinite}
-    @keyframes breath{0%,100%{opacity:1}50%{opacity:.3}}
-
-    /* ---------- headline ---------- */
-    .hero{padding:15px 0 6px}
-    .kick{margin:0 0 16px}
-    h1{
-      font-family:var(--serif);font-weight:400;color:var(--ink);
-      font-size:clamp(30px,8.4vw,38px);line-height:1.06;letter-spacing:-.015em;margin:0;
-    }
-    h1 .em{font-style:italic;font-weight:400}
-    h1 .mark{position:relative;white-space:nowrap}
-    h1 .mark::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:2px;background:var(--clay)}
-    .h-line{display:block;opacity:0;transform:translateY(9px);animation:rise .6s cubic-bezier(.2,.6,.2,1) forwards}
-    .h-line:nth-child(2){animation-delay:.08s}
+    .hero{width:100%;max-width:330px;aspect-ratio:1184/860;border-radius:18px;overflow:hidden;
+      border:1px solid var(--line);box-shadow:0 22px 50px -18px rgba(0,0,0,.7);
+      opacity:0;transform:translateY(10px);animation:rise .7s cubic-bezier(.2,.7,.2,1) .04s forwards}
+    .hero img{width:100%;height:100%;object-fit:cover;display:block}
     @keyframes rise{to{opacity:1;transform:none}}
 
-    /* ---------- specimen plate ---------- */
-    .plate-wrap{margin:26px 0 0}
-    .plate{
-      position:relative;background:#1a1420;cursor:pointer;
-      border:6px solid #271c10;border-radius:5px;aspect-ratio:1184/768;overflow:hidden;
-      box-shadow:inset 0 0 0 2px rgba(250,247,241,.8), 0 12px 28px rgba(30,25,19,.22);
-    }
-    .plate:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
-    /* Bixi's room — base mood clip loops; reactions crossfade on top, then reveal it again */
-    .bxvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#1a1420;opacity:0;transition:opacity .4s ease}
-    .bxvid.show{opacity:1}
-    .bxvid.react{transition:opacity .16s ease}
-    #fallback{position:absolute;inset:0;display:none;place-items:center;pointer-events:none}
-    #fallback svg{width:min(40vw,150px)}
-    .spin-hint{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:rgba(18,13,8,.66);padding:5px 12px;border-radius:999px;white-space:nowrap;pointer-events:none}
-    /* Bixi's line — same pill style, sits just above the tap hint */
-    .say{position:absolute;bottom:38px;left:50%;transform:translateX(-50%);display:none;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:rgba(18,13,8,.7);padding:5px 12px;border-radius:999px;max-width:90%;white-space:nowrap;text-align:center;pointer-events:none}
-    .figcap{
-      display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
-      font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);
-      padding:9px 1px 0;
-    }
-    .figcap .state{font-weight:500}
-    .figcap .state.s2{color:var(--pine)}.figcap .state.s1{color:var(--amber)}.figcap .state.s0{color:var(--mut)}
-    @media (max-width:415px){.figcap{flex-direction:column;align-items:center;gap:3px}}
+    .copy{display:flex;flex-direction:column;align-items:center;gap:11px;
+      opacity:0;transform:translateY(10px);animation:rise .7s cubic-bezier(.2,.7,.2,1) .16s forwards}
+    h1{font-family:var(--serif);font-weight:400;color:var(--ink);
+      font-size:clamp(26px,6.6vw,34px);line-height:1.08;letter-spacing:-.02em;text-wrap:balance;max-width:16ch}
+    h1 em{font-style:italic;color:var(--leaf)}
+    .lede{font-size:14.5px;line-height:1.55;color:var(--body);max-width:34ch}
 
-    /* ---------- note card (Bixi speaks) ---------- */
-    .note{position:relative;margin:22px 0 0;background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:14px 15px}
-    .note::before{content:"";position:absolute;top:-7px;left:50%;margin-left:-6px;width:12px;height:12px;background:var(--card);border-left:1px solid var(--rule);border-top:1px solid var(--rule);transform:rotate(45deg)}
-    .note .by{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--clay-press);display:block;margin-bottom:4px}
-    .note p{margin:0;font-family:var(--serif);font-style:italic;font-weight:500;font-size:16.5px;line-height:1.42;color:var(--ink)}
-    .note p.speak{animation:speak .32s ease}
-    @keyframes speak{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    .cta{display:inline-flex;align-items:center;gap:11px;text-decoration:none;margin-top:3px;
+      background:var(--ink);color:#1a120a;border-radius:13px;padding:12px 22px;
+      box-shadow:0 14px 30px -12px rgba(246,239,227,.35);transition:transform .14s,box-shadow .14s}
+    .cta svg{width:19px;height:23px;fill:#1a120a;display:block}
+    .cta .t{text-align:left;line-height:1.1}
+    .cta .t small{display:block;font-size:9px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;opacity:.55}
+    .cta .t b{font-size:16px;font-weight:700}
+    .cta:hover{transform:translateY(-2px);box-shadow:0 20px 40px -12px rgba(246,239,227,.42)}
+    .cta:active{transform:translateY(0)}
+    .cta:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 
-    .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:12px 0 0}
-    .chip{
-      font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink);
-      background:transparent;border:1px solid rgba(30,25,19,.28);border-radius:5px;
-      padding:6px 12px 7px;cursor:pointer;transition:background .16s,color .16s,border-color .16s;
-    }
-    .chip::before{content:"→ ";font-style:normal;color:var(--clay-press)}
-    .chip:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-    .chip:hover::before{color:var(--paper)}
-    .chip:active{transform:translateY(1px)}
-    .chip:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
+    .beats{display:flex;align-items:center;gap:11px;flex-wrap:wrap;justify-content:center;
+      font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);margin-top:1px}
+    .beats .dot{width:3px;height:3px;border-radius:50%;background:var(--dim)}
 
-    /* ---------- care log ---------- */
-    .log{margin:24px 0 0}
-    .loghead{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-    .loghead .rule{flex:1}
-    .toggles{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-    .toggle{
-      position:relative;text-align:center;background:var(--card);border:1px solid var(--rule);border-radius:6px;
-      padding:11px 10px 9px;cursor:pointer;font-family:var(--sans);transition:box-shadow .13s,transform .13s,border-color .3s;
-    }
-    .toggle .who{display:block;font-weight:700;font-size:12px;color:var(--ink);letter-spacing:.01em}
-    .toggle .heart{display:block;margin:0 auto 4px;width:14px;height:14px;color:var(--pine)}
-    .toggle .st{display:block;margin-top:5px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
-    /* care actions — a tagline + arrow points at the Water/Feed buttons so it's obvious they're tappable */
-    .acthint{display:flex;align-items:center;justify-content:center;gap:7px;margin:0 0 9px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--clay-press)}
-    .acthint svg{width:17px;height:20px}
-    .acthint svg path{fill:none;stroke:var(--clay-press);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-    .acts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-    .act{background:var(--card);border:1.5px solid var(--clay-press);border-radius:6px;padding:12px 8px;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12.5px;letter-spacing:.03em;color:var(--clay-press);box-shadow:3px 3px 0 var(--ink);transition:transform .1s,box-shadow .1s}
-    .act:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
-    .act.react{animation:actpop .4s ease}
-    @keyframes actpop{0%,100%{transform:translate(0,0);box-shadow:3px 3px 0 var(--ink)}45%{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}}
-    .act:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
-    .toggle.on{border-color:var(--clay);border-width:1.5px;box-shadow:4px 4px 0 var(--ink);transform:translate(-1px,-1px)}
-    .toggle.on .st{color:var(--pine)}
-    .toggle.off{box-shadow:none;border-color:var(--rule);background:
-      repeating-linear-gradient(45deg,transparent,transparent 7px,rgba(30,25,19,.035) 7px,rgba(30,25,19,.035) 8px),var(--card)}
-    .toggle.off .heart{color:var(--mut)}
-    .toggle:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
-    .vitals{display:flex;flex-direction:column;align-items:center;gap:8px;margin:16px 0 0}
-    .vitals .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
-    .meter{display:flex;gap:4px;width:100%;max-width:240px}
-    .seg{height:5px;flex:1;background:var(--rule);border-radius:1px;transition:background .4s}
-    .seg.f2{background:var(--pine)}.seg.f1{background:var(--amber)}.seg.f0{background:var(--clay)}
+    /* how it works — the little bit more, kept compact */
+    .steps{width:100%;max-width:440px;margin:8px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .step{background:rgba(246,239,227,.04);border:1px solid var(--line);border-radius:14px;padding:14px 9px 12px;display:flex;flex-direction:column;align-items:center;gap:7px}
+    .step .n{width:24px;height:24px;border-radius:50%;border:1px solid rgba(240,137,95,.5);color:var(--accent);
+      font-family:var(--mono);font-size:11px;display:flex;align-items:center;justify-content:center}
+    .step .s{font-size:12px;line-height:1.35;color:var(--body)}
+    .step .s b{color:var(--ink);font-weight:600;display:block;font-size:12.5px}
 
-    .revive{
-      display:none;margin:14px 0 0;font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
-      background:var(--card);color:var(--clay);border:1px solid var(--clay);border-radius:6px;padding:11px 18px;cursor:pointer;
-      transition:background .16s,color .16s;
-    }
-    .revive.show{display:inline-block}
-    .revive:hover{background:var(--clay-press);color:var(--paper)}
-    .revive:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
+    footer{max-width:960px;width:100%;margin:0 auto;padding:16px 24px calc(env(safe-area-inset-bottom) + 20px);
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);
+      font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+    footer a{color:var(--dim);text-decoration:none}
+    footer a:hover{color:var(--body)}
+    footer .links{display:flex;gap:14px}
 
-    /* ---------- standfirst ---------- */
-    .stand{margin:34px auto 0;font-size:15.5px;line-height:1.55;color:var(--body);max-width:38ch}
-    .stand b{color:var(--ink);font-weight:700}
-
-    /* ---------- coupon / signup ---------- */
-    .coupon{
-      position:relative;margin:34px -24px 0;padding:28px 24px 26px;background:var(--tint);
-      border-top:2px dashed var(--rule);
-    }
-    .couptag{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:0 0 20px}
-    /* specimen-intake card: a real, raised object holding the fields */
-    .entry{background:var(--card);border:1px solid var(--ink);border-radius:13px;padding:18px 16px 20px;box-shadow:4px 4px 0 var(--ink);margin-bottom:20px;text-align:center}
-    .flab{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);margin:0 0 7px}
-    .flab .opt{color:var(--mut)}
-    .field{background:var(--paper);border:1.5px solid var(--rule);border-radius:9px;transition:border-color .15s,box-shadow .15s,transform .15s}
-    .field:focus-within{border-color:var(--clay);box-shadow:3px 3px 0 var(--clay-press);transform:translate(-1px,-1px)}
-    input[type=email]{width:100%;border:0;background:transparent;color:var(--ink);font-family:var(--sans);font-weight:600;font-size:16px;padding:13px 14px;outline:none;text-align:center}
-    input::placeholder{color:var(--mut);font-weight:500}
-    /* little clay heart joining the two of you */
-    .join{display:flex;align-items:center;gap:10px;margin:14px 6px}
-    .join::before,.join::after{content:"";height:1px;flex:1;background:var(--rule)}
-    .jheart{color:var(--clay);font-size:12px;line-height:1}
-    .cta{
-      display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:22px 0 0;
-      border:0;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
-      color:var(--paper);background:var(--clay-press);border-radius:7px;height:52px;
-      box-shadow:4px 4px 0 var(--ink);transition:box-shadow .12s,transform .12s;
-    }
-    .cta .arw{transition:transform .12s}
-    .cta:hover{box-shadow:3px 3px 0 var(--ink);transform:translate(1px,1px)}
-    .cta:hover .arw{transform:translateX(2px)}
-    .cta:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
-    .cta:focus-visible{outline:2px solid var(--clay);outline-offset:3px}
-    .cta:disabled{background:#d8cfc0;color:#8a8072;box-shadow:none;cursor:default;transform:none}
-    .hintline{margin:12px 0 0;font-size:12.5px;color:var(--mut);min-height:16px}
-    .hintline.ok{color:var(--pine)}
-    .hintline.err{color:var(--brick)}
-
-    /* download-intent CTA */
-    .dlwrap{margin:30px 0 0;text-align:center}
-    .dl{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;cursor:pointer;
-      font-family:var(--sans);font-weight:700;font-size:15px;letter-spacing:.02em;color:var(--paper);
-      background:var(--clay-press);border-radius:9px;padding:15px 28px;box-shadow:4px 4px 0 var(--ink);
-      transition:transform .12s,box-shadow .12s}
-    .dl .dlic{width:20px;height:20px}
-    .dl:hover{box-shadow:3px 3px 0 var(--ink);transform:translate(1px,1px)}
-    .dl:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
-    .dl:focus-visible{outline:2px solid var(--clay);outline-offset:3px}
-    .dlnote{margin:11px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
-
-    .done{display:none;margin:22px 0 0;padding:20px;background:var(--card);border:1px solid var(--clay)}
-    .done:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
-    .done .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--clay-press);display:block;margin-bottom:6px}
-    .done h2{margin:0 0 6px;font-family:var(--serif);font-weight:500;font-size:22px;color:var(--ink)}
-    .done p{margin:0;font-size:14px;line-height:1.5;color:var(--body)}
-
-    /* ---------- colophon ---------- */
-    footer{margin:30px 0 0;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);line-height:1.9}
-
-    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-
-    @media (prefers-reduced-motion:reduce){
-      .rule,.h-line,.status .sq,.cta,.cta .arw,.act.react{animation:none}
-      .h-line{opacity:1;transform:none}.rule{transform:none}
-    }
+    @media (prefers-reduced-motion:reduce){.hero,.copy{animation:none;opacity:1;transform:none}}
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <header class="top">
+    <div class="word"><span class="lf" aria-hidden="true">❦</span> Bixi</div>
+    <div class="badge"><span class="d" aria-hidden="true"></span> Now on iOS</div>
+  </header>
 
-    <!-- masthead -->
-    <div class="mast">
-      <div class="word"><span class="leaf" aria-hidden="true">❦</span> Bixi</div>
-      <div class="status"><span class="sq" aria-hidden="true"></span> Launching soon</div>
-    </div>
-    <div class="rule"></div>
-
-    <!-- headline -->
-    <section class="hero">
-      <p class="kick eyebrow"><span class="n">Specimen Nº01</span> · Raised by two</p>
-      <h1>
-        <span class="h-line">One pet. Two of you.</span>
-        <span class="h-line">Keep <span class="mark">Bixi</span> alive, <span class="em">together.</span></span>
-      </h1>
-    </section>
-
-    <!-- specimen plate -->
-    <section class="plate-wrap" aria-label="Bixi in his room — tap to pet him">
-      <div class="plate" id="plate">
-        <video id="baseIdle" class="bxvid base show" src="videos/idle.mp4" poster="videos/poster.jpg" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
-        <video id="baseDrift" class="bxvid base" src="videos/drift.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
-        <video id="baseDormant" class="bxvid base" src="videos/dormant.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
-        <video id="vReact" class="bxvid react" muted playsinline preload="none" aria-hidden="true"></video>
-        <span class="say" id="bxsay" aria-hidden="true"></span>
-        <span class="spin-hint" id="spinHint" aria-hidden="true">tap Bixi to pet him</span>
-        <div id="fallback" aria-hidden="true">
-          <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
-            <line x1="100" y1="34" x2="100" y2="56" stroke="#1f7a54" stroke-width="5" stroke-linecap="round"/>
-            <path d="M100 40 C100 22 116 14 128 18 C126 34 114 44 100 44 Z" fill="#1f7a54" opacity=".8"/>
-            <rect x="46" y="52" width="108" height="92" rx="34" fill="#6fe0c6"/>
-            <rect x="52" y="132" width="96" height="74" rx="30" fill="#6fe0c6"/>
-            <circle cx="72" cy="96" r="7" fill="#1e1913"/><circle cx="112" cy="96" r="7" fill="#1e1913"/>
-            <path d="M82 112 Q92 121 102 112" fill="none" stroke="#1e1913" stroke-width="4" stroke-linecap="round"/>
-          </svg>
-        </div>
-      </div>
-      <div class="figcap">
-        <span>Fig.01 — Bixi <span style="text-transform:none">(Cubus bixii)</span></span>
-        <span>Day 001 · <span class="state s2" id="figState" role="status">Thriving</span></span>
-      </div>
-    </section>
-
-    <!-- care log -->
-    <section class="log">
-      <div class="acthint">Interact with Bixi
-        <svg viewBox="0 0 20 22" aria-hidden="true"><path d="M10 2 C 6 8, 14 11, 10 19"/><path d="M10 19 l -4 -4 M10 19 l 4 -4"/></svg>
-      </div>
-      <div class="toggles">
-        <button class="toggle on" id="tgYou" type="button" aria-pressed="true">
-          <svg class="heart" viewBox="0 0 24 24" aria-hidden="true" id="hYou"><path fill="currentColor" d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
-          <span class="who">You</span>
-          <span class="st" id="capYou">Present</span>
-        </button>
-        <button class="toggle on" id="tgThem" type="button" aria-pressed="true">
-          <svg class="heart" viewBox="0 0 24 24" aria-hidden="true" id="hThem"><path fill="currentColor" d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2 5 5.3 5c2 0 3.4 1.2 4.2 2.3C10.3 6.2 11.7 5 13.7 5 17 5 18.6 8.6 17 11.7 14.5 16.1 12 21 12 21z"/></svg>
-          <span class="who">Your person</span>
-          <span class="st" id="capThem">Present</span>
-        </button>
-      </div>
-      <div class="acts">
-        <button class="act" id="btnWater" type="button">Water</button>
-        <button class="act" id="btnFeed" type="button">Feed</button>
-      </div>
-      <button class="revive" id="revive" type="button">↺ Revive Bixi</button>
-    </section>
-
-    <!-- download CTA — records the intent click, then routes to the email capture -->
-    <div class="dlwrap">
-      <button id="downloadBtn" class="dl" type="button">
-        <svg class="dlic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0l-4-4m4 4l4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Download the app
-      </button>
+  <main>
+    <div class="hero">
+      <img src="videos/poster.jpg" alt="Bixi, a small green creature, at home in his cozy room" />
     </div>
 
-    <!-- coupon -->
-    <section class="coupon">
-      <p class="eyebrow" style="margin:0 0 5px"><span class="n">03</span> · Reserve your specimen</p>
-      <p class="couptag">Two seats · one Bixi · no spam ever</p>
-      <form id="signup" novalidate>
-        <div class="entry">
-          <label class="flab" for="email">Your email</label>
-          <div class="field">
-            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" aria-label="Your email" aria-describedby="hintline" required />
-          </div>
-          <div class="join" aria-hidden="true"><span class="jheart">♥</span></div>
-          <label class="flab" for="partnerEmail">Your person <span class="opt">· optional</span></label>
-          <div class="field">
-            <input id="partnerEmail" name="partner_email" type="email" inputmode="email" autocomplete="email" placeholder="them@email.com" aria-label="Your person's email (optional)" aria-describedby="hintline" />
-          </div>
-        </div>
-        <button id="submit" class="cta" type="submit">Reserve our spot <span class="arw" aria-hidden="true">→</span></button>
-        <div class="hintline" id="hintline" role="status">One field note each when he hatches. No spam.</div>
-      </form>
-      <div class="done" id="done" role="status" tabindex="-1">
-        <span class="tag">Entry logged</span>
-        <h2>You're on the list.</h2>
-        <p id="doneMsg">We'll write the moment Bixi is ready to hatch. It takes two. 💚</p>
+    <div class="copy">
+      <h1>A pet you raise <em>together.</em></h1>
+      <p class="lede">One creature, two phones. Bixi blooms when you both show up — and misses you when you don't.</p>
+
+      <a class="cta" id="dl" href="https://apps.apple.com/us/search?term=bixi" target="_blank" rel="noopener">
+        <svg viewBox="0 0 384 512" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+        <span class="t"><small>Download on the</small><b>App Store</b></span>
+      </a>
+
+      <div class="beats">
+        <span>Feed &amp; water</span><span class="dot" aria-hidden="true"></span>
+        <span>Keep a streak</span><span class="dot" aria-hidden="true"></span>
+        <span>Leave notes</span>
       </div>
-    </section>
+    </div>
 
-    <footer>
-      Bixi · A specimen you keep alive together<br>
-      Est. MMXXVI · Made for two<br>
-      <a href="/privacy.html" style="color:var(--mut)">Privacy Policy</a> · <a href="/terms.html" style="color:var(--mut)">Terms of Service</a>
-    </footer>
-  </div>
-  <div class="grain" aria-hidden="true"></div>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><span class="s"><b>Adopt Bixi</b>a tiny egg to hatch</span></div>
+      <div class="step"><span class="n">2</span><span class="s"><b>Invite your person</b>one link, they join</span></div>
+      <div class="step"><span class="n">3</span><span class="s"><b>Show up daily</b>keep him alive, together</span></div>
+    </div>
+  </main>
 
+  <footer>
+    <span>Bixi · Made for two · MMXXVI</span>
+    <span class="links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></span>
+  </footer>
 
-
-  <!-- ============ classic: personality + care log + form ============ -->
   <script>
-    (function(){
-      "use strict";
-      /* care log */
-      var care = { you:true, them:true };
-      var tgYou = document.getElementById('tgYou'), tgThem = document.getElementById('tgThem');
-      var figState = document.getElementById('figState');
-      var revive = document.getElementById('revive');
-      var meter = document.getElementById('meter');
-      var segs = meter ? meter.children : [];
-
-      var FIG = { 2:{t:"Thriving",c:"s2"}, 1:{t:"Drifting",c:"s1"}, 0:{t:"Dormant",c:"s0"} };
-
-      function applyMood(){
-        var lvl = (care.you?1:0) + (care.them?1:0);
-        figState.textContent = FIG[lvl].t; figState.className = "state " + FIG[lvl].c;
-        for (var i=0;i<segs.length;i++){ segs[i].className = "seg" + (i <= lvl ? " f"+lvl : ""); }
-
-        [ [tgYou,'you','capYou'], [tgThem,'them','capThem'] ].forEach(function(row){
-          var btn = row[0], on = care[row[1]];
-          btn.classList.toggle('on', on); btn.classList.toggle('off', !on);
-          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-          document.getElementById(row[2]).textContent = on ? 'Present' : 'Drifted';
-        });
-
-        revive.classList.toggle('show', lvl === 0);
-        document.body.classList.toggle('dormant', lvl === 0);
-
-        window.__moodLvl = lvl; window.__care = { you:care.you, them:care.them };
-        if (window.__setMood) window.__setMood(lvl, care.you, care.them);
-        if (navigator.vibrate){ try{ navigator.vibrate(8); }catch(e){} }
-      }
-      tgYou.addEventListener('click', function(){ care.you = !care.you; applyMood(); });
-      tgThem.addEventListener('click', function(){ care.them = !care.them; applyMood(); });
-      revive.addEventListener('click', function(){ care.you = true; care.them = true; applyMood(); if (navigator.vibrate){ try{ navigator.vibrate([10,40,10]); }catch(e){} } });
-
-      // care actions — feeding & watering cheer Bixi back up: he returns to thriving,
-      // so a drift/dormant loop never resumes after the feed/water clip finishes
-      function careAction(kind, btn){
-        if (btn){ btn.classList.remove('react'); void btn.offsetWidth; btn.classList.add('react'); }
-        if (!care.you || !care.them){                // a parent's away — he won't eat or drink
-          if (window.__annoyed) window.__annoyed();
-          return;
-        }
-        var play = window['__' + kind];              // __feed / __water — play the clip
-        if (play) play();
-        if (navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} }
-      }
-      var bWater = document.getElementById('btnWater'), bFeed = document.getElementById('btnFeed');
-      if (bWater) bWater.addEventListener('click', function(){ careAction('water', bWater); });
-      if (bFeed)  bFeed.addEventListener('click',  function(){ careAction('feed',  bFeed); });
-
-      /* 3D fallback */
-      setTimeout(function(){ if (!window.__petReady){ document.getElementById('fallback').style.display='grid'; var h=document.getElementById('spinHint'); if(h) h.style.display='none'; } }, 2500);
-
-      /* ---------- signup (Supabase) ---------- */
-      var form = document.getElementById('signup'), email = document.getElementById('email'),
-          partner = document.getElementById('partnerEmail'), hint = document.getElementById('hintline'),
-          done = document.getElementById('done'), doneMsg = document.getElementById('doneMsg'), submit = document.getElementById('submit');
-      var HINT_DEFAULT = hint.textContent, STORE = 'sprout_signups';
-      var SUPABASE_URL = 'https://ihqhofeubfqphzegiapl.supabase.co';
-      var SUPABASE_KEY = 'sb_publishable_2m3FJc_AuXV0_p1V-XrzMA_B2OMMrJi';
-      var LIVE = SUPABASE_URL.indexOf('YOUR-PROJECT-REF') === -1;
-
-      function valid(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
-      function saveLocal(rec){
-        var list = [];
-        try { list = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch(e){}
-        if (!Array.isArray(list)) list = [];
-        list = list.filter(function(r){ return !r || r.you !== rec.you; });
-        list.push(rec);
-        try { localStorage.setItem(STORE, JSON.stringify(list)); } catch(e){}
-        return list.length;
-      }
-      function setHint(txt, cls){ hint.textContent = txt; hint.className = 'hintline' + (cls ? ' ' + cls : ''); }
-      function fail(field, msg){ setHint(msg, 'err'); field.setAttribute('aria-invalid','true'); field.focus(); }
-      function showDone(withPartner){
-        doneMsg.innerHTML = withPartner
-          ? "We'll write you both the moment Bixi is ready to hatch. It takes two. 💚"
-          : "We'll write the moment Bixi is ready to hatch. Bring your person — it takes two. 💚";
-        form.style.display = 'none'; done.style.display = 'block'; done.focus();
-        try { if (window.va) window.va('event', { name: 'waitlist_signup' }); } catch(e){}
-        if (window.__celebrate) window.__celebrate();
-        if (navigator.vibrate){ try{ navigator.vibrate([12,60,12]); }catch(e){} }
-      }
-      form.addEventListener('submit', function(e){
-        e.preventDefault();
-        var you = email.value.trim(), them = partner.value.trim();
-        if (!valid(you))          return fail(email, 'Hmm, your email looks off — mind checking it?');
-        if (them && !valid(them)) return fail(partner, "Your person's email looks off — mind checking it?");
-        if (them && them.toLowerCase() === you.toLowerCase())
-                                  return fail(partner, "That's your own email again — add your person's, or leave it blank.");
-        saveLocal({ you:you, partner:them || null, at:new Date().toISOString() });
-        var withPartner = !!them;
-        if (LIVE){
-          submit.disabled = true; setHint(withPartner ? 'Logging both entries…' : 'Logging your entry…');
-          fetch(SUPABASE_URL + '/rest/v1/waitlist', {
-            method:'POST', headers:{ 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json', 'Prefer':'return=minimal' },
-            body: JSON.stringify({ you_email:you, partner_email:them || null })
-          }).then(function(r){ if (r.ok || r.status === 409) return showDone(withPartner); throw new Error('HTTP ' + r.status); })
-            .catch(function(err){ console.warn('Bixi signup failed, saved to this device only:', err); submit.disabled = false; setHint("Couldn't reach our log — your spot is saved on this device. Try again in a moment to be sure.", 'err'); });
-        } else { showDone(withPartner); }
-      });
-      function clearErr(){ email.removeAttribute('aria-invalid'); partner.removeAttribute('aria-invalid'); if (hint.classList.contains('err')) setHint(HINT_DEFAULT); }
-      email.addEventListener('input', clearErr); partner.addEventListener('input', clearErr);
-
-      /* ---------- download-intent CTA: record the click, then ask for their email ---------- */
-      var downloadBtn = document.getElementById('downloadBtn');
-      if (downloadBtn){
-        downloadBtn.addEventListener('click', function(){
-          // record the intent — shows up in Vercel Analytics → Events as "download_app_click" (Pro plans)
-          try { if (window.va) window.va('event', { name: 'download_app_click' }); } catch(e){}
-          try { localStorage.setItem('dl_clicks', String((parseInt(localStorage.getItem('dl_clicks') || '0', 10) || 0) + 1)); } catch(e){}
-          // log every click to Supabase so you own the raw data (each click + timestamp) — needs the download_clicks table
-          if (LIVE){ try {
-            fetch(SUPABASE_URL + '/rest/v1/download_clicks', {
-              method:'POST',
-              headers:{ 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json', 'Prefer':'return=minimal' },
-              body: JSON.stringify({ path: location.pathname, referrer: document.referrer || null, user_agent: navigator.userAgent })
-            }).catch(function(){});
-          } catch(e){} }
-          if (navigator.vibrate){ try{ navigator.vibrate(12); }catch(e){} }
-          // the app isn't live yet → send them to the email capture
-          if (form && form.style.display !== 'none') setHint("The app isn't live yet — leave your email and we'll send your download link on launch day. 💚");
-          var target = document.getElementById('signup') || document.querySelector('.coupon');
-          if (target) target.scrollIntoView({ behavior:'smooth', block:'center' });
-          setTimeout(function(){ try{ email.focus({ preventScroll:true }); }catch(e){ try{ email.focus(); }catch(_){} } }, 480);
-        });
-      }
-    })();
+    window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};
+    var dl=document.getElementById('dl');
+    if(dl) dl.addEventListener('click',function(){ try{ if(window.va) window.va('event',{name:'download_app_click'}); }catch(e){} });
   </script>
-
-  <!-- Vercel Web Analytics (page views) — static-site snippet; script is served by Vercel when Analytics is enabled -->
-  <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
   <script defer src="/_vercel/insights/script.js"></script>
-
-  <!-- ============ 3D Bixi (specimen on paper) ============ -->
-  <script>
-    (function(){
-      "use strict";
-      var plate = document.getElementById('plate');
-      var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      var bases  = { 2:document.getElementById('baseIdle'), 1:document.getElementById('baseDrift'), 0:document.getElementById('baseDormant') };
-      var vReact = document.getElementById('vReact');
-      var REACT  = { tap:'videos/tap.mp4', feed:'videos/feed.mp4', water:'videos/water.mp4', revive:'videos/revive.mp4' };
-      var curBase = 2;
-      function playSafe(v){ try{ var p=v.play(); if (p && p.catch) p.catch(function(){}); }catch(e){} }
-
-      /* ---- base mood loop: idle (2) / drift (1) / dormant (0) ---- */
-      function showBase(lvl){
-        if (lvl===curBase || !bases[lvl]) return;
-        var prev = bases[curBase]; curBase = lvl; var next = bases[lvl];
-        try{ next.currentTime = 0; }catch(e){}
-        var reveal = function(){
-          if (curBase!==lvl) return;                 // superseded by a newer toggle
-          next.classList.add('show'); prev.classList.remove('show');
-          setTimeout(function(){ if (prev!==bases[curBase]){ try{ prev.pause(); }catch(e){} } }, 480);
-        };
-        if (reduceMotion){ reveal(); return; }
-        if (next.readyState >= 2){ playSafe(next); reveal(); }
-        else {
-          var on = function(){ next.removeEventListener('canplay', on); playSafe(next); reveal(); };
-          next.addEventListener('canplay', on); playSafe(next);   // triggers the load
-        }
-      }
-
-      /* ---- one-shot reactions (any new action overrides the one that's playing) ---- */
-      var reactGen = 0;
-      function hideReact(){ vReact.classList.remove('show'); try{ vReact.pause(); }catch(e){} }
-      function playReaction(name){
-        if (reduceMotion) return;
-        var gen = ++reactGen;                        // newest wins — later callbacks bail out
-        var src = REACT[name] || REACT.tap;
-        if (!vReact.src || vReact.src.indexOf(src)===-1) vReact.src = src;
-        try{ vReact.currentTime = 0; }catch(e){}
-        var p = vReact.play();
-        if (p && p.then) p.then(function(){ if (gen===reactGen) vReact.classList.add('show'); })
-                          .catch(function(){ if (gen===reactGen) hideReact(); });
-        else vReact.classList.add('show');
-      }
-      vReact.addEventListener('ended', function(){ reactGen++; hideReact(); });
-
-      // Bixi's line above the tap-hint (same pill style)
-      var say = document.getElementById('bxsay');
-      var MISS = { 1:"I miss my other parent…", 0:"I miss both my parents…" };
-      var ANNOYED = ["not now…", "please… I just want them back", "leave me be…"];
-      var annoyN = 0, sayTimer = null;
-      function setSay(txt){ if (!say) return; if (txt){ say.textContent = txt; say.style.display = 'block'; } else { say.style.display = 'none'; } }
-      function moodSay(){ setSay(curBase===2 ? '' : (MISS[curBase] || '')); }        // hidden when thriving
-      function annoyed(){ setSay(ANNOYED[annoyN % ANNOYED.length]); annoyN++; if (navigator.vibrate){ try{ navigator.vibrate(24); }catch(e){} } clearTimeout(sayTimer); sayTimer = setTimeout(moodSay, 2400); }
-      window.__annoyed = annoyed;                    // care-log buttons use this to refuse when he's sad
-
-      // tap Bixi — you can only pet him when he's thriving; otherwise he's too sad and gets annoyed
-      function petOrAnnoy(){ if (curBase===2){ playReaction('tap'); if (navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} } } else annoyed(); }
-      plate.addEventListener('click', petOrAnnoy);
-      plate.tabIndex = 0; plate.setAttribute('role','button'); plate.setAttribute('aria-label','Pet Bixi');
-      plate.addEventListener('keydown', function(e){ if (e.key==='Enter' || e.key===' '){ e.preventDefault(); petOrAnnoy(); } });
-
-      // (the snack / mug hotspots are wired by the care-log script so they also lift his mood)
-
-      // hooks the care buttons + mood system call
-      window.__pet   = function(){ playReaction('tap'); };
-      window.__feed  = function(){ playReaction('feed'); };
-      window.__water = function(){ playReaction('water'); };
-      window.__celebrate = function(){ playReaction('tap'); };                        // signup: a happy bounce
-      window.__onBoop = function(){};
-      window.__setMood = function(lvl){ var prev=curBase; reactGen++; hideReact(); showBase(lvl); if (lvl===2 && prev<2) playReaction('revive'); moodSay(); };
-      if (typeof window.__moodLvl === 'number') showBase(window.__moodLvl);
-      moodSay();
-
-      // ready once the idle clip can play -> hide the SVG fallback + restore the hint + warm the others
-      function ready(){
-        window.__petReady = true;
-        var fb = document.getElementById('fallback'); if (fb) fb.style.display = 'none';
-        var sh = document.getElementById('spinHint'); if (sh) sh.style.display = '';
-        [bases[1], bases[0]].forEach(function(v){ if (v){ v.preload='auto'; try{ v.load(); }catch(e){} } });
-      }
-      if (bases[2].readyState >= 2) ready();
-      bases[2].addEventListener('loadeddata', ready);
-      bases[2].addEventListener('canplay', ready);
-      bases[2].addEventListener('error', function(){ /* leave the SVG fallback visible */ });
-
-      // start the idle loop (or hold a still frame under reduced-motion)
-      if (reduceMotion){ for (var k in bases){ bases[k].removeAttribute('autoplay'); bases[k].removeAttribute('loop'); } bases[2].addEventListener('loadeddata', function(){ try{ bases[2].pause(); }catch(e){} }); }
-      else playSafe(bases[2]);
-    })();
-  </script>
-  <!-- watermark added by Claude to confirm edit + deploy access -->
-  <div style="position:fixed;bottom:14px;right:14px;z-index:999999;font:600 12px/1 system-ui,-apple-system,sans-serif;color:#fff;background:rgba(20,12,6,.72);border:1px solid rgba(255,255,255,.25);padding:8px 12px;border-radius:9px;letter-spacing:.3px;backdrop-filter:blur(4px);pointer-events:none;">✏️ edited by Claude</div>
 </body>
 </html>
