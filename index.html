@@ -73,6 +73,22 @@
 
     .iabhint{display:none;max-width:30ch;margin:2px auto 0;font-size:12px;line-height:1.5;color:var(--accent)}
     .iabhint b{font-weight:700}
+    body.iab .iabhint{display:block}
+
+    /* in-app browser: bouncing arrow pointing at the ⋯ menu (top-right) */
+    .dotcue{position:fixed;top:6px;right:14px;z-index:9999;display:none;flex-direction:column;align-items:flex-end;gap:5px;pointer-events:none}
+    body.iab .dotcue{display:flex}
+    .dotcue .arw{font-size:34px;line-height:1;color:var(--accent);animation:bob 1.05s ease-in-out infinite;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+    .dotcue .pill{background:var(--accent);color:#1a120a;font-family:var(--sans);font-weight:700;font-size:11.5px;letter-spacing:.01em;
+      padding:7px 12px;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.45);max-width:190px;text-align:right;line-height:1.35}
+    @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+    /* landed back in a real browser (via #install): nudge them to tap Download */
+    .returnCta{display:none;margin:0 0 3px;background:rgba(139,201,138,.12);border:1px solid rgba(139,201,138,.5);
+      border-radius:12px;padding:11px 16px;font-size:13.5px;font-weight:600;color:var(--leaf)}
+    .returnCta.show{display:block;animation:rise .5s ease}
+    .cta.pulse{animation:ctapulse 1.3s ease-in-out 3}
+    @keyframes ctapulse{0%,100%{box-shadow:0 14px 30px -12px rgba(246,239,227,.35)}50%{box-shadow:0 0 0 4px rgba(139,201,138,.55),0 14px 30px -12px rgba(246,239,227,.35)}}
 
     /* how it works — the little bit more, kept compact */
     .steps{width:100%;max-width:440px;margin:8px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -93,6 +109,11 @@
   </style>
 </head>
 <body>
+  <div class="dotcue" aria-hidden="true">
+    <span class="arw">↑</span>
+    <span class="pill">Tap ⋯ up here, then "Open in browser"</span>
+  </div>
+
   <header class="top">
     <div class="word"><span class="lf" aria-hidden="true">❦</span> Bixi</div>
     <div class="badge"><span class="d" aria-hidden="true"></span> Now on iOS</div>
@@ -106,6 +127,8 @@
     <div class="copy">
       <h1>A pet you raise <em>together.</em></h1>
       <p class="lede">One creature, two phones. Bixi blooms when you both show up — and misses you when you don't.</p>
+
+      <div class="returnCta" id="returnCta">✓ You're in your browser now — tap Download below to install ↓</div>
 
       <a class="cta" id="dl" href="https://apps.apple.com/app/bixi-raise-a-pet-together/id6795158782" rel="noopener">
         <svg viewBox="0 0 384 512" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
@@ -139,10 +162,21 @@
     var dl=document.getElementById('dl');
     // in-app browsers (TikTok, Instagram, Snapchat, FB…) block the App Store hand-off
     var IAB=/TikTok|musical_ly|Bytedance|Instagram|FBAN|FBAV|FB_IAB|Snapchat|Line\/|Pinterest/i.test(navigator.userAgent||'');
-    if(IAB){ var h=document.getElementById('iabhint'); if(h) h.style.display='block'; }
+
+    if(IAB){
+      document.body.classList.add('iab');
+      // tag the URL so when they "Open in browser" the fresh page knows to nudge them
+      try{ if(location.hash!=='#install') history.replaceState(null,'',location.pathname+location.search+'#install'); }catch(_){}
+    } else if(location.hash==='#install'){
+      // they came back in a real browser → make the next tap obvious
+      var rc=document.getElementById('returnCta'); if(rc) rc.classList.add('show');
+      if(dl){ dl.classList.add('pulse'); try{ dl.scrollIntoView({behavior:'smooth',block:'center'}); }catch(_){} }
+      try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){}
+    }
+
     if(dl) dl.addEventListener('click',function(e){
       try{ if(window.va) window.va('event',{name:'download_app_click'}); }catch(_){}
-      // force a top-level, same-view navigation — new tabs are what in-app browsers reject
+      // same-view navigation — new tabs are what in-app browsers reject
       e.preventDefault();
       try{ window.top.location.href=APP_URL; }catch(_){ window.location.href=APP_URL; }
     });
