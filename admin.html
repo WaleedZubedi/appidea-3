@@ -10,58 +10,83 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#181009; --panel:#1f150c; --ink:#f5efe3; --body:rgba(245,239,227,.68);
+    --bg:#181009; --panel:#1f150c; --panel2:#261a0f; --ink:#f5efe3; --body:rgba(245,239,227,.68);
     --dim:rgba(245,239,227,.42); --line:rgba(245,239,227,.12);
     --accent:#f0895f; --leaf:#7fc07a; --amber:#e0a94a; --heart:#e07a5f; --blue:#63a9d6;
     --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",-apple-system,system-ui,sans-serif; --mono:"IBM Plex Mono",monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:var(--sans);color:var(--body);background:radial-gradient(120% 80% at 50% -10%,#241811,#150d07 60%,#0c0704) fixed;min-height:100vh;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1100px;margin:0 auto;padding:26px 22px 60px}
+  .wrap{max-width:1200px;margin:0 auto;padding:22px 20px 60px}
 
-  .top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-  .brand{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink)}
+  .top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .brand{font-family:var(--serif);font-size:23px;font-weight:600;color:var(--ink)}
   .brand small{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.14em;text-transform:uppercase;margin-left:8px}
-  .meta{font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;align-items:center;gap:12px}
-  .btn{font-family:var(--sans);font-weight:600;font-size:12px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:7px 12px;cursor:pointer}
+  .meta{font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;align-items:center;gap:10px}
+  .btn{font-family:var(--sans);font-weight:600;font-size:12px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:7px 11px;cursor:pointer}
   .btn:hover{border-color:var(--accent)}
-
   .demoBanner{margin:12px 0 0;padding:9px 14px;border-radius:10px;background:rgba(224,169,74,.12);border:1px solid rgba(224,169,74,.4);color:var(--amber);font-size:12.5px;font-weight:600;display:none}
 
-  /* KPI cards */
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:11px;margin:20px 0 26px}
-  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 15px}
-  .kpi .n{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
-  .kpi .l{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:7px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:10px;margin:18px 0 20px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 14px}
+  .kpi .n{font-family:var(--serif);font-size:27px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+  .kpi .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:7px}
   .kpi.hot .n{color:var(--leaf)}
 
-  .secTitle{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 12px}
+  .toolbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:11px 0;margin-bottom:14px;background:linear-gradient(#140d06 72%,rgba(20,13,6,0));backdrop-filter:blur(3px)}
+  .search{flex:1;min-width:160px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-family:var(--sans);font-size:13.5px;padding:0 13px;outline:none}
+  .search:focus{border-color:var(--accent)}
+  .vtoggle{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .vtoggle button{font-family:var(--sans);font-weight:600;font-size:12px;color:var(--dim);background:none;border:0;padding:9px 13px;cursor:pointer}
+  .vtoggle button.on{background:var(--accent);color:#1a120a}
+  .count{font-family:var(--mono);font-size:11px;color:var(--dim)}
 
-  /* user cards */
-  .users{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:13px}
-  .u{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px 16px}
-  .u .h{display:flex;align-items:center;gap:9px}
-  .u .st{width:9px;height:9px;border-radius:50%;flex:none}
-  .st.active{background:var(--leaf);box-shadow:0 0 8px var(--leaf)} .st.idle{background:var(--amber)} .st.dormant{background:rgba(245,239,227,.25)}
-  .u .nm{font-family:var(--sans);font-weight:700;font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .u .em{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .st{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+  .st.active{background:var(--leaf);box-shadow:0 0 7px var(--leaf)} .st.idle{background:var(--amber)} .st.dormant{background:rgba(245,239,227,.25)}
+
+  .users.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;align-items:start}
+  .users.grid .item{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .users.grid .head{padding:14px 15px;cursor:pointer}
+  .users.grid .nm{font-weight:700;font-size:15px;color:var(--ink)}
+  .users.grid .h{display:flex;align-items:center;gap:9px}
+  .users.grid .em{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .chips{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 0}
   .chip{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:3px 7px;border-radius:6px;border:1px solid var(--line);color:var(--body)}
-  .chip.paired{color:var(--leaf);border-color:rgba(127,192,122,.4)} .chip.solo{color:var(--amber);border-color:rgba(224,169,74,.4)}
-  .chip.apple{color:var(--body)} .chip.device{color:var(--blue);border-color:rgba(99,169,214,.4)}
-  .stats{display:flex;gap:16px;margin:12px 0 0}
-  .stat .v{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-  .stat .k{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
-  .when{margin:11px 0 0;font-size:11.5px;color:var(--dim)}
-  .when b{color:var(--body);font-weight:600}
+  .chip.paired{color:var(--leaf);border-color:rgba(127,192,122,.4)} .chip.solo{color:var(--amber);border-color:rgba(224,169,74,.4)} .chip.device{color:var(--blue);border-color:rgba(99,169,214,.4)}
+  .miniwhen{margin:10px 0 0;font-size:11.5px;color:var(--dim)} .miniwhen b{color:var(--body);font-weight:600}
 
-  /* heatmap */
-  .heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:2px;margin:12px 0 0}
+  .users.list{display:flex;flex-direction:column;gap:8px}
+  .users.list .item{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .users.list .head{display:flex;align-items:center;gap:11px;padding:12px 15px;cursor:pointer}
+  .users.list .nm{font-weight:700;font-size:14px;color:var(--ink)}
+  .users.list .em{font-family:var(--mono);font-size:10px;color:var(--dim)}
+  .users.list .grow{flex:1;min-width:0}
+  .users.list .rmeta{font-family:var(--mono);font-size:11px;color:var(--dim);white-space:nowrap}
+  .chev{color:var(--dim);font-size:15px;transition:transform .18s} .item.open .chev{transform:rotate(90deg)}
+
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);white-space:nowrap}
+  .trow td{padding:11px 13px;border-bottom:1px solid var(--line);cursor:pointer;vertical-align:top}
+  .trow:hover td{background:var(--panel)}
+  .trow .tem{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px}
+  .tdetail{display:none} .tdetail.open{display:table-row} .tdetail td{padding:0 13px 14px;background:var(--panel2)}
+
+  .detail{display:none;padding:0 15px 15px;border-top:1px solid var(--line);background:var(--panel2)}
+  .item.open .detail{display:block}
+  .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-top:14px}
+  .dk{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+  .dv{display:block;font-size:13px;color:var(--ink);margin-top:3px;word-break:break-word}
+  .dsub{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:15px 0 8px}
+  .note{display:flex;justify-content:space-between;gap:10px;padding:9px 11px;background:rgba(245,239,227,.04);border:1px solid var(--line);border-radius:9px;margin-bottom:6px}
+  .note .nb{color:var(--ink);font-size:13px} .note .nt{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
+  .empty{font-size:12px;color:var(--dim);font-style:italic}
+
+  .heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:2px}
   .cell{width:9px;height:9px;border-radius:2px;background:rgba(245,239,227,.06)}
   .cell.l1{background:rgba(127,192,122,.35)} .cell.l2{background:rgba(127,192,122,.6)} .cell.l3{background:var(--leaf)}
-  .heatlabel{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:5px}
 
-  /* token gate */
   .gate{max-width:360px;margin:14vh auto 0;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px 22px;text-align:center}
   .gate h1{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink);margin-bottom:6px}
   .gate p{font-size:13px;color:var(--dim);margin-bottom:16px}
@@ -73,92 +98,113 @@
 </head>
 <body>
   <div class="wrap" id="app"></div>
-
 <script>
   var FN_URL='https://mvyktmxkhwigrrftsbpn.supabase.co/functions/v1/admin-stats';
-  var TOKEN_KEY='bixi_admin_token';
+  var TOKEN_KEY='bixi_admin_token', VIEW_KEY='bixi_admin_view';
   var app=document.getElementById('app');
+  var state={data:null, view:localStorage.getItem(VIEW_KEY)||'grid', q:''};
 
-  // real snapshot, used for offline/demo preview (?demo)
-  var DEMO={"generated_at": "2026-08-04T09:00:00Z", "totals": {"users": 12, "active_7d": 7, "new_7d": 5, "paired": 6, "solo": 6, "care_events": 38, "notes": 2, "deletions_30d": 1}, "users": [{"name": "Maya R.", "email": "maya@example.com", "joined": "2026-08-01T10:00:00Z", "last_active": "2026-08-04T08:10:00Z", "care": 11, "notes": 1, "paired": true, "bixi": "Sprout", "apple": true, "device": true, "heat": [{"d": "2026-08-01", "c": 3}, {"d": "2026-08-02", "c": 5}, {"d": "2026-08-03", "c": 2}, {"d": "2026-08-04", "c": 1}]}, {"name": "Leo K.", "email": "leo@example.com", "joined": "2026-08-02T14:00:00Z", "last_active": "2026-08-03T19:00:00Z", "care": 7, "notes": 0, "paired": true, "bixi": "Pippin", "apple": true, "device": true, "heat": [{"d": "2026-08-02", "c": 4}, {"d": "2026-08-03", "c": 3}]}, {"name": "Sam T.", "email": "sam@example.com", "joined": "2026-08-03T09:00:00Z", "last_active": "2026-08-03T09:30:00Z", "care": 3, "notes": 0, "paired": false, "bixi": "Bixi", "apple": false, "device": true, "heat": [{"d": "2026-08-03", "c": 3}]}, {"name": "Nora P.", "email": "nora@example.com", "joined": "2026-07-20T09:00:00Z", "last_active": "2026-07-25T09:00:00Z", "care": 2, "notes": 0, "paired": false, "bixi": "Bixi", "apple": true, "device": false, "heat": [{"d": "2026-07-20", "c": 1}, {"d": "2026-07-25", "c": 1}]}, {"name": "Dev A.", "email": "dev@example.com", "joined": "2026-07-10T09:00:00Z", "last_active": "2026-07-11T09:00:00Z", "care": 1, "notes": 1, "paired": true, "bixi": "Fern", "apple": false, "device": false, "heat": [{"d": "2026-07-11", "c": 1}]}]};
+  var DEMO={"generated_at":"2026-08-04T09:00:00Z","totals":{"users":12,"active_7d":7,"new_7d":5,"paired":6,"solo":6,"care_events":38,"notes":2,"deletions_30d":1},"users":[
+   {"name":"Maya R.","email":"maya@example.com","joined":"2026-08-01T10:00:00Z","last_active":"2026-08-04T08:10:00Z","last_sign_in":"2026-08-04T08:00:00Z","care":11,"notes":1,"paired":true,"bixi":"Sprout","partner_name":"Leo K.","partner_email":"leo@example.com","apple":true,"device":true,"heat":[{"d":"2026-08-01","c":3},{"d":"2026-08-02","c":5},{"d":"2026-08-03","c":2},{"d":"2026-08-04","c":1}],"note_list":[{"body":"miss you — feed him tonight","at":"2026-08-03T20:00:00Z"}]},
+   {"name":"Leo K.","email":"leo@example.com","joined":"2026-08-02T14:00:00Z","last_active":"2026-08-03T19:00:00Z","last_sign_in":"2026-08-03T18:00:00Z","care":7,"notes":0,"paired":true,"bixi":"Sprout","partner_name":"Maya R.","partner_email":"maya@example.com","apple":true,"device":true,"heat":[{"d":"2026-08-02","c":4},{"d":"2026-08-03","c":3}],"note_list":[]},
+   {"name":"Sam T.","email":"sam@example.com","joined":"2026-08-03T09:00:00Z","last_active":"2026-08-03T09:30:00Z","last_sign_in":"2026-08-03T09:00:00Z","care":3,"notes":0,"paired":false,"bixi":"Bixi","partner_name":null,"partner_email":null,"apple":false,"device":true,"heat":[{"d":"2026-08-03","c":3}],"note_list":[]},
+   {"name":"Nora P.","email":"nora@example.com","joined":"2026-07-20T09:00:00Z","last_active":"2026-07-25T09:00:00Z","last_sign_in":"2026-07-25T09:00:00Z","care":2,"notes":0,"paired":false,"bixi":"Bixi","partner_name":null,"partner_email":null,"apple":true,"device":false,"heat":[{"d":"2026-07-20","c":1},{"d":"2026-07-25","c":1}],"note_list":[]},
+   {"name":"Dev A.","email":"dev@example.com","joined":"2026-07-10T09:00:00Z","last_active":"2026-07-11T09:00:00Z","last_sign_in":"2026-07-11T09:00:00Z","care":1,"notes":1,"paired":true,"bixi":"Fern","partner_name":"Kai L.","partner_email":"kai@example.com","apple":false,"device":false,"heat":[{"d":"2026-07-11","c":1}],"note_list":[{"body":"don't forget the streak!","at":"2026-07-11T09:00:00Z"}]}
+  ]};
 
-  function rel(iso){
-    if(!iso) return 'never';
-    var d=new Date(iso), now=new Date(), s=(now-d)/1000;
-    if(s<3600) return Math.max(1,Math.round(s/60))+'m ago';
-    if(s<86400) return Math.round(s/3600)+'h ago';
-    var days=Math.round(s/86400);
-    if(days<30) return days+'d ago';
-    return Math.round(days/30)+'mo ago';
-  }
-  function statusOf(iso){
-    if(!iso) return 'dormant';
-    var days=(new Date()-new Date(iso))/86400000;
-    return days<=7?'active':days<=30?'idle':'dormant';
-  }
-  function esc(s){return (s==null?'':String(s)).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function rel(iso){ if(!iso) return 'never'; var s=(new Date()-new Date(iso))/1000;
+    if(s<3600) return Math.max(1,Math.round(s/60))+'m ago'; if(s<86400) return Math.round(s/3600)+'h ago';
+    var d=Math.round(s/86400); return d<30?d+'d ago':Math.round(d/30)+'mo ago'; }
+  function fmt(iso){ if(!iso) return '—'; var d=new Date(iso);
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}); }
+  function fmtShort(iso){ if(!iso) return '—'; var d=new Date(iso); return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+  function statusOf(iso){ if(!iso) return 'dormant'; var d=(new Date()-new Date(iso))/86400000; return d<=7?'active':d<=30?'idle':'dormant'; }
 
   function heatHTML(heat){
     var map={}; (heat||[]).forEach(function(h){map[h.d]=h.c;});
     var days=77, cells='', today=new Date(); today.setHours(0,0,0,0);
-    for(var i=days-1;i>=0;i--){
-      var dt=new Date(today); dt.setDate(today.getDate()-i);
+    for(var i=days-1;i>=0;i--){ var dt=new Date(today); dt.setDate(today.getDate()-i);
       var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
       var c=map[key]||0, lv=c===0?'':' l'+(c<3?1:c<6?2:3);
-      cells+='<div class="cell'+lv+'" title="'+key+': '+c+'"></div>';
-    }
-    return '<div class="heat">'+cells+'</div><div class="heatlabel"><span>11 weeks ago</span><span>today</span></div>';
+      cells+='<div class="cell'+lv+'" title="'+key+': '+c+'"></div>'; }
+    return '<div class="heat">'+cells+'</div>';
+  }
+  function detailInner(u){
+    var notes=(u.note_list||[]).map(function(n){return '<div class="note"><span class="nb">'+esc(n.body)+'</span><span class="nt">'+rel(n.at)+'</span></div>';}).join('') || '<div class="empty">no notes</div>';
+    return '<div class="dgrid">'
+      +'<div><span class="dk">Joined</span><span class="dv">'+fmt(u.joined)+'</span></div>'
+      +'<div><span class="dk">Last active</span><span class="dv">'+fmt(u.last_active)+'</span></div>'
+      +'<div><span class="dk">Last sign-in</span><span class="dv">'+fmt(u.last_sign_in)+'</span></div>'
+      +'<div><span class="dk">Partner</span><span class="dv">'+(u.paired?(esc(u.partner_name||'—')+(u.partner_email?'<br>'+esc(u.partner_email):'')):'solo')+'</span></div>'
+      +'<div><span class="dk">Bixi</span><span class="dv">🌱 '+esc(u.bixi||'—')+'</span></div>'
+      +'<div><span class="dk">Care · Notes</span><span class="dv">'+u.care+' · '+u.notes+'</span></div>'
+      +'<div><span class="dk">Email</span><span class="dv">'+esc(u.email||'—')+'</span></div>'
+      +'<div><span class="dk">Signup</span><span class="dv">'+(u.apple?'Apple':'Email')+(u.device?' · 📱 device':'')+'</span></div>'
+      +'</div><div class="dsub">Activity · last 11 weeks</div>'+heatHTML(u.heat)
+      +'<div class="dsub">Notes written ('+(u.note_list||[]).length+')</div>'+notes;
+  }
+  function chips(u){
+    var c='<span class="chip '+(u.paired?'paired':'solo')+'">'+(u.paired?'paired':'solo')+'</span>';
+    c+=u.apple?'<span class="chip"> Apple</span>':'<span class="chip">Email</span>';
+    c+=u.device?'<span class="chip device">📱</span>':''; c+=u.bixi?'<span class="chip">🌱 '+esc(u.bixi)+'</span>':''; return c;
   }
 
-  function render(data){
-    var t=data.totals, cards=[
-      ['users','Total users',0],['active_7d','Active · 7d',1],['new_7d','New · 7d',1],
-      ['paired','Paired',0],['solo','Solo',0],['care_events','Care actions',0],
-      ['notes','Notes',0],['deletions_30d','Deleted · 30d',0]
-    ].map(function(k){return '<div class="kpi'+(k[2]?' hot':'')+'"><div class="n">'+(t[k[0]]??0)+'</div><div class="l">'+k[1]+'</div></div>';}).join('');
+  function itemGrid(u){ var st=statusOf(u.last_active);
+    return '<div class="item"><div class="head"><div class="h"><span class="st '+st+'"></span><div style="min-width:0"><div class="nm">'+esc(u.name)+'</div><div class="em">'+esc(u.email||'—')+'</div></div></div>'
+      +'<div class="chips">'+chips(u)+'</div>'
+      +'<div class="miniwhen">active <b>'+rel(u.last_active)+'</b> · joined <b>'+rel(u.joined)+'</b> · care <b>'+u.care+'</b></div></div>'
+      +'<div class="detail">'+detailInner(u)+'</div></div>'; }
+  function itemList(u){ var st=statusOf(u.last_active);
+    return '<div class="item"><div class="head"><span class="st '+st+'"></span><div class="grow"><div class="nm">'+esc(u.name)+'</div><div class="em">'+esc(u.email||'—')+'</div></div>'
+      +'<div class="rmeta">'+(u.paired?'paired':'solo')+' · '+u.care+'♥ · '+u.notes+'✎ · '+rel(u.last_active)+'</div><span class="chev">›</span></div>'
+      +'<div class="detail">'+detailInner(u)+'</div></div>'; }
+  function tableHTML(us){
+    var rows=us.map(function(u){ var st=statusOf(u.last_active);
+      return '<tr class="trow"><td><span class="st '+st+'"></span> '+esc(u.name)+'<div class="tem">'+esc(u.email||'—')+'</div></td>'
+        +'<td>'+st+'</td><td>'+fmtShort(u.joined)+'</td><td>'+rel(u.last_active)+'</td><td>'+u.care+'</td><td>'+u.notes+'</td>'
+        +'<td>'+(u.paired?esc(u.partner_name||'yes'):'solo')+'</td><td>'+(u.device?'📱':'')+'</td></tr>'
+        +'<tr class="tdetail"><td colspan="8">'+detailInner(u)+'</td></tr>'; }).join('');
+    return '<div class="tablewrap"><table><thead><tr><th>User</th><th>Status</th><th>Joined</th><th>Last active</th><th>Care</th><th>Notes</th><th>Partner</th><th>Dev</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
 
-    var users=(data.users||[]).map(function(u){
-      var stt=statusOf(u.last_active);
-      var chips='<span class="chip '+(u.paired?'paired':'solo')+'">'+(u.paired?'paired':'solo')+'</span>';
-      chips+=u.apple?'<span class="chip apple"> Apple</span>':'';
-      chips+=u.device?'<span class="chip device">📱 device</span>':'';
-      chips+=u.bixi?'<span class="chip">🌱 '+esc(u.bixi)+'</span>':'';
-      return '<div class="u">'
-        +'<div class="h"><span class="st '+stt+'"></span><div style="min-width:0"><div class="nm">'+esc(u.name)+'</div><div class="em">'+esc(u.email||'—')+'</div></div></div>'
-        +'<div class="chips">'+chips+'</div>'
-        +'<div class="stats"><div class="stat"><div class="v">'+u.care+'</div><div class="k">care</div></div>'
-          +'<div class="stat"><div class="v">'+u.notes+'</div><div class="k">notes</div></div>'
-          +'<div class="stat"><div class="v">'+stt+'</div><div class="k">status</div></div></div>'
-        +'<div class="when">last active <b>'+rel(u.last_active)+'</b> · joined <b>'+rel(u.joined)+'</b></div>'
-        +heatHTML(u.heat)+'</div>';
-    }).join('');
-
+  function filtered(){ var q=state.q.toLowerCase(); return (state.data.users||[]).filter(function(u){ return !q || (u.name||'').toLowerCase().indexOf(q)>-1 || (u.email||'').toLowerCase().indexOf(q)>-1; }); }
+  function renderList(){
+    var wrap=document.getElementById('listwrap'), us=filtered(), v=state.view;
+    document.getElementById('count').textContent=us.length+' shown';
+    if(v==='table') wrap.innerHTML=tableHTML(us);
+    else wrap.innerHTML='<div class="users '+v+'">'+us.map(v==='grid'?itemGrid:itemList).join('')+'</div>';
+  }
+  function paint(){
+    var d=state.data, t=d.totals;
+    var cards=[['users','Total',0],['active_7d','Active 7d',1],['new_7d','New 7d',1],['paired','Paired',0],['solo','Solo',0],['care_events','Care',0],['notes','Notes',0],['deletions_30d','Deleted 30d',0]]
+      .map(function(k){return '<div class="kpi'+(k[2]?' hot':'')+'"><div class="n">'+(t[k[0]]==null?0:t[k[0]])+'</div><div class="l">'+k[1]+'</div></div>';}).join('');
+    var vt=['grid','list','table'].map(function(v){return '<button data-v="'+v+'" class="'+(state.view===v?'on':'')+'">'+(v[0].toUpperCase()+v.slice(1))+'</button>';}).join('');
     app.innerHTML='<div class="top"><div class="brand">Bixi<small>Admin</small></div>'
-      +'<div class="meta"><span>updated '+rel(data.generated_at)+'</span>'
-      +'<button class="btn" onclick="load()">↻ Refresh</button>'
-      +'<button class="btn" onclick="signout()">Sign out</button></div></div>'
-      +'<div class="demoBanner" id="demoB">Demo snapshot — enter your token for live data.</div>'
+      +'<div class="meta"><span>updated '+rel(d.generated_at)+'</span><button class="btn" onclick="load()">↻ Refresh</button><button class="btn" onclick="signout()">Sign out</button></div></div>'
+      +'<div class="demoBanner" id="demoB">Demo data — enter your token for live numbers.</div>'
       +'<div class="kpis">'+cards+'</div>'
-      +'<div class="secTitle">Users · '+(data.users||[]).length+' — sorted by last active</div>'
-      +'<div class="users">'+users+'</div>';
-    if(data.__demo) document.getElementById('demoB').style.display='block';
+      +'<div class="toolbar"><input class="search" id="q" placeholder="Search name or email…"/><div class="vtoggle">'+vt+'</div><span class="count" id="count"></span></div>'
+      +'<div id="listwrap"></div>';
+    if(d.__demo) document.getElementById('demoB').style.display='block';
+    var q=document.getElementById('q'); q.value=state.q;
+    q.addEventListener('input',function(){state.q=this.value;renderList();});
+    app.querySelectorAll('.vtoggle button').forEach(function(b){b.addEventListener('click',function(){state.view=b.dataset.v;localStorage.setItem(VIEW_KEY,state.view);paint();});});
+    document.getElementById('listwrap').addEventListener('click',function(e){
+      var tr=e.target.closest('.trow'); if(tr){var det=tr.nextElementSibling; if(det&&det.classList.contains('tdetail')){det.classList.toggle('open');} return;}
+      var h=e.target.closest('.head'); if(h){var it=h.closest('.item'); if(it) it.classList.toggle('open');}
+    });
+    renderList();
   }
+  function render(data){ state.data=data; paint(); }
 
-  function gate(err){
-    app.innerHTML='<div class="gate"><h1>Bixi Admin</h1><p>Enter your admin token to view live analytics.</p>'
-      +'<input id="tok" type="password" placeholder="admin token" autocomplete="off"/>'
-      +'<button class="go" onclick="saveTok()">View dashboard</button>'
-      +'<div class="err">'+(err||'')+'</div></div>';
-    var i=document.getElementById('tok'); i.focus();
-    i.addEventListener('keydown',function(e){if(e.key==='Enter')saveTok();});
-  }
+  function gate(err){ app.innerHTML='<div class="gate"><h1>Bixi Admin</h1><p>Enter your admin token for live analytics.</p><input id="tok" type="password" placeholder="admin token" autocomplete="off"/><button class="go" onclick="saveTok()">View dashboard</button><div class="err">'+(err||'')+'</div></div>';
+    var i=document.getElementById('tok'); i.focus(); i.addEventListener('keydown',function(e){if(e.key==='Enter')saveTok();}); }
   window.saveTok=function(){var v=document.getElementById('tok').value.trim(); if(!v)return; localStorage.setItem(TOKEN_KEY,v); load();};
   window.signout=function(){localStorage.removeItem(TOKEN_KEY); gate();};
-
   window.load=function(){
     if(location.search.indexOf('demo')>-1){ var d=JSON.parse(JSON.stringify(DEMO)); d.__demo=true; render(d); return; }
-    var tok=localStorage.getItem(TOKEN_KEY);
-    if(!tok){ gate(); return; }
+    var tok=localStorage.getItem(TOKEN_KEY); if(!tok){ gate(); return; }
     app.innerHTML='<div class="gate"><h1>Loading…</h1></div>';
     fetch(FN_URL,{headers:{'x-admin-token':tok}})
       .then(function(r){ if(r.status===401){ localStorage.removeItem(TOKEN_KEY); throw new Error('Wrong token'); } if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
