@@ -16,7 +16,8 @@
     --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",-apple-system,system-ui,sans-serif; --mono:"IBM Plex Mono",monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:var(--sans);color:var(--body);background:radial-gradient(120% 80% at 50% -10%,#241811,#150d07 60%,#0c0704) fixed;min-height:100vh;-webkit-font-smoothing:antialiased}
+  body{font-family:var(--sans);color:var(--body);background:#140d06;min-height:100vh;-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(120% 80% at 50% -10%,#241811,#150d07 60%,#0c0704)}
   .wrap{max-width:1200px;margin:0 auto;padding:22px 20px 60px}
   .top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .brand{font-family:var(--serif);font-size:23px;font-weight:600;color:var(--ink)}
@@ -33,6 +34,9 @@
   .kpi.hot .n{color:var(--leaf)}
 
   .secTitle{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:8px 0 10px}
+  .tabs{display:flex;gap:18px;margin:16px 0 14px;border-bottom:1px solid var(--line)}
+  .tab{font-family:var(--sans);font-weight:600;font-size:14px;color:var(--dim);background:none;border:0;border-bottom:2px solid transparent;padding:9px 2px;margin-bottom:-1px;cursor:pointer}
+  .tab.on{color:var(--ink);border-bottom-color:var(--accent)}
   .panelcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 15px}
   .ct{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
   .legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
@@ -117,7 +121,7 @@
     {key:'care',label:'Care / day',color:'#e0a94a'},
     {key:'notes',label:'Notes / day',color:'#e090b5'}
   ];
-  var state={data:null, view:localStorage.getItem(VIEW_KEY)||'grid', q:'',
+  var state={data:null, view:localStorage.getItem(VIEW_KEY)||'grid', q:'', tab:localStorage.getItem('bixi_admin_tab')||'users',
     series:JSON.parse(localStorage.getItem(SERIES_KEY)||'{"total":true,"signups":true,"active":true,"care":false,"notes":false}')};
 
   var DEMO={"generated_at":"2026-08-04T09:00:00Z","totals":{"users":12,"active_7d":7,"new_7d":5,"paired":6,"solo":6,"care_events":38,"notes":2,"deletions_30d":1},
@@ -208,28 +212,33 @@
     var d=state.data,t=d.totals;
     var cards=[['users','Total',0],['active_7d','Active 7d',1],['new_7d','New 7d',1],['paired','Paired',0],['solo','Solo',0],['care_events','Care',0],['notes','Notes',0],['deletions_30d','Deleted 30d',0]]
       .map(function(k){return '<div class="kpi'+(k[2]?' hot':'')+'"><div class="n">'+(t[k[0]]==null?0:t[k[0]])+'</div><div class="l">'+k[1]+'</div></div>';}).join('');
-    var vt=['grid','list','table'].map(function(v){return '<button data-v="'+v+'" class="'+(state.view===v?'on':'')+'">'+(v[0].toUpperCase()+v.slice(1))+'</button>';}).join('');
     app.innerHTML='<div class="top"><div class="brand">Bixi<small>Admin</small></div><div class="meta"><span>updated '+rel(d.generated_at)+'</span><button class="btn" onclick="load()">↻ Refresh</button><button class="btn" onclick="signout()">Sign out</button></div></div>'
       +'<div class="demoBanner" id="demoB">Demo data — enter your token for live numbers.</div>'
       +'<div class="kpis">'+cards+'</div>'
-      +'<div class="secTitle">Trends · last 60 days</div>'
-      +'<div class="panelcard"><div id="linechart"></div><div class="legend" id="legend"></div></div>'
-      +'<div class="twocol"><div class="panelcard"><div class="ct">Care activity by hour (UTC)</div><div id="hourchart"></div></div><div class="panelcard"><div class="ct">Care activity by weekday</div><div id="dowchart"></div></div></div>'
-      +'<div class="secTitle" style="margin-top:22px">Users</div>'
-      +'<div class="toolbar"><input class="search" id="q" placeholder="Search name or email…"/><div class="vtoggle">'+vt+'</div><span class="count" id="count"></span></div>'
-      +'<div id="listwrap"></div>';
+      +'<div class="tabs"><button class="tab '+(state.tab==='users'?'on':'')+'" data-t="users">Users</button><button class="tab '+(state.tab==='trends'?'on':'')+'" data-t="trends">Trends</button></div>'
+      +'<div id="tabbody"></div>';
     if(d.__demo) document.getElementById('demoB').style.display='block';
-    // charts
-    redrawLine();
-    var s=d.series||{};
-    document.getElementById('hourchart').innerHTML=drawBars(s.by_hour||[], Array.from({length:24},function(_,i){return i;}), '#63a9d6');
-    document.getElementById('dowchart').innerHTML=drawBars(s.by_dow||[], ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], '#7fc07a');
-    document.getElementById('legend').addEventListener('click',function(e){var b=e.target.closest('.lchip');if(!b)return;var k=b.dataset.k;state.series[k]=!state.series[k];localStorage.setItem(SERIES_KEY,JSON.stringify(state.series));redrawLine();});
-    // users
-    var q=document.getElementById('q');q.value=state.q;q.addEventListener('input',function(){state.q=this.value;renderList();});
-    app.querySelectorAll('.vtoggle button').forEach(function(b){b.addEventListener('click',function(){state.view=b.dataset.v;localStorage.setItem(VIEW_KEY,state.view);paint();});});
-    document.getElementById('listwrap').addEventListener('click',function(e){var tr=e.target.closest('.trow');if(tr){var det=tr.nextElementSibling;if(det&&det.classList.contains('tdetail'))det.classList.toggle('open');return;}var h=e.target.closest('.head');if(h){var it=h.closest('.item');if(it)it.classList.toggle('open');}});
-    renderList();
+    app.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){state.tab=b.dataset.t;localStorage.setItem('bixi_admin_tab',state.tab);paint();});});
+    renderTab();
+  }
+  function renderTab(){
+    var body=document.getElementById('tabbody'), d=state.data;
+    if(state.tab==='trends'){
+      body.innerHTML='<div class="panelcard"><div id="linechart"></div><div class="legend" id="legend"></div></div>'
+        +'<div class="twocol"><div class="panelcard"><div class="ct">Care activity by hour (UTC)</div><div id="hourchart"></div></div><div class="panelcard"><div class="ct">Care activity by weekday</div><div id="dowchart"></div></div></div>';
+      redrawLine();
+      var s=d.series||{};
+      document.getElementById('hourchart').innerHTML=drawBars(s.by_hour||[], Array.from({length:24},function(_,i){return i;}), '#63a9d6');
+      document.getElementById('dowchart').innerHTML=drawBars(s.by_dow||[], ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], '#7fc07a');
+      document.getElementById('legend').addEventListener('click',function(e){var b=e.target.closest('.lchip');if(!b)return;var k=b.dataset.k;state.series[k]=!state.series[k];localStorage.setItem(SERIES_KEY,JSON.stringify(state.series));redrawLine();});
+    } else {
+      var vt=['grid','list','table'].map(function(v){return '<button data-v="'+v+'" class="'+(state.view===v?'on':'')+'">'+(v[0].toUpperCase()+v.slice(1))+'</button>';}).join('');
+      body.innerHTML='<div class="toolbar"><input class="search" id="q" placeholder="Search name or email…"/><div class="vtoggle">'+vt+'</div><span class="count" id="count"></span></div><div id="listwrap"></div>';
+      var q=document.getElementById('q');q.value=state.q;q.addEventListener('input',function(){state.q=this.value;renderList();});
+      body.querySelectorAll('.vtoggle button').forEach(function(b){b.addEventListener('click',function(){state.view=b.dataset.v;localStorage.setItem(VIEW_KEY,state.view);renderTab();});});
+      document.getElementById('listwrap').addEventListener('click',function(e){var tr=e.target.closest('.trow');if(tr){var det=tr.nextElementSibling;if(det&&det.classList.contains('tdetail'))det.classList.toggle('open');return;}var h=e.target.closest('.head');if(h){var it=h.closest('.item');if(it)it.classList.toggle('open');}});
+      renderList();
+    }
   }
   function render(data){state.data=data;paint();}
 
