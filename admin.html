@@ -403,7 +403,8 @@
     if(lastTotal==null && data.totals) lastTotal=data.totals.users||0;   /* baseline: no ping for existing users */
     if(!booted){ booted=true;
       if('Notification' in window && Notification.permission==='default' && notifOn){ Notification.requestPermission().then(updateBell); }
-      if(!pollTimer) pollTimer=setInterval(poll,60000);   /* re-check every 60s while tab is open */
+      if(!pollTimer) pollTimer=setInterval(poll,60000);   /* re-check every 60s for new-user pings */
+      setInterval(function(){ if(state.data && !state.data.__demo) paint(); },300000);   /* full refresh every 5 min */
     }
   }
 
