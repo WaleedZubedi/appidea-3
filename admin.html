@@ -150,6 +150,8 @@
   var DEL_URL='https://mvyktmxkhwigrrftsbpn.supabase.co/functions/v1/admin-delete-user';
   var TOKEN_KEY='bixi_admin_token', VIEW_KEY='bixi_admin_view', SERIES_KEY='bixi_admin_series';
   var app=document.getElementById('app');
+  var NOTIF_KEY='bixi_admin_notif';
+  var lastTotal=null, pollTimer=null, booted=false, notifOn=(localStorage.getItem(NOTIF_KEY)!=='0');
   var DOW_FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   var DOW_SHORT=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   var SERIES=[
@@ -318,7 +320,7 @@
       ['deletions_30d','Deleted 30d','Accounts deleted in the last 30 days — your churn signal.',0]
     ];
     var cards=KPI.map(function(k){return '<div class="kpi'+(k[3]?' hot':'')+'"><div class="n">'+(t[k[0]]==null?0:t[k[0]])+'</div><div class="l">'+k[1]+hint(k[2])+'</div></div>';}).join('');
-    app.innerHTML='<div class="top"><div class="brand">Bixi<small>Admin</small></div><div class="meta"><span>updated '+rel(d.generated_at)+'</span><button class="btn" onclick="load()">↻ Refresh</button><button class="btn" onclick="signout()">Sign out</button></div></div>'
+    app.innerHTML='<div class="top"><div class="brand">Bixi<small>Admin</small></div><div class="meta"><span id="upd">updated '+rel(d.generated_at)+'</span><button class="btn" id="bell" onclick="toggleNotif()">🔕 Alerts</button><button class="btn" onclick="load()">↻ Refresh</button><button class="btn" onclick="signout()">Sign out</button></div></div>'
       +'<div class="demoBanner" id="demoB">Demo data — enter your token for live numbers.</div>'
       +'<div class="kpis">'+cards+'</div>'
       +insightsHTML()
@@ -327,6 +329,40 @@
     if(d.__demo) document.getElementById('demoB').style.display='block';
     app.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){state.tab=b.dataset.t;localStorage.setItem('bixi_admin_tab',state.tab);paint();});});
     renderTab();
+    updateBell();
+  }
+
+  /* ---------- new-user notifications ---------- */
+  function notifReady(){return ('Notification' in window) && Notification.permission==='granted';}
+  function updateBell(){
+    var b=document.getElementById('bell'); if(!b) return;
+    var on=notifOn && notifReady();
+    b.textContent=on?'🔔 Alerts on':'🔕 Alerts';
+    b.style.borderColor=on?'var(--leaf)':''; b.style.color=on?'var(--leaf)':'';
+  }
+  function fireNotif(delta,total){
+    if(!notifReady()) return;
+    try{ new Notification('🌱 New Bixi user'+(delta>1?'s!':'!'),{body:delta+' new signup'+(delta>1?'s':'')+' — you’re now at '+total+' users.',tag:'bixi-signup-'+total}); }catch(e){}
+  }
+  window.toggleNotif=function(){
+    if(!('Notification' in window)){alert('This browser doesn’t support desktop notifications.');return;}
+    if(Notification.permission==='granted'){
+      notifOn=!notifOn; localStorage.setItem(NOTIF_KEY,notifOn?'1':'0'); updateBell();
+      if(notifOn){ try{ new Notification('🔔 Bixi alerts on',{body:'You’ll get a ping here whenever a new user signs up.'}); }catch(e){} }
+    } else if(Notification.permission!=='denied'){
+      Notification.requestPermission().then(function(p){ if(p==='granted'){ notifOn=true; localStorage.setItem(NOTIF_KEY,'1'); try{ new Notification('🔔 Bixi alerts on',{body:'You’ll get a ping here whenever a new user signs up.'}); }catch(e){} } updateBell(); });
+    } else {
+      alert('Notifications are blocked for this site. Click the 🔒 (or ⓘ) in your address bar → Site settings → allow Notifications, then reload.');
+    }
+  };
+  function poll(){
+    var tok=localStorage.getItem(TOKEN_KEY); if(!tok) return;
+    fetch(FN_URL,{headers:{'x-admin-token':tok}}).then(function(r){return r.ok?r.json():null;}).then(function(data){
+      if(!data||!data.totals) return;
+      var n=data.totals.users||0;
+      if(lastTotal!=null && n>lastTotal){ var delta=n-lastTotal; lastTotal=n; if(notifOn) fireNotif(delta,n); state.data=data; paint(); }
+      else { lastTotal=n; state.data=data; var u=document.getElementById('upd'); if(u) u.textContent='updated '+rel(data.generated_at); }
+    }).catch(function(){});
   }
   function renderTab(){
     var body=document.getElementById('tabbody'), d=state.data;
@@ -361,7 +397,15 @@
       renderList();
     }
   }
-  function render(data){state.data=data;paint();}
+  function render(data){
+    state.data=data; paint();
+    if(data.__demo) return;
+    if(lastTotal==null && data.totals) lastTotal=data.totals.users||0;   /* baseline: no ping for existing users */
+    if(!booted){ booted=true;
+      if('Notification' in window && Notification.permission==='default' && notifOn){ Notification.requestPermission().then(updateBell); }
+      if(!pollTimer) pollTimer=setInterval(poll,60000);   /* re-check every 60s while tab is open */
+    }
+  }
 
   function gate(err){app.innerHTML='<div class="gate"><h1>Bixi Admin</h1><p>Enter your admin token for live analytics.</p><input id="tok" type="password" placeholder="admin token" autocomplete="off"/><button class="go" onclick="saveTok()">View dashboard</button><div class="err">'+(err||'')+'</div></div>';var i=document.getElementById('tok');i.focus();i.addEventListener('keydown',function(e){if(e.key==='Enter')saveTok();});}
   window.saveTok=function(){var v=document.getElementById('tok').value.trim();if(!v)return;localStorage.setItem(TOKEN_KEY,v);load();};
