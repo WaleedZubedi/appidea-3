@@ -390,9 +390,9 @@ export default function Home() {
 
   // live status alerts pinned to the top of the notifications panel
   const notifAlerts: NotifAlert[] = [];
-  if (isDormant) notifAlerts.push({ icon: '🥀', text: `${s.bixiName} is fading — feed & water him`, tint: '#ff8a7a' });
+  if (isDormant) notifAlerts.push({ icon: '🥀', text: `${s.bixiName} is fading. feed & water him`, tint: '#ff8a7a' });
   else if (missActive) notifAlerts.push({ icon: '💔', text: `${s.bixiName} misses ${missWho}` });
-  if (inDanger) notifAlerts.push({ icon: '❤️', text: paired ? `Act now — you both need to keep the streak` : `Do any action to keep your streak alive` });
+  if (inDanger) notifAlerts.push({ icon: '❤️', text: paired ? `Act now, you both need to keep the streak` : `Do any action to keep your streak alive` });
   const hasNotif = inDanger || missActive || isDormant;
 
   const greeting = (() => {
@@ -454,7 +454,7 @@ export default function Home() {
     if (paired && !prevPaired.current) {
       setInviteOpen(false);
       fireArrival(); reactSend.current?.('arrival'); // both-parents clip the moment it blooms
-      Alert.alert(`${s.bixiName} bloomed 🌸`, `Your person joined — you're raising ${s.bixiName} together now.`);
+      Alert.alert(`${s.bixiName} bloomed 🌸`, `Your person joined. You're raising ${s.bixiName} together now.`);
     }
     prevPaired.current = paired;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -501,7 +501,7 @@ export default function Home() {
   const askNotifications = () => {
     Alert.alert(
       `Get reminded when ${s.bixiName} needs you`,
-      `We’ll only nudge you when ${s.bixiName} needs care or starts to miss you — so you never let him down. Nothing else, ever.`,
+      `We’ll only nudge you when ${s.bixiName} needs care or starts to miss you. So you never let him down. Nothing else, ever.`,
       [
         { text: 'Not now', style: 'cancel' },
         { text: 'Remind me 🌱', onPress: () => { void enableNotifications(s.bixiName); } },
@@ -881,7 +881,7 @@ export default function Home() {
                     ? `waiting on ${partnerLabel} to fill their half`
                     : partnerContrib
                     ? `${partnerLabel} is in — your half’s next`
-                    : 'act now — you both need to, before it breaks'}
+                    : 'act now, you both need to before it breaks'}
                 </Text>
               </View>
             )}

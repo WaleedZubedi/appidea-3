@@ -34,7 +34,7 @@ const CARE: Record<string, { emoji: string; verb: string }> = {
   sun: { emoji: '☀️', verb: 'sunbathed with' },
 };
 const MILE: Record<string, { glyph: string; title: (d: string | null) => string }> = {
-  bloom: { glyph: '🌸', title: () => 'Bloomed — a second keeper joined' },
+  bloom: { glyph: '🌸', title: () => 'Bloomed, a second keeper joined' },
   growth: { glyph: '🌿', title: (d) => `Grew into a ${d ?? 'new stage'}` },
   revive: { glyph: '↺', title: () => 'Woke from dormancy' },
 };

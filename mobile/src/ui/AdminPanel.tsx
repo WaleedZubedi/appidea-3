@@ -235,7 +235,7 @@ export function AdminPanel({ visible, onClose }: { visible: boolean; onClose: ()
     try {
       const token = await registerForPush();
       if (!token) {
-        Alert.alert('No push token', 'Turn on notifications first (You → “Remind me when Bixi needs me”), and use a real device — not the simulator.');
+        Alert.alert('No push token', 'Turn on notifications first (You → “Remind me when Bixi needs me”), and use a real device, not the simulator.');
         return;
       }
       const res = await fetch('https://exp.host/--/api/v2/push/send', {
@@ -245,7 +245,7 @@ export function AdminPanel({ visible, onClose }: { visible: boolean; onClose: ()
           to: token,
           sound: 'default',
           title: s.bixiName || 'Bixi',
-          body: `${s.bixiName || 'Bixi'} misses you — come see him 🌱`,
+          body: `${s.bixiName || 'Bixi'} misses you, come see him 🌱`,
           data: { type: 'test' },
         }),
       });
