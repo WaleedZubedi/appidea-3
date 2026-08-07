@@ -21,8 +21,8 @@ const DIM = 'rgba(245,239,227,0.55)';
 const LINE = 'rgba(245,239,227,0.14)';
 const ACCENT = '#f0895f';
 
-const NOTE_TTL_MS = 12 * 60 * 60 * 1000; // notes vanish 12h after they're written
-const NOTE_COOLDOWN_MS = 12 * 60 * 60 * 1000; // one note per keeper every 12h
+const NOTE_TTL_MS = 2 * 60 * 60 * 1000; // notes vanish 2h after they're written
+const NOTE_COOLDOWN_MS = 2 * 60 * 60 * 1000; // one note per keeper every 2h
 const MAX_LEN = 100;
 
 function countdown(ms: number): string {
@@ -136,7 +136,7 @@ export function GlowNote({
     } catch (e) {
       const m = (e as { message?: string })?.message ?? '';
       setSendErr(m.includes('note_cooldown')
-        ? 'One note every 6 hours — hang tight.'
+        ? 'One note every 2 hours, hang tight.'
         : 'Couldn’t send that. Check your connection.');
     }
     setBusy(false);
@@ -199,7 +199,7 @@ export function GlowNote({
                 <Text style={styles.err}>{sendErr}</Text>
               ) : (
                 <Text style={styles.rules}>
-                  {locked ? `🔒 One note every 12 hours · next in ${countdown(remaining)}` : '💌 One note every 12 hours · it fades after 12 hours'}
+                  {locked ? `🔒 One note every 2 hours · next in ${countdown(remaining)}` : '💌 One note every 2 hours · it fades after 2 hours'}
                 </Text>
               )}
 

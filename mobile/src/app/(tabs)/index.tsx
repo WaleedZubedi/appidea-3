@@ -7,7 +7,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Circle, ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
 
 import { fonts } from '@/theme';
-import { HOUR, STAGE_META, deriveMoodState, driftedKeepers, modeOf, nextMilestone, stageForStreak } from '@/game/engine';
+import { HOUR, STAGE_META, deriveMoodState, driftedKeepers, modeOf, stageForStreak } from '@/game/engine';
 import { useBixi } from '@/game/store';
 import { BixiGuide } from '@/ui/BixiGuide';
 import { BixiHero } from '@/ui/BixiHero';
@@ -354,8 +354,6 @@ export default function Home() {
   const selfId = self?.id ?? 'self';
 
   const stage = STAGE_META[stageForStreak(s.streak, paired)];
-  const next = nextMilestone(s.streak);
-  const daysToNext = next ? next.streak - s.streak : 0;
   const day = s.createdAt ? Math.floor((now - s.createdAt) / (24 * HOUR)) + 1 : 1;
   const partnerName = partner?.name && partner.name !== 'Your person' ? partner.name : 'your person';
   const partnerLabel = partnerName === 'your person'
@@ -740,7 +738,6 @@ export default function Home() {
         <Pressable style={styles.footerBtn} onPress={() => router.push('/growth')} hitSlop={8}>
           <Text style={styles.footer}>
             Day {String(day).padStart(3, '0')} · {stage.emoji} {stage.label}
-            {next ? ` · ${daysToNext}d to ${STAGE_META[next.stage].label}` : ''}
           </Text>
           <Svg width={13} height={13} viewBox="0 0 24 24">
             <Path d="M9 6l6 6-6 6" stroke={DIM} strokeWidth={2.3} fill="none" strokeLinecap="round" strokeLinejoin="round" />
