@@ -2,7 +2,7 @@
   "expo": {
     "name": "Bixi",
     "slug": "bixi",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bixi",
@@ -60,10 +60,12 @@
           "backgroundColor": "#140800",
           "image": "./assets/images/splash.png",
           "resizeMode": "cover",
+          "enableFullScreenImage_legacy": true,
           "dark": {
             "backgroundColor": "#140800",
             "image": "./assets/images/splash.png",
-            "resizeMode": "cover"
+            "resizeMode": "cover",
+            "enableFullScreenImage_legacy": true
           }
         }
       ],
