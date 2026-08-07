@@ -80,7 +80,7 @@ function EyeIcon({ off }: { off?: boolean }) {
 export default function Auth() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { signInWithPassword, signUpWithPassword, signInWithProvider, signInWithApple } = useAuth();
+  const { signInWithPassword, signUpWithPassword, signInWithProvider, signInWithApple, resetPassword } = useAuth();
   const [appleAvailable, setAppleAvailable] = useState(false);
   useEffect(() => { AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {}); }, []);
   const params = useLocalSearchParams<{ invite?: string; inviter?: string; bixi?: string }>();
@@ -94,6 +94,7 @@ export default function Auth() {
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [kbOpen, setKbOpen] = useState(false);
 
   // collapse the hero when the keyboard is up so the fields + button get the
@@ -160,6 +161,21 @@ export default function Auth() {
       if (e) return setErr(friendlyAuthError(e));
       await afterAuth();
     }
+  };
+
+  const forgotPw = async () => {
+    if (busy) return;
+    const em = email.trim().toLowerCase();
+    setNotice(null);
+    if (em.length < 4 || !em.includes('@')) {
+      return setErr('Type your email above first, then tap “Forgot password”.');
+    }
+    setErr(null);
+    setBusy(true);
+    const res = await resetPassword(em);
+    setBusy(false);
+    if (res.error) return setErr(friendlyAuthError(res.error));
+    setNotice('Sent! Check your email for a link to reset your password 🌱');
   };
 
   // OAuth users may be new OR returning → always hydrate to route correctly
@@ -294,7 +310,14 @@ export default function Auth() {
               </Pressable>
             </View>
 
+            {!isUp ? (
+              <Pressable onPress={forgotPw} hitSlop={8} style={{ alignSelf: 'flex-end', marginTop: 10 }}>
+                <Txt style={{ color: ACCENT, fontSize: 13, fontWeight: '600' }}>Forgot password?</Txt>
+              </Pressable>
+            ) : null}
+
             {err ? <Txt style={styles.error}>{err}</Txt> : null}
+            {notice ? <Txt style={[styles.error, { color: '#7fc07a' }]}>{notice}</Txt> : null}
 
             <Pressable
               onPress={submit}
@@ -343,7 +366,7 @@ export default function Auth() {
 
             <View style={styles.switchRow}>
               <Txt style={styles.switchText}>{isUp ? 'Already have an account? ' : 'New here? '}</Txt>
-              <Pressable onPress={() => { setErr(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
+              <Pressable onPress={() => { setErr(null); setNotice(null); setMode(isUp ? 'in' : 'up'); }} hitSlop={8}>
                 <Txt style={styles.switchLink}>{isUp ? 'Sign in' : 'Create one'}</Txt>
               </Pressable>
             </View>

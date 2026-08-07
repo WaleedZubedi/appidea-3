@@ -20,6 +20,7 @@ interface AuthState {
   signInWithPassword: (email: string, password: string) => Promise<string | null>;
   signInWithProvider: (provider: 'apple' | 'google') => Promise<string | null>;
   signInWithApple: () => Promise<string | null>; // native iOS "Sign in with Apple"
+  resetPassword: (email: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -120,6 +121,14 @@ export const useAuth = create<AuthState>((set) => ({
       if (err?.code === 'ERR_REQUEST_CANCELED') return 'cancelled';
       return err?.message ?? 'Apple sign-in failed';
     }
+  },
+
+  resetPassword: async (email) => {
+    if (!supabase) return { error: 'offline' };
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: 'https://bixi.world/reset',
+    });
+    return error ? { error: error.message } : {};
   },
 
   signOut: async () => {
