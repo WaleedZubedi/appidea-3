@@ -3,6 +3,7 @@
  * Apple/Google sign-in via the OAuth browser flow once those providers are enabled
  * in Supabase. Offline mode → no auth.
  */
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
@@ -34,20 +35,31 @@ export const useAuth = create<AuthState>((set) => ({
       set({ ready: true, userId: null });
       return;
     }
-    // The listener fires an INITIAL_SESSION event on subscribe with the restored
-    // session, and again on any refresh/sign-in/out — this is the source of truth.
-    supabase.auth.onAuthStateChange((_e, session) => {
-      set({ userId: session?.user?.id ?? null, ready: true });
-    });
-    // Back it up with getSession, but NEVER null a valid session just because a
-    // slow refresh lost a timeout race — only unblock first render.
-    const load = supabase.auth
+    // `settled` guards against the safety-timeout marking us "ready" (as logged
+    // out) after the real auth state has already arrived. Both getSession and the
+    // auth listener set userId + ready together so we never flash a null user.
+    let settled = false;
+    const settle = (uid: string | null) => { settled = true; set({ userId: uid, ready: true }); };
+
+    // Fires INITIAL_SESSION on subscribe with the restored session, then on any
+    // refresh / sign-in / sign-out — the source of truth.
+    supabase.auth.onAuthStateChange((_e, session) => settle(session?.user?.id ?? null));
+    supabase.auth
       .getSession()
-      .then(({ data }) => set({ userId: data.session?.user?.id ?? null }))
+      .then(({ data }) => { if (!settled) settle(data.session?.user?.id ?? null); })
       .catch(() => {});
-    const guard = new Promise<void>((res) => setTimeout(res, 4000));
-    await Promise.race([load, guard]);
-    set({ ready: true });
+
+    // If a session is persisted in storage, a slow cold-start restore must NEVER
+    // look like "logged out" — give it a real window instead of bailing at 4s.
+    let hasStored = false;
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      hasStored = keys.some((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
+    } catch { /* ignore */ }
+
+    // Safety net so the splash never hangs forever (longer when we KNOW a session
+    // exists). Only unblocks; never overwrites a userId that has already resolved.
+    setTimeout(() => { if (!settled) set({ ready: true }); }, hasStored ? 12000 : 4000);
   },
 
   signUpWithPassword: async (email, password, name) => {
