@@ -21,6 +21,19 @@ const DIM = 'rgba(245,239,227,0.55)';
 const LINE = 'rgba(245,239,227,0.14)';
 const ACCENT = '#f0895f';
 
+// Note paper colours. `paper` is the sticky background; `from`/`body` are the
+// darker inks that read on that paper. The stored note.color is the paper hex.
+const NOTE_COLORS = [
+  { key: 'green', paper: '#c9e8a3', from: '#4d7a2b', body: '#2f4a1c' },
+  { key: 'purple', paper: '#d9c7f0', from: '#6a3fa0', body: '#3d2366' },
+  { key: 'pink', paper: '#f5c6d6', from: '#b0416a', body: '#6e2740' },
+  { key: 'blue', paper: '#bcdcf2', from: '#35688f', body: '#1f3f5c' },
+  { key: 'amber', paper: '#f5d8a8', from: '#a56a1e', body: '#6b4310' },
+];
+const DEFAULT_NOTE_COLOR = NOTE_COLORS[0];
+const paletteFor = (color: string | null) =>
+  NOTE_COLORS.find((c) => c.paper.toLowerCase() === (color ?? '').toLowerCase()) ?? DEFAULT_NOTE_COLOR;
+
 const NOTE_TTL_MS = 24 * 60 * 60 * 1000; // a note stays for 24h (or until a newer one replaces it)
 const NOTE_COOLDOWN_MS = 2 * 60 * 60 * 1000; // one note per keeper every 2h
 const MAX_LEN = 100;
@@ -50,6 +63,7 @@ export function GlowNote({
   const notesReadAt = useBixi((st) => st.notesReadAt);
   const [notes, setNotes] = useState<Note[]>([]);
   const [text, setText] = useState('');
+  const [color, setColor] = useState(DEFAULT_NOTE_COLOR.paper);
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [sendErr, setSendErr] = useState<string | null>(null);
@@ -128,8 +142,8 @@ export function GlowNote({
     if (!body || busy || !pairId || locked) return;
     setBusy(true); setSendErr(null);
     try {
-      await addNote(pairId, body, ACCENT);
-      track('note_sent');
+      await addNote(pairId, body, color);
+      track('note_sent', { color });
       setText('');
       const n = await fetchNotes(pairId);
       setNotes(n);
@@ -149,11 +163,11 @@ export function GlowNote({
       {/* a small tilted sticky note pinned on Home — soft glow invites a note */}
       <Pressable onPress={openIt} style={styles.noteWrap} hitSlop={8}>
         <Animated.View style={[styles.noteGlow, { opacity: glowOpacity }]} pointerEvents="none" />
-        <View style={styles.sticky}>
+        <View style={[styles.sticky, partnerNote && { backgroundColor: paletteFor(partnerNote.color).paper }]}>
           {partnerNote ? (
             <>
-              <Text style={styles.stickyFrom} numberOfLines={1}>from {partnerName}</Text>
-              <Text style={styles.stickyBody} numberOfLines={3}>{partnerNote.body}</Text>
+              <Text style={[styles.stickyFrom, { color: paletteFor(partnerNote.color).from }]} numberOfLines={1}>from {partnerName}</Text>
+              <Text style={[styles.stickyBody, { color: paletteFor(partnerNote.color).body }]} numberOfLines={3}>{partnerNote.body}</Text>
             </>
           ) : (
             <Text style={styles.stickyPlaceholder} numberOfLines={2}>leave a note…</Text>
@@ -172,14 +186,30 @@ export function GlowNote({
               <Text style={styles.seenHint}>Only {partnerName} sees this — it shows up on their home 💛</Text>
 
               {partnerNote && (
-                <View style={styles.readCard}>
-                  <Text style={styles.readFrom}>{partnerName} · {ago(partnerNote.created_at, now)}</Text>
-                  <Text style={styles.readBody}>{partnerNote.body}</Text>
+                <View style={[styles.readCard, { backgroundColor: paletteFor(partnerNote.color).paper }]}>
+                  <Text style={[styles.readFrom, { color: paletteFor(partnerNote.color).from }]}>{partnerName} · {ago(partnerNote.created_at, now)}</Text>
+                  <Text style={[styles.readBody, { color: paletteFor(partnerNote.color).body }]}>{partnerNote.body}</Text>
                   <Pressable onPress={() => reportNote(partnerNote)} hitSlop={8} style={styles.report}>
-                    <Text style={styles.reportTxt}>Report</Text>
+                    <Text style={[styles.reportTxt, { color: paletteFor(partnerNote.color).from }]}>Report</Text>
                   </Pressable>
                 </View>
               )}
+
+              <View style={styles.swatchRow}>
+                {NOTE_COLORS.map((c) => {
+                  const on = c.paper === color;
+                  return (
+                    <Pressable
+                      key={c.key}
+                      onPress={() => setColor(c.paper)}
+                      hitSlop={8}
+                      style={[styles.swatch, { backgroundColor: c.paper }, on && styles.swatchOn]}
+                    >
+                      {on && <View style={styles.swatchDot} />}
+                    </Pressable>
+                  );
+                })}
+              </View>
 
               <View style={styles.inputWrap}>
                 <TextInput
@@ -188,7 +218,7 @@ export function GlowNote({
                   editable={!locked}
                   placeholder={locked ? `Come back in ${countdown(remaining)}…` : `Something sweet, short and sweet…`}
                   placeholderTextColor="rgba(245,239,227,0.38)"
-                  style={[styles.input, locked && { opacity: 0.5 }]}
+                  style={[styles.input, { borderColor: color }, locked && { opacity: 0.5 }]}
                   multiline
                   maxLength={MAX_LEN}
                 />
@@ -266,7 +296,16 @@ const styles = StyleSheet.create({
   report: { alignSelf: 'flex-end', marginTop: 8, paddingVertical: 2 },
   reportTxt: { fontFamily: fonts.sansSemibold, fontSize: 11.5, color: DIM, textDecorationLine: 'underline' },
 
-  inputWrap: { marginTop: 16 },
+  swatchRow: { flexDirection: 'row', gap: 12, marginTop: 16, alignItems: 'center' },
+  swatch: {
+    width: 30, height: 30, borderRadius: 15,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: 'transparent',
+  },
+  swatchOn: { borderColor: CREAM, transform: [{ scale: 1.12 }] },
+  swatchDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(20,12,6,0.55)' },
+
+  inputWrap: { marginTop: 14 },
   input: {
     minHeight: 64, maxHeight: 130, borderRadius: 16, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12,
     backgroundColor: 'rgba(245,239,227,0.06)', borderWidth: 1, borderColor: LINE,
