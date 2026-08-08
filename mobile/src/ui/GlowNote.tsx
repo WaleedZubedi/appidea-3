@@ -21,7 +21,7 @@ const DIM = 'rgba(245,239,227,0.55)';
 const LINE = 'rgba(245,239,227,0.14)';
 const ACCENT = '#f0895f';
 
-const NOTE_TTL_MS = 2 * 60 * 60 * 1000; // notes vanish 2h after they're written
+const NOTE_TTL_MS = 24 * 60 * 60 * 1000; // a note stays for 24h (or until a newer one replaces it)
 const NOTE_COOLDOWN_MS = 2 * 60 * 60 * 1000; // one note per keeper every 2h
 const MAX_LEN = 100;
 
@@ -199,7 +199,7 @@ export function GlowNote({
                 <Text style={styles.err}>{sendErr}</Text>
               ) : (
                 <Text style={styles.rules}>
-                  {locked ? `🔒 One note every 2 hours · next in ${countdown(remaining)}` : '💌 One note every 2 hours · it fades after 2 hours'}
+                  {locked ? `🔒 One note every 2 hours · next in ${countdown(remaining)}` : '💌 One note every 2 hours · it stays for 24 hours'}
                 </Text>
               )}
 
